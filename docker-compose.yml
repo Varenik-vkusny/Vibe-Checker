@@ -1,0 +1,52 @@
+services:
+  app:
+    build: .
+
+    volumes:
+      - .:/app
+
+    ports:
+      - 8000:8000
+
+    env_file:
+      - .env
+
+    depends_on:
+      - db
+      - redis
+      - qdrant
+
+  db:
+    image: postgres:18
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/18/main/
+
+    env_file:
+      - .env.db
+
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:8-alpine
+
+    ports:
+      - "6379:6379"
+
+    env_file:
+      - .env
+
+  qdrant:
+    image: qdrant/qdrant
+
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # Здесь будет воркер для celery
+
+volumes:
+  postgres_data:
+  qdrant_data:

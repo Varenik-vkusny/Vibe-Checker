@@ -1,0 +1,37 @@
+# Игнорировать все .env файлы, содержащие секреты
+.env
+.env.*
+
+# Не игнорировать файлы-примеры
+!*.env.example
+!*.env.*.example
+
+# Папка виртуального окружения
+venv/
+/venv/
+.venv/
+*/.venv/
+
+# --- Файлы базы данных ---
+fastapi.db
+*.db
+*.sqlite3
+
+# --- Python кэш и артефакты ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Инструменты разработки и IDE ---
+.vscode/
+.idea/
+
+# --- Инструменты тестирования ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Файлы миграций
+migrations/
+alembic.ini
