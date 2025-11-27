@@ -4,10 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import jwt, JWTError
 from . import security, schemas, models
+from .database import AsyncLocalSession
 
 
 async def get_db():
-    async with AsyncSession() as session:
+    async with AsyncLocalSession() as session:
         yield session
 
 

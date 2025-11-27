@@ -35,7 +35,7 @@ async def register_user(user: schemas.UserIn, db: AsyncSession = Depends(get_db)
 
     db.add(new_user)
     await db.commit()
-    await db.refresh()
+    await db.refresh(new_user)
 
     return new_user
 
@@ -63,7 +63,7 @@ async def auth(
 ):
 
     db_user_result = await db.execute(
-        select(models.User).where(models.User.email == user.email)
+        select(models.User).where(models.User.email == user.username)
     )
 
     db_user = db_user_result.scalar_one_or_none()
