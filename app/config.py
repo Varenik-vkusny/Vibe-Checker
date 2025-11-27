@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -10,9 +11,18 @@ class Settings(BaseSettings):
     db_password: str
     db_name: str
 
-    @property
+    algorithm: str
+    secret_key: str
+    access_token_expire_minutes: int
+
     @computed_field
-    def db_url(self):
+    @property
+    def db_url(self) -> str:
         return f"{self.db_driver}://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
+@lru_cache
+def get_settings():
+    return Settings()

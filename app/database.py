@@ -16,4 +16,4 @@ AsyncSession = async_sessionmaker(
 )
 
 Base = declarative_base()
-# from . import models должно быть здесь иначе не буду работать миграции
+from . import models
