@@ -1,5 +1,5 @@
-from ..models.model import analyze_reviews_with_gemini
-from ..parser import parse_google_reviews
+from app.model_service.model import analyze_reviews_with_gemini
+from app.parser import parse_google_reviews
 
 
 async def get_ai_analysis(url: str, limit: int):
@@ -17,6 +17,8 @@ async def get_ai_analysis(url: str, limit: int):
             "name": place_data["place_name"],
             "google_rating": place_data["rating"],
             "url": url,
+            "latitude": place_data["location"]["lat"],
+            "longitude": place_data["location"]["lon"],
         },
         "ai_analysis": ai_analysis_result,
     }

@@ -38,8 +38,10 @@ class AIResponseIn(BaseModel):
 
 class PlaceInfo(BaseModel):
     name: str
-    google_rating: int
+    google_rating: float
     url: str
+    latitude: float
+    longitude: float
 
 
 class Summary(BaseModel):
