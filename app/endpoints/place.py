@@ -108,4 +108,6 @@ async def get_place_analysis(
             new_link = models.PlaceTag(place_id=place_id, tag_id=tag.id)
             db.add(new_link)
 
+    await db.commit()
+
     return ai_result_raw
