@@ -1,4 +1,3 @@
-import asyncio
 import re
 from playwright.async_api import async_playwright
 
@@ -27,7 +26,7 @@ async def parse_google_reviews(url: str, max_reviews: int = 50):
     async with async_playwright() as p:
         # ЗАПУСК В СТЕЛС-РЕЖИМЕ
         browser = await p.chromium.launch(
-            headless=False,
+            headless=True,
             args=[
                 "--start-maximized",
                 "--disable-blink-features=AutomationControlled",
@@ -174,9 +173,3 @@ async def parse_google_reviews(url: str, max_reviews: int = 50):
 
     print(f"✅ [PARSER] Финиш! {result['place_name']} ({result['reviews_count']} шт.)")
     return result
-
-
-if __name__ == "__main__":
-    url = "https://www.google.com/maps/place/%D0%92%D0%9A%D0%A3%D0%A1%D0%9C%D0%90%D0%A0%D0%A2/@51.1686249,71.3986903,16.67z/data=!4m6!3m5!1s0x42458720886ffa91:0x38e3013d2d95e4a6!8m2!3d51.168702!4d71.3996137!16s%2Fg%2F11g6pzm48x?entry=ttu"
-    res = asyncio.run(parse_google_reviews(url, max_reviews=30))
-    print(res)

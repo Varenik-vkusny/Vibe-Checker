@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     secret_key: str
     access_token_expire_minutes: int
 
+    gemini_api_key: str
+
     @computed_field
     @property
     def db_url(self) -> str:
