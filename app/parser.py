@@ -1,10 +1,10 @@
-import asyncio
 import re
+import asyncio
 from playwright.async_api import async_playwright
 
 
 def extract_coords_from_url(url: str):
-    # Ищем паттерн @51.1734259,71.4045855
+    """Извлекает координаты из URL Google Maps"""
     match = re.search(r"@([-.\d]+),([-.\d]+)", url)
     if match:
         return {"lat": float(match.group(1)), "lon": float(match.group(2))}
@@ -12,195 +12,357 @@ def extract_coords_from_url(url: str):
 
 
 async def parse_google_reviews(url: str, max_reviews: int = 50):
-    print(f"🚀 [FAST PARSER] Запуск: {url}")
+    """
+    Парсит отзывы из Google Maps с автоматическим открытием места
 
-    # Сразу пытаемся добавить язык в URL, если это не короткая ссылка
+    Args:
+        url: URL места в Google Maps
+        max_reviews: Максимальное количество отзывов для сбора
+    """
+    print(f"🚀 [PARSER] Запуск парсинга: {url}")
+
+    # Добавляем язык в URL
     target_url = url
     if "google.com/maps" in url and "hl=en" not in url:
         separator = "&" if "?" in url else "?"
         target_url = f"{url}{separator}hl=en"
 
     result = {
-        "place_name": None,
-        "rating": None,
+        "place_name": "Unknown Place",
+        "rating": "0.0",
         "reviews_count": 0,
         "reviews": [],
-        "location": {},
+        "location": {"lat": None, "lon": None},
     }
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                "--disable-blink-features=AutomationControlled",  # Скрываем автоматизацию
-                "--no-sandbox",
-                "--disable-gpu",  # Отключаем GPU для скорости на серверах
-            ],
-        )
-
-        # 1. Форсируем локаль в контексте (чтобы Google сразу отдал EN версию)
-        context = await browser.new_context(
-            locale="en-US",
-            timezone_id="America/New_York",  # Иногда помогает от редиректов на русскую версию
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        )
-
-        page = await context.new_page()
-
-        # 2. БЛОКИРОВКА МУСОРА (Картинки, шрифты, CSS) - ГЛАВНОЕ УСКОРЕНИЕ
-        await page.route(
-            "**/*",
-            lambda route: (
-                route.abort()
-                if route.request.resource_type
-                in ["image", "media", "font", "stylesheet"]
-                else route.continue_()
-            ),
-        )
-
+        browser = None
         try:
-            # Переход
-            await page.goto(target_url, timeout=30000, wait_until="domcontentloaded")
+            # Запуск браузера
+            browser = await p.chromium.launch(
+                headless=True,  # Можешь поставить False для отладки
+                args=[
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    "--disable-dev-shm-usage",
+                ],
+            )
 
-            # Быстрая проверка на Cookie баннер (через JS быстрее)
+            context = await browser.new_context(
+                locale="en-US",
+                timezone_id="America/New_York",
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                viewport={"width": 1920, "height": 1080},
+            )
+            page = await context.new_page()
+
+            # Переход на страницу
+            print("📄 [PARSER] Загрузка страницы...")
+            await page.goto(target_url, timeout=90000, wait_until="domcontentloaded")
+            await page.wait_for_timeout(4000)
+
+            # Принятие куки
             try:
-                await page.get_by_text("Accept all").first.click(timeout=2000)
+                cookie_buttons = page.locator(
+                    'button:has-text("Accept"), button:has-text("Reject"), button:has-text("OK")'
+                )
+                if await cookie_buttons.first.is_visible(timeout=3000):
+                    await cookie_buttons.first.click()
+                    await page.wait_for_timeout(1000)
             except:
                 pass
 
-            # 3. СБОР ИНФО О МЕСТЕ (За один проход)
-            try:
-                # Ждем появления заголовка (значит контент загрузился)
-                await page.wait_for_selector("h1", timeout=5000)
+            # === ПРОВЕРЯЕМ: ОТКРЫТА ЛИ БОКОВАЯ ПАНЕЛЬ ===
+            print("🔍 [PARSER] Проверяем состояние страницы...")
 
-                # Забираем данные через JS (быстрее, чем локаторы Python)
-                meta_data = await page.evaluate(
+            # Проверяем наличие боковой панели с информацией о месте
+            sidebar_visible = await page.evaluate(
+                """() => {
+                // Ищем боковую панель с названием места
+                const sidebar = document.querySelector('div[role="main"]');
+                const h1 = document.querySelector('h1');
+                return !!(sidebar && h1 && h1.textContent.trim().length > 0);
+            }"""
+            )
+
+            if not sidebar_visible:
+                print("⚠️ Боковая панель не открыта, ищем и кликаем по месту...")
+
+                # Способ 1: Клик по названию места в поиске/карте
+                try:
+                    place_link = page.locator(
+                        'a[href*="place/"], div[data-result-index]'
+                    ).first
+                    if await place_link.is_visible(timeout=5000):
+                        await place_link.click()
+                        print("✅ Кликнули по месту")
+                        await page.wait_for_timeout(4000)
+                except Exception as e:
+                    print(f"   Способ 1 не сработал: {e}")
+
+                # Способ 2: Клик по маркеру на карте через координаты
+                if not sidebar_visible:
+                    try:
+                        # Извлекаем координаты из URL
+                        coords = extract_coords_from_url(url)
+                        if coords["lat"] and coords["lon"]:
+                            print(
+                                f"   Пробуем кликнуть на карте по координатам: {coords}"
+                            )
+
+                            # Ждем загрузки карты
+                            await page.wait_for_selector(
+                                'canvas, div[role="region"]', timeout=10000
+                            )
+                            await page.wait_for_timeout(2000)
+
+                            # Клик по центру карты (где должен быть маркер)
+                            await page.mouse.click(700, 400)
+                            await page.wait_for_timeout(3000)
+                            print("✅ Кликнули на карте")
+                    except Exception as e:
+                        print(f"   Способ 2 не сработал: {e}")
+
+                # Способ 3: Поиск по кнопке с названием места
+                try:
+                    buttons = await page.locator("button, a").all()
+                    for btn in buttons[:50]:
+                        text = await btn.inner_text()
+                        if text and len(text) > 3 and len(text) < 100:
+                            if "restaurant" in text.lower() or "farhi" in text.lower():
+                                await btn.click()
+                                print(f"✅ Кликнули по: {text}")
+                                await page.wait_for_timeout(3000)
+                                break
+                except:
+                    pass
+
+            # Еще раз ждем загрузки после клика
+            await page.wait_for_timeout(3000)
+
+            # === ПАРСИНГ НАЗВАНИЯ ===
+            print("\n📍 [PARSER] Поиск названия заведения...")
+            try:
+                place_name = await page.evaluate(
                     """() => {
-                    const h1 = document.querySelector('h1');
-                    const ratingEl = document.querySelector('div[role="img"][aria-label*="stars"]');
-                    let rating = null;
-                    if (ratingEl) {
-                        const aria = ratingEl.getAttribute('aria-label');
-                        const match = aria.match(/(\\d+[.,]\\d+)/);
-                        if (match) rating = match[1];
+                    // Способ 1: H1
+                    const h1s = Array.from(document.querySelectorAll('h1'));
+                    for (let h1 of h1s) {
+                        const text = h1.textContent.trim();
+                        if (text && text !== 'Google Maps' && text.length > 0 && text.length < 100) {
+                            return text;
+                        }
                     }
-                    return {
-                        title: h1 ? h1.innerText : null,
-                        rating: rating
+                    
+                    // Способ 2: В поисковой строке
+                    const searchBox = document.querySelector('input[aria-label*="Search"]');
+                    if (searchBox && searchBox.value) {
+                        return searchBox.value.replace(/^restaurant\\s+/i, '').trim();
                     }
+                    
+                    // Способ 3: Из title страницы
+                    const title = document.title;
+                    if (title && title !== 'Google Maps') {
+                        return title.replace(' - Google Maps', '').split('·')[0].trim();
+                    }
+                    
+                    return null;
                 }"""
                 )
-                result["place_name"] = meta_data["title"]
-                result["rating"] = meta_data["rating"]
+
+                if place_name:
+                    result["place_name"] = place_name
+                    print(f"✅ Название: {result['place_name']}")
             except Exception as e:
-                print(f"⚠️ Warning info: {e}")
+                print(f"⚠️ Ошибка парсинга названия: {e}")
 
-            # 4. ОТКРЫТИЕ ОТЗЫВОВ
-            # Ищем кнопку Reviews. Если мы уже внутри (по ссылке), пропускаем
-            if "Reviews" not in await page.title():
+            # === ПАРСИНГ РЕЙТИНГА ===
+            print("⭐ [PARSER] Поиск рейтинга...")
+            try:
+                rating = await page.evaluate(
+                    """() => {
+                    // Способ 1: Элемент со звездами
+                    const starEl = document.querySelector('[role="img"][aria-label*="star"]');
+                    if (starEl) {
+                        const label = starEl.getAttribute('aria-label');
+                        const match = label.match(/([0-9]+[.,][0-9]+)/);
+                        if (match) return match[1].replace(',', '.');
+                    }
+                    
+                    // Способ 2: Класс F7nice
+                    const ratingEl = document.querySelector('.F7nice');
+                    if (ratingEl) {
+                        const match = ratingEl.textContent.match(/([0-9]+[.,][0-9]+)/);
+                        if (match) return match[1].replace(',', '.');
+                    }
+                    
+                    // Способ 3: Любой span с рейтингом
+                    const spans = Array.from(document.querySelectorAll('span'));
+                    for (let span of spans) {
+                        const text = span.textContent.trim();
+                        if (/^[0-9]\.[0-9]$/.test(text)) {
+                            return text;
+                        }
+                    }
+                    
+                    return null;
+                }"""
+                )
+
+                if rating:
+                    result["rating"] = rating
+                    print(f"✅ Рейтинг: {result['rating']}")
+            except Exception as e:
+                print(f"⚠️ Ошибка рейтинга: {e}")
+
+            # === ОТКРЫТИЕ ВКЛАДКИ REVIEWS ===
+            print("\n📝 [PARSER] Открытие вкладки Reviews...")
+            reviews_opened = False
+
+            try:
+                # Ищем таб "Reviews"
+                tabs = await page.locator('button[role="tab"], div[role="tab"]').all()
+                for tab in tabs:
+                    text = await tab.inner_text()
+                    aria_label = await tab.get_attribute("aria-label")
+
+                    if "review" in text.lower() or (
+                        aria_label and "review" in aria_label.lower()
+                    ):
+                        await tab.click()
+                        print(f"✅ Открыли таб: {text or aria_label}")
+                        await page.wait_for_timeout(3000)
+                        reviews_opened = True
+                        break
+            except Exception as e:
+                print(f"⚠️ Не удалось найти таб Reviews: {e}")
+
+            # Альтернатива: клик по тексту "Reviews"
+            if not reviews_opened:
                 try:
-                    reviews_tab = page.locator(
-                        'button[role="tab"][aria-label*="Reviews"], button:has-text("Reviews")'
-                    ).first
-                    if await reviews_tab.is_visible(timeout=3000):
-                        await reviews_tab.click()
-                        await page.wait_for_selector(
-                            'div[role="feed"], .m6QErb', timeout=5000
-                        )
+                    await page.click("text=/reviews/i", timeout=3000)
+                    await page.wait_for_timeout(3000)
+                    reviews_opened = True
+                    print("✅ Кликнули по тексту Reviews")
                 except:
-                    pass  # Возможно уже открыто
+                    pass
 
-            # 5. СКОРОСТНОЙ СКРОЛЛИНГ
-            # Находим контейнер. Обычно это div с role="feed"
-            scrollable_selector = 'div[role="feed"]'
+            # === ПОИСК КОНТЕЙНЕРА С ОТЗЫВАМИ ===
+            print("🔍 [PARSER] Поиск контейнера отзывов...")
+            scrollable_selector = None
 
-            # Если feed не найден сразу, пробуем найти родителя первого отзыва
-            if not await page.locator(scrollable_selector).count():
-                print("⚠️ Ищем контейнер скролла альтернативным методом...")
-                scrollable_selector = "div.m6QErb:has(div[data-review-id])"
+            possible_selectors = [
+                'div[role="feed"]',
+                'div[aria-label*="Reviews"]',
+                "div.m6QErb.DxyBCb.kA9KIf.dS8AEf",
+                ".m6QErb",
+            ]
 
+            for selector in possible_selectors:
+                count = await page.locator(selector).count()
+                if count > 0:
+                    scrollable_selector = selector
+                    print(f"✅ Контейнер: {selector}")
+                    break
+
+            if not scrollable_selector:
+                print("❌ Контейнер не найден!")
+                # Пытаемся все равно получить хоть что-то
+                result["location"] = extract_coords_from_url(page.url)
+                return result
+
+            # === СБОР ОТЗЫВОВ ===
+            print(f"\n📜 [PARSER] Сбор отзывов (цель: {max_reviews})...")
             reviews_set = set()
-            no_new_reviews_count = 0
+            no_change_count = 0
 
-            print("📜 [FAST PARSER] Скроллим...")
+            for attempt in range(100):
+                # Раскрываем кнопки "More"
+                await page.evaluate(
+                    """() => {
+                    const buttons = document.querySelectorAll('button[aria-label*="More"], button.w8nwRe');
+                    buttons.forEach(btn => {
+                        if (btn.offsetParent !== null) {
+                            try { btn.click(); } catch(e) {}
+                        }
+                    });
+                }"""
+                )
 
-            while len(reviews_set) < max_reviews:
-                # А. СКРОЛЛ ЧЕРЕЗ JS (Мгновенно)
-                # Мы не крутим колесико попиксельно, мы шлем событие прокрутки
-                reviews_count_in_dom = await page.evaluate(
-                    """(selector) => {{
-                    const el = document.querySelector(selector);
-                    if (!el) return 0;
-                    // Раскрываем кнопки "More" сразу JS-ом
-                    document.querySelectorAll('button[aria-label^="See more"], button[aria-label^="More"]').forEach(b => b.click());
-                    // Скроллим в самый низ
-                    el.scrollTop = el.scrollHeight;
-                    return document.querySelectorAll('div[data-review-id]').length;
+                await page.wait_for_timeout(300)
+
+                # Скролл
+                await page.evaluate(
+                    f"""(selector) => {{
+                    const container = document.querySelector(selector);
+                    if (container) {{
+                        container.scrollTop = container.scrollHeight;
+                    }}
                 }}""",
                     scrollable_selector,
                 )
 
-                # Б. ЖДЕМ ПОДГРУЗКИ (но не тупо sleep, а checking)
-                # Если элементов в DOM меньше чем нам надо, даем время прогрузиться
-                if reviews_count_in_dom < max_reviews:
-                    try:
-                        # Ждем пока количество элементов увеличится (умное ожидание)
-                        # Либо просто короткий слип, так как Google Maps тяжелый
-                        await page.wait_for_timeout(700)
-                    except:
-                        pass
+                await page.wait_for_timeout(1200)
 
-                # В. ЭКСТРАКЦИЯ ДАННЫХ (Оптом через JS)
-                # Это работает в 10 раз быстрее, чем перебор в Python
-                new_reviews = await page.evaluate(
+                # Собираем отзывы
+                current_reviews = await page.evaluate(
                     """() => {
-                    const results = [];
-                    const blocks = document.querySelectorAll('div[data-review-id]');
-                    blocks.forEach(el => {
-                        // Ищем текст. Класс .wiI7pd или span
-                        const textEl = el.querySelector('.wiI7pd, span[dir="ltr"]');
+                    const reviewEls = document.querySelectorAll('div[data-review-id]');
+                    const reviews = [];
+                    
+                    reviewEls.forEach(el => {
+                        const textEl = el.querySelector('.wiI7pd, .MyEned');
                         if (textEl) {
-                            results.push(textEl.innerText.replace(/\\n/g, ' ').trim());
+                            const text = textEl.textContent.trim();
+                            if (text.length > 5) {
+                                reviews.push(text);
+                            }
                         }
                     });
-                    return results;
+                    
+                    return reviews;
                 }"""
                 )
 
-                prev_len = len(reviews_set)
-                for r in new_reviews:
-                    if r:
-                        reviews_set.add(r)
+                prev_count = len(reviews_set)
+                reviews_set.update(current_reviews)
+                new_count = len(reviews_set)
 
-                # Если набрали достаточно
-                if len(reviews_set) >= max_reviews:
+                if attempt % 5 == 0 or new_count != prev_count:
+                    print(
+                        f"📊 Попытка {attempt + 1}: {new_count} отзывов (+{new_count - prev_count})"
+                    )
+
+                if new_count >= max_reviews:
+                    print(f"✅ Цель достигнута: {new_count}")
                     break
 
-                # Проверка на зависание
-                if len(reviews_set) == prev_len:
-                    no_new_reviews_count += 1
-                    # Пробуем "пнуть" скролл колесом, если JS scroll не триггерит загрузку (бывает защита)
-                    if no_new_reviews_count > 2:
-                        await page.locator(scrollable_selector).first.hover()
-                        await page.mouse.wheel(0, 3000)
-                        await page.wait_for_timeout(1000)
-
-                    if no_new_reviews_count > 5:
-                        print("🛑 Больше не грузится.")
+                if new_count == prev_count:
+                    no_change_count += 1
+                    if no_change_count >= 7:
+                        print(f"⚠️ Конец списка")
                         break
                 else:
-                    no_new_reviews_count = 0
+                    no_change_count = 0
 
-                print(f"   ⚡ Собрано: {len(reviews_set)}")
+            result["reviews"] = list(reviews_set)[:max_reviews]
+            result["reviews_count"] = len(result["reviews"])
+            result["location"] = extract_coords_from_url(page.url)
 
-            result["reviews"] = list(reviews_set)
-            result["reviews_count"] = len(reviews_set)
-            coords = extract_coords_from_url(url)
-            result["location"] = coords
+            print(f"\n🎉 ГОТОВО!")
+            print(f"   📍 {result['place_name']}")
+            print(f"   ⭐ {result['rating']}")
+            print(f"   💬 {result['reviews_count']} отзывов")
 
         except Exception as e:
-            print(f"🔥 Ошибка: {e}")
+            print(f"❌ Ошибка: {e}")
+            import traceback
+
+            traceback.print_exc()
+
         finally:
-            await browser.close()
+            if browser:
+                await browser.close()
 
     return result

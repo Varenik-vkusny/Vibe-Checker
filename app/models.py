@@ -90,6 +90,8 @@ class AnalysisResult(Base):
     # Best For: ["dating", "work"] - храним как JSON массив
     best_for = Column(JSON, nullable=True)
 
+    detailed_attributes = Column(JSON, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     place = relationship("Place", back_populates="analysis")
 
