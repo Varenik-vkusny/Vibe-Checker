@@ -3,11 +3,14 @@ from serpapi import GoogleSearch
 import re
 from urllib.parse import unquote
 import json
+from .config import get_settings
+
+settings = get_settings()
 
 # ==========================================
 # 👇 ВСТАВЬ СЮДА СВОИ КЛЮЧИ
-GOOGLE_API_KEY = "AIzaSyCuL9NW4KFBqVO2xrrI502fQpflWpqMIV8"
-SERPAPI_KEY = "f5480888072fd3f44c3ccf886fd11f7aee884c7bdfdd0a483ff02356ae14c1ba"
+GOOGLE_API_KEY = settings.google_api_key_parse
+SERPAPI_KEY = settings.serpapi_key
 # ==========================================
 
 

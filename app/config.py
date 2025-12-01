@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
 
     gemini_api_key: str
+    google_api_key_parse: str
+    serpapi_key: str
 
     @computed_field
     @property

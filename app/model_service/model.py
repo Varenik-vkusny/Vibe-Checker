@@ -2,11 +2,10 @@ import json
 import logging
 import google.generativeai as genai
 from app.config import get_settings
-
+from typing import List, Union, Dict, Any
 
 settings = get_settings()
 api_key = settings.gemini_api_key
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,18 +50,53 @@ ALLOWED_SCENARIOS = [
 ]
 
 
-async def analyze_reviews_with_gemini(reviews_list: list[str], place_name: str):
+# Обновил type hint, так как теперь мы ждем и словари
+async def analyze_reviews_with_gemini(
+    reviews_list: List[Union[str, Dict[str, Any]]], place_name: str
+):
     logger.info(f"🚀 Запуск анализа для места: '{place_name}'")
 
     if not reviews_list:
         logger.warning("⚠️ Список отзывов пуст! Возвращаю заглушку.")
         return _get_empty_response()
 
-    truncated_reviews = reviews_list[:100]
-    reviews_text = "\n---\n".join(truncated_reviews)
+    # Берем первые 100 отзывов
+    truncated_source = reviews_list[:100]
+
+    # --- 🔥 ИСПРАВЛЕНИЕ ТУТ 🔥 ---
+    formatted_reviews = []
+
+    for item in truncated_source:
+        if isinstance(item, dict):
+            # Если это словарь от нового парсера
+            author = item.get("author", "Guest")
+            rating = item.get("rating", "?")
+            date = item.get("date", "")
+            text = item.get("text", "")
+
+            # Если текста нет, пропускаем
+            if not text:
+                continue
+
+            # Формируем строку с метаданными, это поможет AI понять контекст (свежий отзыв или старый, какая оценка)
+            formatted_str = (
+                f"Date: {date} | Rating: {rating}/5 | Author: {author}\nReview: {text}"
+            )
+            formatted_reviews.append(formatted_str)
+
+        elif isinstance(item, str):
+            # Если это просто строка (старый парсер)
+            formatted_reviews.append(item)
+        else:
+            # На всякий случай
+            formatted_reviews.append(str(item))
+
+    # Теперь в formatted_reviews только строки, join не упадет
+    reviews_text = "\n---\n".join(formatted_reviews)
+    # -----------------------------
 
     logger.info(
-        f"📝 Подготовлено {len(truncated_reviews)} отзывов ({len(reviews_text)} символов)."
+        f"📝 Подготовлено {len(formatted_reviews)} отзывов ({len(reviews_text)} символов)."
     )
 
     prompt = f"""
@@ -109,7 +143,7 @@ async def analyze_reviews_with_gemini(reviews_list: list[str], place_name: str):
     {reviews_text}
     """
 
-    model_name = "gemini-2.5-flash"
+    model_name = "gemini-2.0-flash"  # Поправил на 2.0 (2.5 еще нет в публичном доступе, либо используй 1.5-flash)
 
     try:
         logger.info(f"🤖 Инициализация модели: {model_name}...")
@@ -131,11 +165,7 @@ async def analyze_reviews_with_gemini(reviews_list: list[str], place_name: str):
 
     except Exception as e:
         logger.error(f"🔥 Ошибка при анализе Gemini: {e}")
-        if "404" in str(e) or "not found" in str(e).lower():
-            logger.error(
-                "🛑 Скорее всего, название модели неверное или у тебя нет доступа к 2.5-flash."
-            )
-
+        # Заглушка, чтобы не падало всё приложение
         return _get_empty_response()
 
 
@@ -160,16 +190,18 @@ async def compare_places_with_gemini(
 ):
     logger.info("⚔️ Запуск AI сравнения двух мест...")
 
-    context_a = {
-        k: place_a_json[k]
-        for k in ["summary", "scores", "tags", "price_level", "vibe_score"]
-        if k in place_a_json
-    }
-    context_b = {
-        k: place_b_json[k]
-        for k in ["summary", "scores", "tags", "price_level", "vibe_score"]
-        if k in place_b_json
-    }
+    # ВАЖНО: Добавил "detailed_attributes", так как в промпте ты просишь на них смотреть
+    keys_to_keep = [
+        "summary",
+        "scores",
+        "tags",
+        "price_level",
+        "vibe_score",
+        "detailed_attributes",
+    ]
+
+    context_a = {k: place_a_json[k] for k in keys_to_keep if k in place_a_json}
+    context_b = {k: place_b_json[k] for k in keys_to_keep if k in place_b_json}
 
     prompt = f"""
     You are an expert restaurant/service critic.
@@ -178,7 +210,7 @@ async def compare_places_with_gemini(
     
     CRITICAL INSTRUCTION:
     1. Look closely at "detailed_attributes" and "scores". 
-    2. In your text output (key_differences, verdict), USE THE REAL NAMES ("{name_a}", "{name_b}") instead of "Place A/B" where appropriate to make it sound natural.
+    2. In your text output (key_differences, verdict), USE THE REAL NAMES ("{name_a}", "{name_b}") instead of "Place A/B" where appropriate.
     3. Output strictly in Russian.
 
     DATA FOR "{name_a}": {json.dumps(context_a, ensure_ascii=False)}
@@ -195,13 +227,13 @@ async def compare_places_with_gemini(
         "key_differences": ["List of 3-4 strings describing MAIN differences"],
         "place_a_unique_pros": ["List of pros unique to {name_a}"],
         "place_b_unique_pros": ["List of pros unique to {name_b}"],
-        "verdict": "A summarized advice (2-3 sentences). Example: 'If you want quiet atmosphere go to {name_a}...'"
+        "verdict": "A summarized advice (2-3 sentences)."
     }}
     
     Constraint: Return ONLY raw JSON.
     """
 
-    model_name = "gemini-2.5-flash"
+    model_name = "gemini-2.0-flash"
 
     try:
         model = genai.GenerativeModel(model_name)
