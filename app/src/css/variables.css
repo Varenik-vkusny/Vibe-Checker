@@ -1,0 +1,10 @@
+:root {
+    --color-black: #000000;
+    --color-gray: #888888;
+    --color-gray-light: #F4F4F4;
+    --color-border: #000000;
+    --font-main: 'Inter', sans-serif;
+    --border-width: 1.5px;
+    --radius-search: 16px;
+    --shadow-soft: 0 4px 20px rgba(0,0,0,0.08);
+}
