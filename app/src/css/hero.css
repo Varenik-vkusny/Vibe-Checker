@@ -1,0 +1,100 @@
+.hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 80px;
+    width: 100%;
+    backdrop-filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.5));
+}
+
+.eyebrow {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.hero-title {
+    font-size: 64px;
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #111;
+    /* Мягкая тень, которая приподнимает текст */
+    text-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+}
+
+/* Также добавим тень подзаголовку для читаемости */
+.hero-subtitle {
+    font-size: 18px;
+    max-width: 600px;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    color: #333; /* Чуть темнее */
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8); /* Белая обводка для контраста */
+}
+
+.scrolling-words-container {
+    height: 1.2em;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    margin-bottom: -10px; 
+    /* Можно добавить небольшой padding сверху, если тень обрезается сверху */
+    padding-top: 2px;
+}
+
+.scrolling-words-box {
+    display: flex;
+    flex-direction: column;
+    /* Увеличиваем время анимации, как вы просили ранее (12s) */
+    animation: scroll-up 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.scrolling-words-box span {
+    display: block;
+    /* --- ВАЖНОЕ ИЗМЕНЕНИЕ --- */
+    /* Делаем блок слова выше, чем само окно (1.2em). 
+       Разница (0.5em) создаст невидимый отступ между словами. */
+    height: 1.7em; 
+    
+    padding-top: 5px;
+    font-weight: 700;
+    
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent; 
+    
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Пересчитываем анимацию под новую высоту (1.7em) */
+@keyframes scroll-up {
+    0%, 20% {
+        transform: translateY(0);
+    }
+    25%, 45% {
+        transform: translateY(-1.7em); /* Было -1.2em */
+    }
+    50%, 70% {
+        transform: translateY(-3.4em); /* Было -2.4em */
+    }
+    75%, 95% {
+        transform: translateY(-5.1em); /* Было -3.6em */
+    }
+    100% {
+        transform: translateY(-5.1em);
+    }
+}
+
+.scrolling-words-box span:nth-child(1) { background-image: linear-gradient(90deg, #2563EB, #06B6D4); }
+.scrolling-words-box span:nth-child(2) { background-image: linear-gradient(90deg, #16A34A, #84CC16); }
+.scrolling-words-box span:nth-child(3) { background-image: linear-gradient(90deg, #7C3AED, #DB2777); }
+.scrolling-words-box span:nth-child(4) { background-image: linear-gradient(90deg, #2563EB, #06B6D4); }
+
+
+@media (max-width: 768px) {
+    .hero-title { font-size: 42px; }
+}

@@ -1,0 +1,92 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    height: 80px;
+    border-bottom: var(--border-width) solid var(--color-black);
+    width: 100%;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--color-black);
+    font-size: 15px;
+    font-weight: 400;
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    transition: color 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.nav-links a::after {
+    content: attr(data-text);
+    font-weight: 700;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.nav-links a::before {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    width: 0%;
+    height: 2px;
+    background-color: var(--color-black);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+    font-weight: 700;
+}
+
+.nav-links a:hover::before {
+    width: 100%;
+}
+
+.btn-signin {
+    background: transparent;
+    border: var(--border-width) solid var(--color-black);
+    padding: 10px 24px;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-signin:hover {
+    background: var(--color-black);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 15px 20px;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+}
