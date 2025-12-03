@@ -1,7 +1,14 @@
 @import 'variables.css';
 @import 'base.css';
-@import 'header.css';
-@import 'hero.css';
-@import 'search.css';
-@import 'featured.css';
-@import 'footer.css';
+
+/* Components */
+@import 'components/buttons.css';
+@import 'components/theme-toggle.css';
+@import 'components/cards.css';
+@import 'components/search.css';
+
+/* Layout */
+@import 'layout/header.css';
+@import 'layout/hero.css';
+@import 'layout/featured.css';
+@import 'layout/footer.css';

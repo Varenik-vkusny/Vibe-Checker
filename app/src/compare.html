@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCheck Compare</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/compare.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="index.html" class="logo">VibeCheck</a>
+
+        <div class="header-right">
+            <nav class="nav-links">
+                <a href="map.html" data-text="Places">Places</a>
+                <a href="compare.html" data-text="Compare" class="active">Compare</a>
+                <a href="pro.html" data-text="AI Analysis">AI Analysis</a>
+            </nav>
+
+            <button class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+                <svg class="theme-icon sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg class="theme-icon moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+    </header>
+    <main class="compare-container">
+
+        <!-- STEP 1: SELECTION -->
+        <div id="step-selection" class="selection-stage active">
+            <h1 class="page-title">Compare Vibes</h1>
+            <p class="page-subtitle">Select a competitor to see how they stack up.</p>
+
+            <div class="selector-grid">
+                <!-- Left Slot (Filled) -->
+                <div class="place-slot filled">
+                    <div class="slot-content">
+                        <img src="https://em-content.zobj.net/source/apple/419/hamburger_1f354.png" class="slot-icon"
+                            alt="burger">
+                        <h2>Burger King</h2>
+                        <p>Center District</p>
+                    </div>
+                </div>
+
+                <div class="vs-badge">VS</div>
+
+                <!-- Right Slot (Selection) -->
+                <div class="place-slot empty" id="competitor-slot">
+                    <div class="empty-state">
+                        <h3>Select Competitor</h3>
+                        <div class="competitor-list">
+                            <button class="competitor-btn" data-id="mcd">
+                                <strong>McDonald's</strong>
+                                <span>The classic choice</span>
+                            </button>
+                            <button class="competitor-btn" data-id="kfc">
+                                <strong>KFC</strong>
+                                <span>The chicken expert</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: RESULT -->
+        <div id="step-result" class="result-stage">
+            <div class="result-header">
+                <h2>The Vibe Breakdown</h2>
+                <button class="btn btn--outline btn--sm" id="reset-btn">Reset Comparison</button>
+            </div>
+
+            <div class="comparison-grid">
+                <!-- Left Column -->
+                <div class="col-place left">
+                    <div class="col-header">
+                        <div class="col-icon-wrapper">
+                            <img src="https://em-content.zobj.net/source/apple/419/hamburger_1f354.png" alt="burger">
+                        </div>
+                        <h3>Burger King</h3>
+                        <span class="score-display">4.8</span>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-place right">
+                    <div class="col-header">
+                        <div class="col-icon-wrapper">
+                            <img id="comp-icon" src="" alt="comp">
+                        </div>
+                        <h3 id="comp-name">Competitor</h3>
+                        <span class="score-display" id="comp-score">--</span>
+                        <div id="comp-tags" class="comp-tags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Winner Box -->
+            <div id="winner-box" class="winner-box">
+                Winner: <strong>Burger King</strong> for <em>Overall Vibe</em>
+            </div>
+
+            <!-- Detailed Bar Comparison -->
+            <div class="comparison-bars">
+                <div class="bar-row" data-left="92" data-right="0">
+                    <span class="bar-label">Food Quality</span>
+                    <div class="bar-visual">
+                        <!-- Left bar pre-filled (visual trick handled by JS/CSS to avoid pop-in) -->
+                        <div class="bar-fill left" style="width: 46%"></div>
+                        <!-- Right bar starts 0 width -->
+                        <div class="bar-fill right" style="width: 0%"></div>
+                        <!-- Ghost Pattern for right side -->
+                        <div class="bar-ghost-pattern"></div>
+                    </div>
+                </div>
+
+                <div class="bar-row" data-left="70" data-right="0">
+                    <span class="bar-label">Service Speed</span>
+                    <div class="bar-visual">
+                        <div class="bar-fill left" style="width: 35%"></div>
+                        <div class="bar-fill right" style="width: 0%"></div>
+                        <div class="bar-ghost-pattern"></div>
+                    </div>
+                </div>
+
+                <div class="bar-row" data-left="60" data-right="0">
+                    <span class="bar-label">Cleanliness</span>
+                    <div class="bar-visual">
+                        <div class="bar-fill left" style="width: 30%"></div>
+                        <div class="bar-fill right" style="width: 0%"></div>
+                        <div class="bar-ghost-pattern"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="verdict-banner">
+                <div class="verdict-title">AI Verdict</div>
+                <p id="verdict-text">Loading...</p>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/compare.js"></script>
+</body>
+
+</html>

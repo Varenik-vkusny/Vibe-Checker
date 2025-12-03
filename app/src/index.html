@@ -4,20 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeCheck</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css"> 
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <canvas id="fluid-canvas"></canvas>
 
     <header class="header">
         <div class="logo">VibeCheck</div>
-        <nav class="nav-links">
-            <a href="#" data-text="Places">Places</a>
-            <a href="#" data-text="Compare">Compare</a>
-            <a href="#" data-text="AI Analysis">AI Analysis</a>
-        </nav>
-        <button class="btn-signin">Sign In</button>
+        
+        <div class="header-right">
+            <nav class="nav-links">
+                <a href="map.html" data-text="Places">Places</a>
+                <a href="#" data-text="Compare">Compare</a>
+                <a href="pro.html" data-text="AI Analysis">AI Analysis</a>
+            </nav>
+            
+            <button class="btn btn--outline">Sign In</button>
+            
+            <button class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+                <svg class="theme-icon sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg class="theme-icon moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
     </header>
 
     <main>
@@ -28,10 +45,10 @@
                 Find your place.<br>
                 <div class="scrolling-words-container">
                     <div class="scrolling-words-box">
-                        <span>Instantly.</span>
-                        <span>Easily.</span>
-                        <span>Smartly.</span>
-                        <span>Instantly.</span>
+                        <span class="word-1">Instantly.</span>
+                        <span class="word-2">Easily.</span>
+                        <span class="word-3">Smartly.</span>
+                        <span class="word-1">Instantly.</span>
                     </div>
                 </div>
             </h1>
@@ -42,11 +59,9 @@
 
             <div class="search-wrapper" id="search-wrapper">
                 <div class="search-bar">
-                    <!-- Вставляем SVG иконку лупы -->
                     <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    
                     <input type="text" id="search-input" placeholder="Coffee near Center" autocomplete="off">
                 </div>
                                 
@@ -54,7 +69,7 @@
                     <div class="search-item">
                         <img src="https://em-content.zobj.net/source/apple/391/round-pushpin_1f4cd.png" class="emoji-icon" alt="pin">
                         <div class="item-text">Coffee in Center District</div>
-                        <span class="item-desc">32 places</span> <!-- Добавили кол-во мест -->
+                        <span class="item-desc">32 places</span>
                     </div>
 
                     <div class="search-item">
@@ -76,21 +91,20 @@
             <div class="featured-header">
                 <div>
                     <h2 class="section-title">AI Curated Collections</h2>
-                    <p style="color: #666; font-size: 14px; margin-top: 5px;">Based on analysis of 10k+ reviews</p>
+                    <p class="section-subtitle">Based on analysis of 10k+ reviews</p>
                 </div>
                 <a href="#" class="see-all">See all collections →</a>
             </div>
             
             <div class="featured-grid">
-                <!-- Карточка 1: Работа -->
-                <div class="vibe-card" style="background-image: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                <div class="vibe-card vibe-card--work">
                     <div class="card-overlay">
                         <div class="card-badges">
-                            <span class="badge ai-score">
+                            <span class="badge badge--score">
                                 <img src="https://em-content.zobj.net/source/apple/391/sparkles_2728.png" class="badge-icon" alt="sparkles">
-                                9.8 Vibe Score
+                                9.8 Score
                             </span>
-                            <span class="badge category">Work</span>
+                            <span class="badge badge--category">Work</span>
                         </div>
                         <div class="card-content">
                             <h3>Laptop Friendly Spots</h3>
@@ -99,15 +113,14 @@
                     </div>
                 </div>
 
-                <!-- Карточка 2: Свидание -->
-                <div class="vibe-card" style="background-image: url('https://images.unsplash.com/photo-1742639162097-12414175e556?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
+                <div class="vibe-card vibe-card--date">
                     <div class="card-overlay">
                         <div class="card-badges">
-                            <span class="badge ai-score">
+                            <span class="badge badge--score">
                                 <img src="https://em-content.zobj.net/source/apple/419/red-heart_2764-fe0f.png" class="badge-icon" alt="heart">
-                                9.6 Vibe Score
+                                9.6 Score
                             </span>
-                            <span class="badge category">Date Night</span>
+                            <span class="badge badge--category">Date Night</span>
                         </div>
                         <div class="card-content">
                             <h3>Intimate & Dimly Lit</h3>
@@ -119,7 +132,6 @@
         </section>
 
         <section class="features-section">
-            <!-- Item 1: Brain -->
             <div class="feature-item">
                 <div class="feature-icon">
                     <img src="https://em-content.zobj.net/source/apple/419/brain_1f9e0.png" alt="Brain">
@@ -128,7 +140,6 @@
                 <p>Our AI analyzes thousands of comments to find the truth behind the 4.5 stars.</p>
             </div>
 
-            <!-- Item 2: Lightning -->
             <div class="feature-item">
                 <div class="feature-icon">
                     <img src="https://em-content.zobj.net/source/apple/51/high-voltage-sign_26a1.png" alt="Lightning">
@@ -137,7 +148,6 @@
                 <p>Don't guess. Know if a place is "Date Night" ready or strictly "Laptop Friendly".</p>
             </div>
 
-            <!-- Item 3: Gem -->
             <div class="feature-item">
                 <div class="feature-icon">
                     <img src="https://em-content.zobj.net/source/apple/419/gem-stone_1f48e.png" alt="Gem">
@@ -149,10 +159,11 @@
 
         <section class="cta-section">
             <h2>Ready to find your spot?</h2>
-            <button class="btn-primary">Try Now</button>
+            <button class="btn btn--primary">Try Now</button>
         </section>
 
     </main>
+    
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-brand">
@@ -184,51 +195,10 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script> 
-    <script>
-        // Инициализация плавного скролла
-        const lenis = new Lenis({
-            duration: 1.5, // Чем больше число, тем медленнее и плавнее остановка (стандарт 1.2)
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Функция плавности
-            smoothWheel: true
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-
-        requestAnimationFrame(raf);
-    </script>
-
-    <script src="scripts/fluid-sim.js"></script>
-    <script>
-        window.addEventListener('load', () => {
-            const canvas = document.getElementById('fluid-canvas');
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            setTimeout(() => {
-                const gui = document.querySelector('.dg.ac');
-                if (gui) gui.style.display = 'none';
-            }, 100);
-        });
-
-        const searchInput = document.getElementById('search-input');
-        const searchWrapper = document.getElementById('search-wrapper');
-
-        searchInput.addEventListener('focus', () => {
-            searchWrapper.classList.add('active');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!searchWrapper.contains(e.target)) {
-                searchWrapper.classList.remove('active');
-            }
-        });
-    </script>
+    <script src="js/theme.js"></script>
+    <script src="js/fluid-sim.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

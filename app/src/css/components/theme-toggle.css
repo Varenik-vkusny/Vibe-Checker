@@ -1,0 +1,43 @@
+.theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    margin-left: 16px;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--text-main);
+    transform: rotate(15deg);
+}
+
+.theme-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+/* Icon Animation Logic */
+.theme-toggle-btn .sun-icon {
+    display: block;
+}
+.theme-toggle-btn .moon-icon {
+    display: none;
+}
+
+body.dark-theme .theme-toggle-btn .sun-icon {
+    display: none;
+}
+body.dark-theme .theme-toggle-btn .moon-icon {
+    display: block;
+}

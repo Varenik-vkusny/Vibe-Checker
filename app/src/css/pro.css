@@ -1,0 +1,284 @@
+:root {
+    --pro-bg: #050505;
+    --pro-surface: rgba(20, 20, 20, 0.6);
+    --pro-border: rgba(255, 255, 255, 0.15);
+    --pro-text: #EDEDED;
+    --pro-accent: #3B82F6;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+body.pro-body {
+    background: var(--pro-bg);
+    color: var(--pro-text);
+    overflow: hidden;
+    transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* --- LIGHT THEME OVERRIDES (When dark-theme class is ABSENT) --- */
+/* By default, theme.js adds .dark-theme based on pref. 
+   If user toggles to Light, .dark-theme is removed. 
+   We target the body when it DOES NOT have .dark-theme */
+body.pro-body:not(.dark-theme) {
+    --pro-bg: #eef2f6;
+    --pro-surface: rgba(255, 255, 255, 0.6);
+    --pro-border: rgba(0, 0, 0, 0.1);
+    --pro-text: #1a1a1a;
+    --pro-accent: #2563EB;
+}
+
+/* Light mode specific background override for canvas container */
+body.pro-body:not(.dark-theme) #canvas-container {
+    background: radial-gradient(circle at 50% 50%, #ffffff 0%, #dbeafe 100%);
+}
+
+/* --- Header --- */
+.pro-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    z-index: 100;
+    border-bottom: 1px solid var(--pro-border);
+    background: var(--pro-surface);
+    backdrop-filter: blur(10px);
+}
+
+.logo-pro {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--pro-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pro-badge {
+    background: var(--pro-accent);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+/* --- Canvas --- */
+#canvas-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 50%, #151515 0%, #000000 100%);
+    transition: background 0.5s ease;
+}
+
+/* --- UI Overlay --- */
+.pro-main {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.pro-main>* {
+    pointer-events: auto;
+}
+
+.ui-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ui-state.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* --- Circular Scanner --- */
+.scanner-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    border: 1px solid var(--pro-border);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.5;
+}
+
+.scanner-ring::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    border-top-color: var(--pro-text);
+    opacity: 0.2;
+    animation: rotateRing 10s linear infinite;
+}
+
+.scanner-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--pro-accent), transparent);
+    transform: translate(-50%, -50%) rotate(-45deg);
+    opacity: 0.3;
+}
+
+@keyframes rotateRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- Input State Styling --- */
+.center-content {
+    position: relative;
+    padding: 60px;
+}
+
+.pro-title {
+    font-size: 56px;
+    font-weight: 500;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+    color: var(--pro-text);
+}
+
+.pro-subtitle {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--pro-text);
+    opacity: 0.6;
+    margin-bottom: 48px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Floating Input */
+.pro-search-wrapper {
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    margin: 0 auto 32px;
+}
+
+#pro-input {
+    width: 100%;
+    background: var(--pro-surface);
+    border: 1px solid var(--pro-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px 32px;
+    border-radius: 99px;
+    color: var(--pro-text);
+    font-family: var(--font-main);
+    font-size: 18px;
+    text-align: center;
+    transition: all 0.3s;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+#pro-input:focus {
+    outline: none;
+    border-color: var(--pro-accent);
+    box-shadow: 0 0 0 2px var(--pro-accent), 0 20px 60px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+}
+
+#pro-input::placeholder {
+    color: var(--pro-text);
+    opacity: 0.5;
+}
+
+/* --- FIX: Suggestion Chips Readability --- */
+.suggestion-chips {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.chip {
+    background: rgba(10, 10, 10, 0.5); /* Darker background for contrast */
+    border: 1px solid var(--pro-border);
+    color: #ccc;
+    font-family: var(--font-main);
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(12px); /* Blur behind the chip */
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Light mode chips adjustment */
+body.pro-body:not(.dark-theme) .chip {
+    background: rgba(255, 255, 255, 0.6);
+    color: #333;
+}
+
+.chip-img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: grayscale(0.5);
+    transition: filter 0.2s;
+}
+
+.chip:hover {
+    background: var(--pro-accent);
+    border-color: var(--pro-accent);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.chip:hover .chip-img {
+    filter: grayscale(0);
+}
+
+/* --- Process State --- */
+.process-title {
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--pro-text);
+    margin-top: 300px;
+}
+
+.process-sub {
+    font-family: var(--font-mono);
+    color: var(--pro-accent);
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
