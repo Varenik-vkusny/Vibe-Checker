@@ -1,49 +1,11 @@
 from pydantic import ConfigDict, BaseModel
 from typing import Optional, List
-from datetime import datetime
+from ..place.schemas import PlaceInfo
 
 
-# --- Схемы для регистрации и авторизации ---
-class UserIn(BaseModel):
-    first_name: str
-    last_name: Optional[str] = None
-    email: str
-    password: str
-
-
-class UserOut(BaseModel):
-    id: int
-    first_name: str
-    last_name: Optional[str] = None
-    email: str
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
-
-
-# --- Схемы для первой фичи, а также валидации данных от парсера и ИИ ---
 class AIResponseIn(BaseModel):
     url: str
     limit: int
-
-
-class PlaceInfo(BaseModel):
-    name: str
-    google_rating: Optional[float] = None
-    url: str
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
 
 
 class Summary(BaseModel):
@@ -87,7 +49,6 @@ class AIResponseOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# --- Схемы для фичи сравнения ---
 class CompareRequest(BaseModel):
     url_a: str
     url_b: str
@@ -113,3 +74,5 @@ class CompareResponse(BaseModel):
     place_a: PlaceInfo
     place_b: PlaceInfo
     comparison: ComparisonData
+
+    model_config = ConfigDict(from_attributes=True)

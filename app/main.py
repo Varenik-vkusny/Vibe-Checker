@@ -2,6 +2,13 @@ import logging
 from fastapi import FastAPI, status
 from .endpoints.users import router as user_router
 from .endpoints.place import router as place_router
+from app.modules.analysis_result import models
+from app.modules.favorites import models
+from app.modules.parsing import models
+from app.modules.place import models
+from app.modules.place_tag import models
+from app.modules.tag import models
+from app.modules.user import models
 
 
 logging.basicConfig(level=logging.INFO)

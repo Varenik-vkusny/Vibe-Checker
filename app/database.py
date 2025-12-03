@@ -16,4 +16,3 @@ AsyncLocalSession = async_sessionmaker(
 )
 
 Base = declarative_base()
-from . import models

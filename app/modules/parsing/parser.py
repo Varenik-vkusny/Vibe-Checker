@@ -2,8 +2,7 @@ import googlemaps
 from serpapi import GoogleSearch
 import re
 from urllib.parse import unquote
-import json
-from .config import get_settings
+from ...config import get_settings
 
 settings = get_settings()
 
@@ -85,7 +84,7 @@ async def parse_google_reviews(url: str, max_reviews: int = 10):
     # --- ЭТАП 2: SerpApi (Отзывы) ---
     # Если нашли ID места, идем за отзывами
     if place_id:
-        print(f"🔄 Fetching reviews via SerpApi...")
+        print("🔄 Fetching reviews via SerpApi...")
         try:
             serp_params = {
                 "api_key": SERPAPI_KEY,

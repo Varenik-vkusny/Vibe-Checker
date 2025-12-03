@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from .repo import UserRepo
-from ... import schemas, security
+from . import schemas
+from ... import security
 
 
 class UserService:

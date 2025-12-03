@@ -3,7 +3,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import jwt, JWTError
-from . import security, schemas, models
+from . import security
+from .modules.user.schemas import TokenData
+from .modules.user.models import User
 from .database import AsyncLocalSession
 
 
@@ -35,12 +37,12 @@ async def get_current_user(
         if not email:
             raise credential_exception
 
-        token_data = schemas.TokenData(email=email)
+        token_data = TokenData(email=email)
     except JWTError:
         raise credential_exception
 
     db_user_result = await db.execute(
-        select(models.User).where(models.User.email == token_data.email)
+        select(User).where(User.email == token_data.email)
     )
 
     db_user = db_user_result.scalar_one_or_none()

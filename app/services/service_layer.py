@@ -1,5 +1,5 @@
 from app.model_service.model import analyze_reviews_with_gemini
-from app.parser import parse_google_reviews
+from app.modules.parsing.parser import parse_google_reviews
 
 
 async def get_ai_analysis(url: str, limit: int):

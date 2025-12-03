@@ -1,24 +1,31 @@
 from fastapi import HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..services.service_layer import get_ai_analysis
-from .. import models
+from ..modules.place.service import PlaceService
+from ..modules.place.repo import PlaceRepo
+from ..modules.tag.repo import TagRepo
+from ..modules.tag.service import TagService
+from ..modules.place_tag.repo import PlaceTagRepo
+from ..modules.place_tag.service import PlaceTagService
+from ..modules.analysis_result.repo import AnalysisRepo
+from ..modules.analysis_result.service import AnalysisService
 
 
 async def get_or_create_place_analysis(url: str, db: AsyncSession, limit: int):
 
-    query = (
-        select(models.Place)
-        .options(
-            selectinload(models.Place.analysis),
-            selectinload(models.Place.tags).selectinload(models.PlaceTag.tag),
-        )
-        .where(models.Place.source_url == url)
-    )
+    place_repo = PlaceRepo(db)
+    place_service = PlaceService(place_repo=place_repo)
 
-    result_db = await db.execute(query)
-    existing_place = result_db.scalar_one_or_none()
+    tag_repo = TagRepo(db)
+    tag_service = TagService(tag_repo=tag_repo)
+
+    place_tag_repo = PlaceTagRepo(db)
+    place_tag_service = PlaceTagService(place_tag_repo=place_tag_repo)
+
+    analysis_repo = AnalysisRepo(db)
+    analysis_service = AnalysisService(analysis_repo=analysis_repo)
+
+    existing_place = await place_service.find_place_with_info(url=url)
 
     if existing_place and existing_place.analysis:
 
@@ -53,7 +60,7 @@ async def get_or_create_place_analysis(url: str, db: AsyncSession, limit: int):
     place_info = ai_result_raw["place_info"]
 
     if not existing_place:
-        new_place = models.Place(
+        new_place = await place_service.create_new_place(
             source_url=place_info["url"],
             name=place_info["name"],
             google_rating=(
@@ -64,13 +71,11 @@ async def get_or_create_place_analysis(url: str, db: AsyncSession, limit: int):
             latitude=place_info["latitude"],
             longitude=place_info["longitude"],
         )
-        db.add(new_place)
-        await db.flush()
         place_id = new_place.id
     else:
         place_id = existing_place.id
 
-    new_analysis = models.AnalysisResult(
+    await analysis_service.create_new_analysis(
         place_id=place_id,
         summary=ai_data["summary"],  # JSON
         scores=ai_data["scores"],  # JSON
@@ -79,28 +84,14 @@ async def get_or_create_place_analysis(url: str, db: AsyncSession, limit: int):
         best_for=ai_data["best_for"],  # JSON list
         detailed_attributes=ai_data["detailed_attributes"],
     )
-    db.add(new_analysis)
 
     for tag_name in ai_data["tags"]:
-        tag_res = await db.execute(
-            select(models.Tag).where(models.Tag.name == tag_name)
-        )
-        tag = tag_res.scalar_one_or_none()
 
-        if not tag:
-            tag = models.Tag(name=tag_name)
-            db.add(tag)
-            await db.flush()
+        tag = await tag_service.create_tag_if_not_exists(tag_name=tag_name)
 
-        link_res = await db.execute(
-            select(models.PlaceTag).where(
-                models.PlaceTag.place_id == place_id,
-                models.PlaceTag.tag_id == tag.id,
-            )
+        await place_tag_service.create_tag_link_if_not_exists(
+            place_id=place_id, tag_id=tag.id
         )
-        if not link_res.scalar_one_or_none():
-            new_link = models.PlaceTag(place_id=place_id, tag_id=tag.id)
-            db.add(new_link)
 
     await db.commit()
 
