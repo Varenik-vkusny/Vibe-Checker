@@ -8,10 +8,12 @@ class Place(Base):
     __tablename__ = "places"
     id = Column(Integer, primary_key=True, index=True)
     google_place_id = Column(String, unique=True, index=True, nullable=True)
+    address = Column(String, nullable=True)
     source_url = Column(String, unique=True, nullable=False, index=True)
     name = Column(String, nullable=True, index=True)
     # Оригинальный рейтинг с карт (4.5)
     google_rating = Column(Float, nullable=True)
+    reviews_count = Column(Integer, default=0)
 
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)

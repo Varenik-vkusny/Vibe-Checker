@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from ..common.repo import BaseRepo
-from .models import Place
+from .models import Place, PlaceReview
 from ..place_tag.models import PlaceTag
 
 
@@ -22,3 +22,10 @@ class PlaceRepo(BaseRepo):
         existing_place = result_db.scalar_one_or_none()
 
         return existing_place
+
+    async def get_by_google_id(self, google_id: str) -> Place | None:
+        return await self.find_one(google_place_id=google_id)
+
+
+class ReviewRepo(BaseRepo):
+    model = PlaceReview

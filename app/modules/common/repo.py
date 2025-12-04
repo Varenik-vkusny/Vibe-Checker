@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -26,3 +26,7 @@ class BaseRepo:
         await self.db.flush()
 
         return new_model
+
+    async def delete(self, **filter_by):
+        stmt = delete(self.model).filter_by(**filter_by)
+        await self.db.execute(stmt)
