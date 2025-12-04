@@ -53,7 +53,8 @@
     align-items: center;
     justify-content: center;
     background: var(--bg-surface);
-    transition: all 0.3s ease;
+    transition: all var(--transition-fast);
+    padding: 24px;
 }
 
 .place-slot.filled {
@@ -61,6 +62,15 @@
     border-color: var(--border-color);
     background: var(--bg-main);
     box-shadow: var(--shadow-sm);
+}
+
+body.dark-theme .place-slot {
+    background: var(--bg-surface);
+}
+
+body.dark-theme .place-slot.filled {
+    background: var(--bg-main);
+    border-color: var(--border-color);
 }
 
 .place-slot:hover {
@@ -81,7 +91,9 @@
 
 .slot-content h2 {
     font-size: 24px;
+    font-weight: 700;
     margin-bottom: 8px;
+    color: var(--text-main);
 }
 
 .slot-content p {
@@ -93,33 +105,34 @@
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 24px;
-    background: var(--text-main);
-    color: var(--bg-main);
+    background: var(--primary);
+    color: var(--text-inverse);
     width: 60px;
     height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.3);
     transform: scale(1);
     animation: pulse 2s infinite;
+    flex-shrink: 0;
 }
 
 @keyframes pulse {
     0% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
     }
 
     70% {
         transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
     }
 
     100% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
     }
 }
 
@@ -133,31 +146,36 @@
 }
 
 .competitor-btn {
-    padding: 16px;
+    padding: 16px 20px;
     border: 1px solid var(--border-color);
     background: var(--bg-main);
     border-radius: var(--radius-md);
     cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
+    text-align: left;
+    transition: all var(--transition-fast);
     width: 100%;
+    color: var(--text-main);
 }
 
 .competitor-btn:hover {
-    border-color: var(--text-main);
-    transform: scale(1.02);
+    border-color: var(--accent-blue);
+    background: var(--bg-surface);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .competitor-btn strong {
     display: block;
     font-size: 16px;
+    font-weight: 600;
     margin-bottom: 4px;
+    color: var(--text-main);
 }
 
 .competitor-btn span {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-muted);
+    display: block;
 }
 
 /* --- STEP 2: RESULT --- */
@@ -181,7 +199,9 @@
 
 .result-header h2 {
     font-size: 32px;
+    font-weight: 700;
     margin-bottom: 16px;
+    color: var(--text-main);
 }
 
 .comparison-grid {
@@ -209,26 +229,42 @@
 }
 
 .col-icon-wrapper {
-    width: 80px;
-    height: 80px;
-    border: 1px solid var(--border-color);
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--border-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     background: var(--bg-surface);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
 }
 
 .col-icon-wrapper img {
-    width: 40px;
-    height: 40px;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.comparison-grid:hover .col-icon-wrapper {
+    border-color: var(--accent-blue);
+    transform: scale(1.05);
+}
+
+.col-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .col-header h3 {
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     color: var(--text-main);
 }
 
@@ -246,6 +282,7 @@
     flex-wrap: wrap;
     justify-content: center;
     margin-top: 16px;
+    width: 100%;
 }
 
 .winner-box {
@@ -291,11 +328,20 @@
 
 .vibe-pill {
     font-size: 12px;
+    font-weight: 500;
     background: var(--bg-surface);
     padding: 6px 12px;
-    border-radius: 20px;
+    border-radius: var(--radius-full);
     border: 1px solid var(--border-color);
     white-space: nowrap;
+    color: var(--text-main);
+    transition: all var(--transition-fast);
+}
+
+body.dark-theme .vibe-pill {
+    background: rgba(37, 99, 235, 0.15);
+    border-color: rgba(37, 99, 235, 0.3);
+    color: #60a5fa;
 }
 
 /* Bars */
@@ -309,26 +355,31 @@
 
 .bar-row {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
+    width: 100%;
 }
 
 .bar-label {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-main);
+    min-width: 120px;
+    text-align: left;
+    flex-shrink: 0;
 }
 
 .bar-visual {
-    width: 100%;
-    height: 16px;
+    flex: 1;
+    height: 20px;
     background: var(--bg-surface);
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     position: relative;
     overflow: hidden;
     border: 1px solid var(--border-color);
+    min-width: 0;
 }
 
 .bar-fill {
@@ -339,17 +390,25 @@
 }
 
 .bar-fill.left {
-    background: var(--text-main);
+    background: var(--accent-blue);
     border-right: 2px solid var(--bg-main);
     margin-right: auto;
     /* Push to left */
 }
 
 .bar-fill.right {
-    background: var(--text-muted);
+    background: #f97316;
     border-left: 2px solid var(--bg-main);
     margin-left: auto;
     /* Push to right */
+}
+
+body.dark-theme .bar-fill.left {
+    background: #60a5fa;
+}
+
+body.dark-theme .bar-fill.right {
+    background: #fb923c;
 }
 
 /* Pattern to indicate potential value space */
@@ -378,6 +437,13 @@
     text-align: center;
 }
 
+.verdict-banner p {
+    color: var(--text-main);
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+}
+
 .verdict-title {
     display: inline-flex;
     align-items: center;
@@ -387,6 +453,7 @@
     margin-bottom: 12px;
     text-transform: uppercase;
     font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
 .winner-highlight {
