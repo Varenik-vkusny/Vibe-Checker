@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     google_api_key_parse: str
     serpapi_key: str
 
+    collection_name: str
+
     @computed_field
     @property
     def db_url(self) -> str:
