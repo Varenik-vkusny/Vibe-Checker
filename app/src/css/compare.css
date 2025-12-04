@@ -355,9 +355,8 @@ body.dark-theme .vibe-pill {
 
 .bar-row {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
+    gap: 10px;
     width: 100%;
 }
 
@@ -365,13 +364,10 @@ body.dark-theme .vibe-pill {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-main);
-    min-width: 120px;
-    text-align: left;
-    flex-shrink: 0;
 }
 
 .bar-visual {
-    flex: 1;
+    width: 100%;
     height: 20px;
     background: var(--bg-surface);
     border-radius: 10px;
@@ -411,6 +407,43 @@ body.dark-theme .bar-fill.right {
     background: #fb923c;
 }
 
+.bar-values {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 12px;
+    position: relative;
+}
+
+.bar-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bar-value.left .value-number {
+    color: var(--accent-blue);
+}
+
+.bar-value.right {
+    flex-direction: row-reverse;
+}
+
+.bar-value.right .value-number {
+    color: #f97316;
+}
+
+.value-name {
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 12px;
+}
+
 /* Pattern to indicate potential value space */
 .bar-ghost-pattern {
     position: absolute;
@@ -435,6 +468,7 @@ body.dark-theme .bar-fill.right {
     border-radius: var(--radius-md);
     padding: 24px;
     text-align: center;
+    margin-bottom: 40px;
 }
 
 .verdict-banner p {
@@ -454,6 +488,119 @@ body.dark-theme .bar-fill.right {
     text-transform: uppercase;
     font-size: 12px;
     letter-spacing: 0.5px;
+}
+
+/* Key Differences Section */
+.differences-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.differences-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.differences-list li {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.diff-icon {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--accent-blue);
+}
+
+body.dark-theme .diff-icon {
+    color: #60a5fa;
+}
+
+/* Unique Pros Section */
+.pros-section {
+    margin-bottom: 40px;
+}
+
+.pros-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.pros-column {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+}
+
+.pros-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 16px;
+    text-align: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.pros-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pros-list li {
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.5;
+    padding-left: 24px;
+    position: relative;
+}
+
+.pros-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 16px;
+}
+
+body.dark-theme .pros-list li::before {
+    color: #60a5fa;
+}
+
+@media (max-width: 768px) {
+    .pros-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .differences-list li {
+        padding-left: 32px;
+    }
 }
 
 .winner-highlight {

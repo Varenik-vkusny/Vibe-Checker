@@ -1,42 +1,244 @@
 /* --- GLOBAL VARIABLES & DARK MODE --- */
 :root {
-    --header-height: 64px;
+    --header-height: 72px;
     
-    /* Light Mode Defaults */
-    --bg-surface: #ffffff;
-    --bg-main: #f8fafc;
+    /* Light Mode Defaults - Matching lending page */
+    --bg-main: #ffffff;
+    --bg-surface: #f4f5f7;
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --bg-glass-strong: rgba(255, 255, 255, 0.95);
     --bg-input: #ffffff;
-    --border-color: #e2e8f0;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --text-main: #050505;
+    --text-muted: #525252;
+    --text-inverse: #ffffff;
     --card-shadow: 0 4px 16px rgba(0,0,0,0.05);
     
-    --accent-blue: #3b82f6;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 12px 24px -6px rgba(0,0,0,0.08);
+    --shadow-lg: 0 24px 48px -12px rgba(0,0,0,0.12);
+    
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 999px;
+    
+    --primary: #000000;
+    --primary-hover: #333333;
+    --accent-blue: #2563EB;
     --font-main: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Rajdhani', sans-serif;
+    
+    /* Animation */
+    --transition-fast: 0.2s ease;
+    --transition-medium: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --theme-transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
 }
 
 body.dark-theme {
-    /* Dark Mode Overrides */
-    --bg-surface: #1e293b;
-    --bg-main: #0f172a;
-    --bg-input: #1e293b;
-    --border-color: #334155;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
+    /* Dark Mode Overrides - Matching lending page exactly */
+    --bg-main: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-glass: rgba(10, 10, 10, 0.7);
+    --bg-glass-strong: rgba(0, 0, 0, 0.9);
+    --bg-input: #141414;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --text-main: #ffffff;
+    --text-muted: #a3a3a3;
+    --text-inverse: #000000;
     --card-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
+    --shadow-md: 0 8px 16px rgba(0,0,0,0.5);
+    --shadow-lg: 0 16px 32px rgba(0,0,0,0.6);
+    
+    --primary: #ffffff;
+    --primary-hover: #e5e5e5;
 }
 
-/* --- BASE & LAYOUT --- */
+/* --- BASE & LAYOUT (FIXED) --- */
+*, *::before, *::after {
+    box-sizing: border-box; /* Важно для корректного расчета ширины */
+}
+
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    width: 100%; /* Гарантируем полную ширину */
     overflow: hidden;
     background-color: var(--bg-main);
     font-family: var(--font-main);
+    transition: var(--theme-transition);
 }
 
+/* --- HEADER STYLES (Matching lending page) --- */
+.header {
+    width: 100%;
+    height: var(--header-height);
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.logo {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+    text-decoration: none;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-links a {
+    position: relative;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 0;
+    text-decoration: none;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--text-main);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* --- THEME TOGGLE BUTTON --- */
+.theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--text-main);
+    transform: rotate(15deg);
+}
+
+.theme-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+/* Icon Animation Logic */
+.theme-toggle-btn .sun-icon {
+    display: block;
+}
+.theme-toggle-btn .moon-icon {
+    display: none;
+}
+
+body.dark-theme .theme-toggle-btn .sun-icon {
+    display: none;
+}
+body.dark-theme .theme-toggle-btn .moon-icon {
+    display: block;
+}
+
+/* --- BUTTON STYLES (Matching lending page) --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-family: var(--font-main);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    border: none;
+    line-height: 1;
+}
+
+/* Outline Variant */
+.btn--outline {
+    background: transparent;
+    border: 1.5px solid var(--text-main);
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn--outline:hover {
+    background: var(--text-main);
+    color: var(--bg-main);
+}
+
+/* Primary Variant */
+.btn--primary {
+    background-color: var(--primary);
+    color: var(--bg-main);
+    padding: 16px 32px;
+    font-size: 16px;
+}
+
+.btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background-color: var(--primary-hover);
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 0 20px;
+    }
+    .nav-links {
+        display: none;
+    }
+    .header-right {
+        gap: 12px;
+    }
+}
+
+/* Основной контейнер растягиваем жестко */
 main.map-layout {
     position: fixed;
     top: var(--header-height);
@@ -44,7 +246,7 @@ main.map-layout {
     right: 0;
     bottom: 0;
     height: calc(100vh - var(--header-height));
-    width: 100vw;
+    width: 100%; 
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -138,8 +340,8 @@ main.map-layout {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 4px 4px 12px 4px; /* Fix for hover overflow */
-    margin: 0 -4px; /* Compensate for extra padding */
+    padding: 4px 4px 12px 4px;
+    margin: 0 -4px;
     scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
@@ -232,21 +434,29 @@ body.dark-theme .rating-badge { background: rgba(16, 185, 129, 0.2); color: #34d
 .vibe-tag:nth-child(3) { background: #f0fdf4; color: #16a34a; } /* Green */
 .vibe-tag:nth-child(4) { background: #fffbeb; color: #d97706; } /* Amber */
 
+/* Dark mode styles for vibe tags */
+body.dark-theme .vibe-tag:nth-child(1) { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3); } /* Blue */
+body.dark-theme .vibe-tag:nth-child(2) { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.3); } /* Red */
+body.dark-theme .vibe-tag:nth-child(3) { background: rgba(22, 163, 74, 0.2); color: #34d399; border: 1px solid rgba(22, 163, 74, 0.3); } /* Green */
+body.dark-theme .vibe-tag:nth-child(4) { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); } /* Amber */
+
 
 /* --- DETAIL VIEW --- */
 .back-btn { display: inline-flex; align-items: center; gap: 8px; margin: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; transition: color 0.2s; }
 .back-btn:hover { color: var(--text-main); }
 .icon-svg { width: 20px; height: 20px; stroke-width: 2; }
 
-.detail-hero { padding: 0 24px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+.detail-hero { padding: 0 24px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: var(--bg-main); }
 #detail-title { font-size: 28px; margin-bottom: 8px; letter-spacing: -1px; color: var(--text-main); }
 .detail-subtitle { color: var(--text-muted); font-size: 14px; }
 .detail-badges { display: flex; gap: 8px; margin-top: 12px; }
-.detail-content { padding: 24px; padding-bottom: 100px; overflow-y: auto; }
+.detail-content { padding: 24px; padding-bottom: 100px; overflow-y: auto; background: var(--bg-main); }
 
-.score-card { display: flex; gap: 16px; margin-bottom: 32px; background: var(--bg-surface); padding: 16px; border-radius: 12px; }
+.score-card { display: flex; gap: 16px; margin-bottom: 32px; background: var(--bg-surface); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
 .big-score { font-size: 48px; font-weight: 700; letter-spacing: -2px; line-height: 1; color: var(--text-main); }
 .score-meta { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.score-meta span { color: var(--text-muted); font-size: 13px; }
+.score-meta span b { color: var(--text-main); font-weight: 600; }
 .bar-row { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 4px; }
 .bar-row label { width: 70px; color: var(--text-muted); }
 .bar-track { flex: 1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden; }
@@ -255,6 +465,7 @@ body.dark-theme .bar-track { background: rgba(255,255,255,0.1); }
 
 .status-badge { font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
 .status-badge.open { background: #dcfce7; color: #15803d; }
+body.dark-theme .status-badge.open { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-badge.price { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); }
 
 .ai-verdict-box { background: linear-gradient(145deg, rgba(37,99,235,0.05) 0%, rgba(124,58,237,0.05) 100%); border: 1px solid rgba(37,99,235,0.2); padding: 16px; border-radius: 12px; margin-bottom: 32px; }
@@ -284,17 +495,32 @@ body.dark-theme .ai-header h3 { color: #60a5fa; }
 .legend-item { display: flex; align-items: center; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-/* --- MAP & PINS --- */
+/* --- MAP & PINS (FIXED) --- */
 .map-stage {
-    flex: 1;
+    flex: 1; /* Растягивает на всю оставшуюся ширину */
     height: 100%;
     position: relative;
     background: #e5e5e5;
     z-index: 1;
+    width: 100%; /* Гарантия ширины внутри флекс-элемента */
 }
 
+/* FIX: Применяем фильтр ТОЛЬКО к слою с картой, а не ко всему контейнеру */
 body.dark-theme .map-stage {
+    background: #0a0a0a; /* Matching dark mode bg-main */
+}
+
+/* Это магия для Leaflet: инвертируем только тайлы (картинки) */
+body.dark-theme .leaflet-tile-pane {
     filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+/* А вот это (опционально) затемняет копирайт внизу, чтобы он не светился белым */
+body.dark-theme .leaflet-control-attribution {
+    background: rgba(0,0,0,0.8) !important;
+    color: #ccc !important;
+}
+body.dark-theme .leaflet-control-attribution a {
+    color: #fff !important;
 }
 
 .custom-map-pin { background: transparent; border: none; }
@@ -308,5 +534,5 @@ body.dark-theme .map-stage {
 @media (max-width: 900px) {
     main.map-layout { flex-direction: column; position: relative; top: 0; height: calc(100vh - var(--header-height)); }
     .sidebar { width: 100%; height: 50%; order: 2; border-right: none; border-top: 1px solid var(--border-color); }
-    .map-stage { height: 50%; order: 1; }
+    .map-stage { height: 50%; order: 1; width: 100%; }
 }

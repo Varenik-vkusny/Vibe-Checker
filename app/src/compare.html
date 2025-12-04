@@ -95,8 +95,9 @@
                         <div class="col-icon-wrapper">
                             <img src="https://em-content.zobj.net/source/apple/419/hamburger_1f354.png" alt="burger">
                         </div>
-                        <h3>Burger King</h3>
-                        <span class="score-display">4.8</span>
+                        <h3 id="place-a-name-display">Burger King</h3>
+                        <span class="score-display" id="place-a-score">4.8</span>
+                        <div id="place-a-tags" class="comp-tags"></div>
                     </div>
                 </div>
 
@@ -120,33 +121,99 @@
 
             <!-- Detailed Bar Comparison -->
             <div class="comparison-bars">
-                <div class="bar-row" data-left="92" data-right="0">
+                <div class="bar-row" data-category="food">
                     <span class="bar-label">Food Quality</span>
                     <div class="bar-visual">
-                        <!-- Left bar pre-filled (visual trick handled by JS/CSS to avoid pop-in) -->
-                        <div class="bar-fill left" style="width: 46%"></div>
-                        <!-- Right bar starts 0 width -->
-                        <div class="bar-fill right" style="width: 0%"></div>
-                        <!-- Ghost Pattern for right side -->
-                        <div class="bar-ghost-pattern"></div>
-                    </div>
-                </div>
-
-                <div class="bar-row" data-left="70" data-right="0">
-                    <span class="bar-label">Service Speed</span>
-                    <div class="bar-visual">
-                        <div class="bar-fill left" style="width: 35%"></div>
+                        <div class="bar-fill left" style="width: 0%"></div>
                         <div class="bar-fill right" style="width: 0%"></div>
                         <div class="bar-ghost-pattern"></div>
                     </div>
+                    <div class="bar-values">
+                        <span class="bar-value left">
+                            <strong class="value-name">Place A</strong>
+                            <span class="value-number">50%</span>
+                        </span>
+                        <span class="bar-value right">
+                            <span class="value-number">50%</span>
+                            <strong class="value-name">Place B</strong>
+                        </span>
+                    </div>
                 </div>
 
-                <div class="bar-row" data-left="60" data-right="0">
-                    <span class="bar-label">Cleanliness</span>
+                <div class="bar-row" data-category="service">
+                    <span class="bar-label">Service</span>
                     <div class="bar-visual">
-                        <div class="bar-fill left" style="width: 30%"></div>
+                        <div class="bar-fill left" style="width: 0%"></div>
                         <div class="bar-fill right" style="width: 0%"></div>
                         <div class="bar-ghost-pattern"></div>
+                    </div>
+                    <div class="bar-values">
+                        <span class="bar-value left">
+                            <strong class="value-name">Place A</strong>
+                            <span class="value-number">50%</span>
+                        </span>
+                        <span class="bar-value right">
+                            <span class="value-number">50%</span>
+                            <strong class="value-name">Place B</strong>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bar-row" data-category="atmosphere">
+                    <span class="bar-label">Atmosphere</span>
+                    <div class="bar-visual">
+                        <div class="bar-fill left" style="width: 0%"></div>
+                        <div class="bar-fill right" style="width: 0%"></div>
+                        <div class="bar-ghost-pattern"></div>
+                    </div>
+                    <div class="bar-values">
+                        <span class="bar-value left">
+                            <strong class="value-name">Place A</strong>
+                            <span class="value-number">50%</span>
+                        </span>
+                        <span class="bar-value right">
+                            <span class="value-number">50%</span>
+                            <strong class="value-name">Place B</strong>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bar-row" data-category="value">
+                    <span class="bar-label">Value</span>
+                    <div class="bar-visual">
+                        <div class="bar-fill left" style="width: 0%"></div>
+                        <div class="bar-fill right" style="width: 0%"></div>
+                        <div class="bar-ghost-pattern"></div>
+                    </div>
+                    <div class="bar-values">
+                        <span class="bar-value left">
+                            <strong class="value-name">Place A</strong>
+                            <span class="value-number">50%</span>
+                        </span>
+                        <span class="bar-value right">
+                            <span class="value-number">50%</span>
+                            <strong class="value-name">Place B</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Differences -->
+            <div class="differences-section">
+                <h3 class="section-title">Key Differences</h3>
+                <ul id="key-differences" class="differences-list"></ul>
+            </div>
+
+            <!-- Unique Pros -->
+            <div class="pros-section">
+                <div class="pros-grid">
+                    <div class="pros-column">
+                        <h4 id="place-a-name" class="pros-title">Place A</h4>
+                        <ul id="place-a-pros" class="pros-list"></ul>
+                    </div>
+                    <div class="pros-column">
+                        <h4 id="place-b-name" class="pros-title">Place B</h4>
+                        <ul id="place-b-pros" class="pros-list"></ul>
                     </div>
                 </div>
             </div>
