@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis: Burger King Center</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Вернули старые шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/analysis.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="index.html" class="logo">VibeCheck</a>
+        <div class="header-right">
+            <nav class="nav-links">
+                <a href="map.html">Places</a>
+                <a href="compare.html">Compare</a>
+                <a href="pro.html" class="active">AI Analysis</a>
+            </nav>
+            <button class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+                <svg class="theme-icon sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg class="theme-icon moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="analysis-container">
+        
+        <!-- Entity Header -->
+        <div class="entity-card fade-in">
+            <div class="entity-icon-box">
+                <img src="https://em-content.zobj.net/source/apple/419/hamburger_1f354.png" alt="Burger">
+            </div>
+            <div class="entity-content">
+                <h1>Burger King Center</h1>
+                <div class="meta-row">
+                    <span class="pill gray">Fast Food</span>
+                    <span class="pill gray">$$</span>
+                    <span class="pill green">Open Now</span>
+                </div>
+                <!-- Новые теги в старом стиле -->
+                <div class="vibe-tags">
+                    <span class="vibe-tag">🎓 Student Hub</span>
+                    <span class="vibe-tag">💻 Laptop Friendly</span>
+                    <span class="vibe-tag">⚡ Fast Service</span>
+                </div>
+            </div>
+            
+            <div class="score-wrapper">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" stroke-dasharray="96, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="score-val">4.8</div>
+                <div class="score-label">VIBE SCORE</div>
+            </div>
+        </div>
+
+        <div class="grid-layout fade-in-delay">
+            
+            <!-- Left Column: Metrics -->
+            <div class="col-left">
+                <div class="panel metrics-panel">
+                    <h3>Vibe Breakdown</h3>
+                    
+                    <div class="metric-group">
+                        <div class="metric-row">
+                            <span class="m-label">Food Quality</span>
+                            <span class="m-val">92%</span>
+                        </div>
+                        <div class="m-track"><div class="m-fill green" style="width: 92%"></div></div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-row">
+                            <span class="m-label">Service Speed</span>
+                            <span class="m-val">74%</span>
+                        </div>
+                        <div class="m-track"><div class="m-fill orange" style="width: 74%"></div></div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-row">
+                            <span class="m-label">Cleanliness</span>
+                            <span class="m-val">68%</span>
+                        </div>
+                        <div class="m-track"><div class="m-fill orange" style="width: 68%"></div></div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-row">
+                            <span class="m-label">Value for Money</span>
+                            <span class="m-val">88%</span>
+                        </div>
+                        <div class="m-track"><div class="m-fill green" style="width: 88%"></div></div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Новый виджет Popular Times, адаптированный под старый стиль -->
+                    <h3>Popular Times</h3>
+                    <div class="popular-times-graph">
+                        <div class="bar" style="height: 20%"></div>
+                        <div class="bar" style="height: 35%"></div>
+                        <div class="bar" style="height: 50%"></div>
+                        <div class="bar active" style="height: 85%"><span>Now</span></div>
+                        <div class="bar" style="height: 60%"></div>
+                        <div class="bar" style="height: 40%"></div>
+                        <div class="bar" style="height: 25%"></div>
+                    </div>
+                    <div class="graph-labels">
+                        <span>12 PM</span>
+                        <span>3 PM</span>
+                        <span>6 PM</span>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h3>Crowd Demographics</h3>
+                    <div class="demo-bar-container">
+                        <div class="segment blue" style="width: 50%"></div>
+                        <div class="segment purple" style="width: 30%"></div>
+                        <div class="segment pink" style="width: 20%"></div>
+                    </div>
+                    <div class="demo-legend">
+                        <div class="legend-item"><span class="dot blue"></span> Students (50%)</div>
+                        <div class="legend-item"><span class="dot purple"></span> Families (30%)</div>
+                        <div class="legend-item"><span class="dot pink"></span> Late Night (20%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: AI Analysis -->
+            <div class="col-right">
+                <div class="panel ai-panel">
+                    <div class="ai-header">
+                        <div class="ai-title-wrapper">
+                            <img src="https://em-content.zobj.net/source/apple/391/sparkles_2728.png" width="20" alt="AI">
+                            <h2>AI Verdict</h2>
+                        </div>
+                        <span class="ai-meta">Updated just now</span>
+                    </div>
+                    
+                    <div class="ai-summary-box">
+                        Based on <strong>1,240 reviews</strong>, this location is a high-energy hub primarily serving the university crowd. While the <strong>food quality</strong> is consistently rated higher than the district average, <strong>cleanliness</strong> during peak hours is a recurring pain point.
+                    </div>
+
+                    <div class="pc-container">
+                        <!-- The Good -->
+                        <div class="pc-box">
+                            <div class="pc-title">
+                                <div class="icon-circle check">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </div>
+                                <span>The Good</span>
+                            </div>
+                            <ul class="pc-list">
+                                <li>Fries are consistently <button class="link-btn good" onclick="filterReviews('hot')">hot and fresh</button> compared to competitors.</li>
+                                <li>Staff is praised for handling <button class="link-btn good" onclick="filterReviews('large orders')">large orders</button> efficiently.</li>
+                                <li>Excellent <button class="link-btn good" onclick="filterReviews('wifi')">Wi-Fi stability</button> (avg 120Mbps) attracts remote workers.</li>
+                            </ul>
+                        </div>
+
+                        <!-- The Bad -->
+                        <div class="pc-box">
+                            <div class="pc-title">
+                                <div class="icon-circle cross">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </div>
+                                <span>The Bad</span>
+                            </div>
+                            <ul class="pc-list">
+                                <li>Restrooms are frequently cited as <button class="link-btn bad" onclick="filterReviews('messy')">"messy"</button> or "out of soap".</li>
+                                <li>Evening <button class="link-btn bad" onclick="filterReviews('noise')">noise levels</button> make conversation difficult in the evenings.</li>
+                                <li>Self-service kiosks often have <button class="link-btn bad" onclick="filterReviews('paper jams')">paper jams</button>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEWS SECTION -->
+        <div class="reviews-section fade-in-delay-2" id="reviews-anchor">
+            
+            <div class="reviews-header-row">
+                <h2>Review Deep Dive</h2>
+                
+                <div class="reviews-controls">
+                    <!-- Search Input -->
+                    <div class="search-box">
+                        <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="review-search" placeholder="Search within reviews...">
+                    </div>
+
+                    <!-- Filter Chips with Emojipedia Images -->
+                    <button class="filter-chip all active" data-filter="all">All</button>
+                    
+                    <button class="filter-chip" data-filter="fries">
+                        <img src="https://em-content.zobj.net/source/apple/391/french-fries_1f35f.png" alt="fries"> Fries (420)
+                    </button>
+                    
+                    <button class="filter-chip" data-filter="clean">
+                        <img src="https://em-content.zobj.net/source/apple/391/broom_1f9f9.png" alt="clean"> Cleanliness (112)
+                    </button>
+                    
+                    <button class="filter-chip" data-filter="staff">
+                        <img src="https://em-content.zobj.net/source/apple/391/busts-in-silhouette_1f465.png" alt="staff"> Staff (85)
+                    </button>
+                    
+                    <button class="filter-chip" data-filter="wifi">
+                        <img src="https://em-content.zobj.net/source/apple/391/antenna-bars_1f4f6.png" alt="wifi"> Wi-Fi (40)
+                    </button>
+                </div>
+            </div>
+
+            <div class="reviews-grid" id="reviews-grid">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+
+    </main>
+
+    <script src="js/theme.js"></script>
+    <script src="js/analysis.js"></script>
+</body>
+</html>
