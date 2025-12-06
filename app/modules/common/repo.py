@@ -30,3 +30,4 @@ class BaseRepo:
     async def delete(self, **filter_by):
         stmt = delete(self.model).filter_by(**filter_by)
         await self.db.execute(stmt)
+        await self.db.flush()

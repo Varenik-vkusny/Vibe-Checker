@@ -2,7 +2,15 @@ import json
 import logging
 import google.generativeai as genai
 from app.config import get_settings
-from typing import List, Union, Dict, Any
+from app.modules.analysis_result.schemas import (
+    AIAnalysis,
+    Summary,
+    Scores,
+    DetailedAttributes,
+    ComparisonData,
+    WinnerCategory,
+)
+from app.modules.place.schemas import PlaceInfoDTO
 
 settings = get_settings()
 api_key = settings.gemini_api_key
@@ -50,209 +58,155 @@ ALLOWED_SCENARIOS = [
 ]
 
 
-# Обновил type hint, так как теперь мы ждем и словари
-async def analyze_reviews_with_gemini(
-    reviews_list: List[Union[str, Dict[str, Any]]], place_name: str
-):
-    logger.info(f"🚀 Запуск анализа для места: '{place_name}'")
+# --- ГЛАВНАЯ ФУНКЦИЯ АНАЛИЗА ---
+async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
+    """
+    Принимает PlaceInfoDTO (с отзывами, фото и описанием).
+    Возвращает типизированный AIAnalysis.
+    """
+    logger.info(f"🚀 Запуск анализа для места: '{place.name}'")
 
-    if not reviews_list:
-        logger.warning("⚠️ Список отзывов пуст! Возвращаю заглушку.")
-        return _get_empty_response()
+    if not place.reviews and not place.description:
+        logger.warning("⚠️ Нет данных для анализа (отзывов и описания нет).")
+        return _get_empty_analysis()
 
-    # Берем первые 100 отзывов
-    truncated_source = reviews_list[:100]
+    # Склеиваем отзывы (они уже строки в формате "Date | Rating... Review")
+    reviews_text = "\n---\n".join(place.reviews[:50])
 
-    # --- 🔥 ИСПРАВЛЕНИЕ ТУТ 🔥 ---
-    formatted_reviews = []
+    # Формируем контекст фото и описания
+    photos_context = ""
+    if place.photos:
+        photos_context = f"The place has photos available at these URLs: {json.dumps(place.photos)}. Use visual analysis if possible."
 
-    for item in truncated_source:
-        if isinstance(item, dict):
-            # Если это словарь от нового парсера
-            author = item.get("author", "Guest")
-            rating = item.get("rating", "?")
-            date = item.get("date", "")
-            text = item.get("text", "")
-
-            # Если текста нет, пропускаем
-            if not text:
-                continue
-
-            # Формируем строку с метаданными, это поможет AI понять контекст (свежий отзыв или старый, какая оценка)
-            formatted_str = (
-                f"Date: {date} | Rating: {rating}/5 | Author: {author}\nReview: {text}"
-            )
-            formatted_reviews.append(formatted_str)
-
-        elif isinstance(item, str):
-            # Если это просто строка (старый парсер)
-            formatted_reviews.append(item)
-        else:
-            # На всякий случай
-            formatted_reviews.append(str(item))
-
-    # Теперь в formatted_reviews только строки, join не упадет
-    reviews_text = "\n---\n".join(formatted_reviews)
-    # -----------------------------
-
-    logger.info(
-        f"📝 Подготовлено {len(formatted_reviews)} отзывов ({len(reviews_text)} символов)."
-    )
+    description_context = ""
+    if place.description:
+        description_context = f"Official Description: {place.description}"
 
     prompt = f"""
     You are an expert restaurant critic and data analyst. 
-    Analyze the following reviews for the place named "{place_name}".
+    Analyze the place "{place.name}".
     
-    Your goal is to extract structured data about the "vibe" and quality of the place.
-    Be objective. If reviews are conflicting, take the majority opinion.
+    CONTEXT:
+    {description_context}
+    {photos_context}
 
-    Output MUST be a valid JSON object with the following schema:
+    REVIEWS:
+    {reviews_text}
+    
+    Output MUST be a valid JSON object matching the following schema exactly:
     {{
         "summary": {{
-            "verdict": "A short, punchy summary (2 sentences max) in Russian language.",
-            "pros": ["List of 3 main pros in Russian"],
-            "cons": ["List of 3 main cons in Russian"]
+            "verdict": "Short summary in Russian",
+            "pros": ["List of pros in Russian"],
+            "cons": ["List of cons in Russian"]
         }},
-        "scores": {{
-            "food": int (1-10),
-            "service": int (1-10),
-            "atmosphere": int (1-10),
-            "value": int (1-10)
-        }},
-        "vibe_score": int (0-100) (An overall score based on sentiment),
-        "tags": ["List of tags selected ONLY from the allowed list"],
-        "price_level": "String: '$' (Cheap), '$$' (Moderate), or '$$$' (Expensive)",
-        "best_for": ["List of scenarios selected ONLY from the allowed scenarios list"],
+        "scores": {{ "food": int(1-10), "service": int, "atmosphere": int, "value": int }},
+        "vibe_score": int(0-100),
+        "tags": ["List from allowed tags"],
+        "price_level": "$, $$, or $$$",
+        "best_for": ["List from allowed scenarios"],
         "detailed_attributes": {{
-            "has_wifi": "Bool or Null (if unsure)",
-            "has_parking": "Bool or Null",
-            "outdoor_seating": "Bool or Null",
-            "noise_level": "String: 'Low', 'Medium', 'High'",
-            "service_speed": "String: 'Fast', 'Average', 'Slow'",
-            "portion_size": "String: 'Small', 'Average', 'Large'",
-            "cleanliness": "String: 'Low', 'Medium', 'High'"
+            "has_wifi": bool, "has_parking": bool, "outdoor_seating": bool,
+            "noise_level": "Low/Medium/High", "service_speed": "Fast/Average/Slow", "cleanliness": "Low/Medium/High"
         }}
     }}
 
-    CONSTRAINTS:
-    1. Tags MUST be chosen from this list: {json.dumps(ALLOWED_TAGS)}
-    2. Scenarios MUST be chosen from this list: {json.dumps(ALLOWED_SCENARIOS)}
-    3. Return ONLY raw JSON, no markdown formatting.
-
-    REVIEWS DATA:
-    {reviews_text}
+    ALLOWED TAGS: {json.dumps(ALLOWED_TAGS)}
+    ALLOWED SCENARIOS: {json.dumps(ALLOWED_SCENARIOS)}
     """
 
-    model_name = "gemini-2.0-flash"  # Поправил на 2.0 (2.5 еще нет в публичном доступе, либо используй 1.5-flash)
+    model_name = "gemini-2.5-flash"
 
     try:
-        logger.info(f"🤖 Инициализация модели: {model_name}...")
-        model = genai.GenerativeModel(model_name)
-
-        logger.info("⏳ Отправка запроса в Gemini API...")
+        model = genai.GenerativeModel(model_name)  # Используем стабильную версию
 
         response = await model.generate_content_async(
             prompt, generation_config={"response_mime_type": "application/json"}
         )
 
-        logger.info("✅ Ответ получен. Парсинг JSON...")
         result_json = json.loads(response.text)
+        logger.info(f"🎉 Анализ завершен! Vibe Score: {result_json.get('vibe_score')}")
 
-        logger.info(
-            f"🎉 Анализ завершен! Vibe Score: {result_json.get('vibe_score', 'N/A')}"
+        # Валидация через Pydantic
+        return AIAnalysis(
+            summary=Summary(**result_json["summary"]),
+            scores=Scores(**result_json["scores"]),
+            vibe_score=result_json["vibe_score"],
+            tags=result_json["tags"],
+            price_level=result_json["price_level"],
+            best_for=result_json["best_for"],
+            detailed_attributes=DetailedAttributes(
+                **result_json["detailed_attributes"]
+            ),
         )
-        return result_json
 
     except Exception as e:
-        logger.error(f"🔥 Ошибка при анализе Gemini: {e}")
-        # Заглушка, чтобы не падало всё приложение
-        return _get_empty_response()
+        logger.error(f"🔥 Ошибка Gemini: {e}")
+        return _get_empty_analysis()
 
 
-def _get_empty_response():
-    """Вспомогательная функция для возврата пустой структуры"""
-    return {
-        "summary": {
-            "verdict": "Не удалось проанализировать.",
-            "pros": [],
-            "cons": [],
-        },
-        "scores": {"food": 0, "service": 0, "atmosphere": 0, "value": 0},
-        "vibe_score": 0,
-        "tags": [],
-        "price_level": "$$",
-        "best_for": [],
-    }
+def _get_empty_analysis() -> AIAnalysis:
+    """Заглушка при ошибке"""
+    return AIAnalysis(
+        summary=Summary(verdict="Ошибка анализа", pros=[], cons=[]),
+        scores=Scores(food=0, service=0, atmosphere=0, value=0),
+        vibe_score=0,
+        tags=[],
+        price_level="$$",
+        best_for=[],
+        detailed_attributes=DetailedAttributes(),
+    )
 
 
+# --- ФУНКЦИЯ СРАВНЕНИЯ ---
 async def compare_places_with_gemini(
-    place_a_json: dict, place_b_json: dict, name_a: str, name_b: str
-):
-    logger.info("⚔️ Запуск AI сравнения двух мест...")
+    analysis_a: AIAnalysis, analysis_b: AIAnalysis, name_a: str, name_b: str
+) -> ComparisonData:
+    logger.info("⚔️ Запуск AI сравнения...")
 
-    # ВАЖНО: Добавил "detailed_attributes", так как в промпте ты просишь на них смотреть
-    keys_to_keep = [
-        "summary",
-        "scores",
-        "tags",
-        "price_level",
-        "vibe_score",
-        "detailed_attributes",
-    ]
-
-    context_a = {k: place_a_json[k] for k in keys_to_keep if k in place_a_json}
-    context_b = {k: place_b_json[k] for k in keys_to_keep if k in place_b_json}
+    # Превращаем Pydantic модели в dict для промпта
+    data_a = analysis_a.model_dump()
+    data_b = analysis_b.model_dump()
 
     prompt = f"""
-    You are an expert restaurant/service critic.
     Compare two venues: "{name_a}" (Place A) and "{name_b}" (Place B).
-    Based ONLY on the provided JSON data.
-    
-    CRITICAL INSTRUCTION:
-    1. Look closely at "detailed_attributes" and "scores". 
-    2. In your text output (key_differences, verdict), USE THE REAL NAMES ("{name_a}", "{name_b}") instead of "Place A/B" where appropriate.
-    3. Output strictly in Russian.
+    Based ONLY on the data below. Output strictly in Russian.
 
-    DATA FOR "{name_a}": {json.dumps(context_a, ensure_ascii=False)}
-    DATA FOR "{name_b}": {json.dumps(context_b, ensure_ascii=False)}
+    DATA A: {json.dumps(data_a, ensure_ascii=False)}
+    DATA B: {json.dumps(data_b, ensure_ascii=False)}
 
-    Output MUST be a valid JSON matching this schema:
+    Output JSON schema:
     {{
-        "winner_category": {{
-            "food": "String: 'place_a', 'place_b', or 'draw'",
-            "service": "String: 'place_a', 'place_b', or 'draw'",
-            "atmosphere": "String: 'place_a', 'place_b', or 'draw'",
-            "value": "String: 'place_a', 'place_b', or 'draw'"
-        }},
-        "key_differences": ["List of 3-4 strings describing MAIN differences"],
-        "place_a_unique_pros": ["List of pros unique to {name_a}"],
-        "place_b_unique_pros": ["List of pros unique to {name_b}"],
-        "verdict": "A summarized advice (2-3 sentences)."
+        "winner_category": {{ "food": "str", "service": "str", "atmosphere": "str", "value": "str" }},
+        "key_differences": ["str", "str"],
+        "place_a_unique_pros": ["str"],
+        "place_b_unique_pros": ["str"],
+        "verdict": "str"
     }}
-    
-    Constraint: Return ONLY raw JSON.
     """
 
-    model_name = "gemini-2.0-flash"
-
     try:
-        model = genai.GenerativeModel(model_name)
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = await model.generate_content_async(
             prompt, generation_config={"response_mime_type": "application/json"}
         )
-        return json.loads(response.text)
+        res = json.loads(response.text)
+
+        return ComparisonData(
+            winner_category=WinnerCategory(**res["winner_category"]),
+            key_differences=res["key_differences"],
+            place_a_unique_pros=res["place_a_unique_pros"],
+            place_b_unique_pros=res["place_b_unique_pros"],
+            verdict=res["verdict"],
+        )
     except Exception as e:
         logger.error(f"🔥 Ошибка сравнения: {e}")
-
-        return {
-            "winner_category": {
-                "food": "draw",
-                "service": "draw",
-                "atmosphere": "draw",
-                "value": "draw",
-            },
-            "key_differences": ["Не удалось сравнить."],
-            "place_a_unique_pros": [],
-            "place_b_unique_pros": [],
-            "verdict": "Ошибка сервиса сравнения.",
-        }
+        return ComparisonData(
+            winner_category=WinnerCategory(
+                food="draw", service="draw", atmosphere="draw", value="draw"
+            ),
+            key_differences=["Ошибка"],
+            place_a_unique_pros=[],
+            place_b_unique_pros=[],
+            verdict="Ошибка",
+        )

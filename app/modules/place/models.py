@@ -1,5 +1,15 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Index, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    DateTime,
+    Index,
+    ForeignKey,
+    JSON,
+)
 from sqlalchemy.orm import relationship
 from ...database import Base
 
@@ -18,6 +28,9 @@ class Place(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    description = Column(Text, nullable=True)  # Описание от Google
+    photos = Column(JSON, nullable=True)
 
     # Связи
     reviews = relationship(

@@ -3,33 +3,31 @@ from serpapi import GoogleSearch
 import re
 from urllib.parse import unquote
 from ...config import get_settings
+from ..place.schemas import PlaceInfoDTO, Location
 
 settings = get_settings()
 
-# ==========================================
-# 👇 ВСТАВЬ СЮДА СВОИ КЛЮЧИ
 GOOGLE_API_KEY = settings.google_api_key_parse
 SERPAPI_KEY = settings.serpapi_key
-# ==========================================
 
 
-async def parse_google_reviews(url: str, max_reviews: int = 10):
+async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
     print(f"🚀 [PARSER] Start: {url}")
 
-    # 1. Инициализируем структуру ТОЧНО как ты просил
-    result = {
-        "place_name": "Unknown Place",
-        "rating": "0.0",
-        "reviews_count": 0,
-        "reviews": [],
-        "location": {"lat": None, "lon": None},
-    }
+    # Инициализируем DTO с пустыми/дефолтными значениями
+    # PlaceInfoDTO требует обязательные поля при создании
+    place_dto = PlaceInfoDTO(
+        place_id="",
+        name="Unknown Place",
+        location=Location(lat=None, lon=None),
+        url=url,
+    )
 
-    # --- ЭТАП 1: Google Maps API (Координаты, Имя, ID) ---
+    # --- ЭТАП 1: Google Maps API ---
     try:
         gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
-        # Парсим URL
+        # Координаты из URL
         coords_match = re.search(r"@([-.\d]+),([-.\d]+)", url)
         lat_url, lng_url = (
             (float(coords_match.group(1)), float(coords_match.group(2)))
@@ -37,12 +35,13 @@ async def parse_google_reviews(url: str, max_reviews: int = 10):
             else (None, None)
         )
 
+        # Имя из URL
         name_match = re.search(r"/place/([^/]+)/@", url)
         query_name = (
             unquote(name_match.group(1)).replace("+", " ") if name_match else ""
         )
 
-        # Ищем Place ID
+        # Поиск Place ID
         places_result = gmaps.places(
             query=query_name,
             location=(lat_url, lng_url) if lat_url and lng_url else None,
@@ -51,53 +50,73 @@ async def parse_google_reviews(url: str, max_reviews: int = 10):
 
         if not places_result["results"]:
             print("❌ Place not found in Google API.")
-            return result
+            return place_dto
 
         place_id = places_result["results"][0]["place_id"]
+        place_dto.place_id = place_id
 
-        # Получаем детали (Рейтинг, Координаты, Кол-во отзывов)
+        # Детали (Photos + Editorial Summary)
         details = gmaps.place(
             place_id=place_id,
-            fields=["name", "rating", "user_ratings_total", "geometry"],
+            fields=[
+                "name",
+                "rating",
+                "user_ratings_total",
+                "geometry",
+                "formatted_address",
+                "editorial_summary",
+                "photo",
+            ],
         )
         data = details.get("result", {})
 
-        # Заполняем результат
-        result["place_name"] = data.get("name", "Unknown Place")
-        result["rating"] = str(
-            data.get("rating", 0.0)
-        )  # Приводим к строке, как в твоем формате
-        result["reviews_count"] = data.get("user_ratings_total", 0)
+        # Заполнение DTO
+        place_dto.name = data.get("name", "Unknown Place")
+        place_dto.rating = float(data.get("rating", 0.0))
+        place_dto.reviews_count = data.get("user_ratings_total", 0)
+        place_dto.address = data.get("formatted_address", "")
 
+        # Локация
         loc = data.get("geometry", {}).get("location", {})
-        result["location"] = {
-            "lat": loc.get("lat"),
-            "lon": loc.get("lng"),  # Google дает lng, мы пишем в lon
-        }
+        place_dto.location = Location(lat=loc.get("lat"), lon=loc.get("lng"))
 
-        print(f"✅ Info found: {result['place_name']} (ID: {place_id})")
+        # Описание (если есть)
+        summary_obj = data.get("editorial_summary", {})
+        if summary_obj:
+            place_dto.description = summary_obj.get("overview")
+
+        # Фотографии (формируем ссылки)
+        raw_photos = data.get("photos", [])
+        photo_urls = []
+        for p in raw_photos[:5]:
+            ref = p.get("photo_reference")
+            if ref:
+                url_photo = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={ref}&key={GOOGLE_API_KEY}"
+                photo_urls.append(url_photo)
+        place_dto.photos = photo_urls
+
+        print(f"✅ Info found: {place_dto.name}, Photos: {len(place_dto.photos)}")
 
     except Exception as e:
         print(f"❌ Google API Error: {e}")
-        return result
+        return place_dto
 
     # --- ЭТАП 2: SerpApi (Отзывы) ---
-    # Если нашли ID места, идем за отзывами
-    if place_id:
+    if place_dto.place_id:
         print("🔄 Fetching reviews via SerpApi...")
         try:
             serp_params = {
                 "api_key": SERPAPI_KEY,
                 "engine": "google_maps_reviews",
-                "place_id": place_id,
-                "sort_by": "newestRating",  # Сортировка: Сначала новые
+                "place_id": place_dto.place_id,
+                "sort_by": "newestRating",
                 "hl": "ru",
                 "start": 0,
             }
 
-            collected_reviews = []
+            collected_reviews_strs = []
 
-            while len(collected_reviews) < max_reviews:
+            while len(collected_reviews_strs) < max_reviews:
                 search = GoogleSearch(serp_params)
                 results = search.get_dict()
 
@@ -110,30 +129,19 @@ async def parse_google_reviews(url: str, max_reviews: int = 10):
                     break
 
                 for item in batch:
-                    # Фикс для картинок (строки или словари)
-                    raw_imgs = item.get("images", [])
-                    clean_imgs = []
-                    if raw_imgs:
-                        if isinstance(raw_imgs[0], str):
-                            clean_imgs = raw_imgs
-                        elif isinstance(raw_imgs[0], dict):
-                            clean_imgs = [
-                                img.get("thumbnail")
-                                for img in raw_imgs
-                                if img.get("thumbnail")
-                            ]
+                    # Извлекаем данные
+                    author = item.get("user", {}).get("name", "Guest")
+                    rating = item.get("rating", "?")
+                    date = item.get("date", "")
+                    text = item.get("snippet", "")
 
-                    collected_reviews.append(
-                        {
-                            "author": item.get("user", {}).get("name"),
-                            "rating": item.get("rating"),
-                            "date": item.get("date"),
-                            "text": item.get("snippet"),
-                            "images": clean_imgs,
-                        }
-                    )
+                    if text:
+                        # Формируем строку, так как PlaceInfoDTO.reviews требует List[str]
+                        # Формат: "Date | Rating | Author \n Review"
+                        review_str = f"Date: {date} | Rating: {rating} | Author: {author}\nReview: {text}"
+                        collected_reviews_strs.append(review_str)
 
-                    if len(collected_reviews) >= max_reviews:
+                    if len(collected_reviews_strs) >= max_reviews:
                         break
 
                 # Пагинация
@@ -145,10 +153,10 @@ async def parse_google_reviews(url: str, max_reviews: int = 10):
                 else:
                     break
 
-            result["reviews"] = collected_reviews
-            print(f"✅ Reviews loaded: {len(result['reviews'])}")
+            place_dto.reviews = collected_reviews_strs
+            print(f"✅ Reviews loaded: {len(place_dto.reviews)}")
 
         except Exception as e:
             print(f"❌ SerpApi Parsing Error: {e}")
 
-    return result
+    return place_dto

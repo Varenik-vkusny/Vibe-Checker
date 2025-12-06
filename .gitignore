@@ -35,3 +35,6 @@ htmlcov/
 # Файлы миграций
 migrations/
 alembic.ini
+
+# Qdrant storage
+qdrant_storage/
