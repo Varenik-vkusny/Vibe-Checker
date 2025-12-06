@@ -10,6 +10,8 @@ from ..modules.analysis_result.schemas import (
 from ..dependencies import get_current_user, get_db
 from ..services.service_analyzator import get_or_create_place_analysis
 from ..services.service_comparator import compare_places_service
+from ..modules.pro_mode.schemas import FinalResponse, UserRequest
+from ..modules.pro_mode.main import get_places_by_vibe
 
 router = APIRouter()
 
@@ -34,3 +36,13 @@ async def compare_places(places: CompareRequest, db: AsyncSession = Depends(get_
     )
 
     return compare_result
+
+
+@router.post(
+    "/pro_analyze", response_model=FinalResponse, status_code=status.HTTP_200_OK
+)
+async def pro_place_analyze(user: UserRequest, db: AsyncSession = Depends(get_db)):
+
+    result = await get_places_by_vibe(user_query=user, db=db)
+
+    return result

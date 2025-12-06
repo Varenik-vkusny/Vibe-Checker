@@ -1,4 +1,5 @@
 import logging
+import warnings
 from uuid import uuid4
 from fastembed import TextEmbedding
 from qdrant_client import AsyncQdrantClient
@@ -13,7 +14,14 @@ COLLECTION_NAME = settings.collection_name
 
 qdrant = AsyncQdrantClient(url="http://localhost:6333")
 
-embedding_model = TextEmbedding(model_name="intfloat/multilingual-e5-large")
+CACHE_DIR = "/app/model_cache"
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    # Добавляем cache_dir
+    embedding_model = TextEmbedding(
+        model_name="intfloat/multilingual-e5-large", cache_dir=CACHE_DIR
+    )
 
 
 async def init_vector_db():

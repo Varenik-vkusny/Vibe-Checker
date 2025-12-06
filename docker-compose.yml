@@ -4,6 +4,7 @@ services:
 
     volumes:
       - .:/app
+      - ./local_models_cache:/app/model_cache
 
     ports:
       - 8000:8000

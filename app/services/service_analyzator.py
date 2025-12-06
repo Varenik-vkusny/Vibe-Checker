@@ -5,9 +5,6 @@ from datetime import datetime
 from ..services.service_layer import get_ai_analysis
 from ..modules.place.service import PlaceService
 from ..modules.place.repo import PlaceRepo, ReviewRepo
-
-# Импортируем DTO для сохранения
-from ..modules.place.schemas import PlaceInfoDTO
 from ..modules.tag.repo import TagRepo
 from ..modules.tag.service import TagService
 from ..modules.place_tag.repo import PlaceTagRepo

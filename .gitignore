@@ -38,3 +38,7 @@ alembic.ini
 
 # Qdrant storage
 qdrant_storage/
+
+# Local model
+local_models_cache/
+model_cache/

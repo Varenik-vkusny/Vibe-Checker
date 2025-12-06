@@ -1,6 +1,9 @@
 import json
 import logging
 import google.generativeai as genai
+import httpx
+import io
+from PIL import Image
 from app.config import get_settings
 from app.modules.analysis_result.schemas import (
     AIAnalysis,
@@ -58,6 +61,26 @@ ALLOWED_SCENARIOS = [
 ]
 
 
+async def download_images(urls: list[str], limit: int = 3):
+    """
+    Асинхронно скачивает картинки по URL и превращает их в PIL.Image
+    """
+    images = []
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for url in urls[:limit]:  # Берем только первые N фото, чтобы не перегружать
+            try:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    # Превращаем байты в объект картинки
+                    img_bytes = io.BytesIO(resp.content)
+                    img = Image.open(img_bytes)
+                    images.append(img)
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось скачать фото: {e}")
+                continue
+    return images
+
+
 # --- ГЛАВНАЯ ФУНКЦИЯ АНАЛИЗА ---
 async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
     """
@@ -70,30 +93,33 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
         logger.warning("⚠️ Нет данных для анализа (отзывов и описания нет).")
         return _get_empty_analysis()
 
+    image_objects = []
+    if place.photos:
+        logger.info(f"📸 Скачиваем фото ({len(place.photos)} шт found)...")
+        image_objects = await download_images(place.photos, limit=3)
+        logger.info(f"✅ Скачано {len(image_objects)} изображений для анализа.")
+
     # Склеиваем отзывы (они уже строки в формате "Date | Rating... Review")
     reviews_text = "\n---\n".join(place.reviews[:50])
-
-    # Формируем контекст фото и описания
-    photos_context = ""
-    if place.photos:
-        photos_context = f"The place has photos available at these URLs: {json.dumps(place.photos)}. Use visual analysis if possible."
 
     description_context = ""
     if place.description:
         description_context = f"Official Description: {place.description}"
 
     prompt = f"""
-    You are an expert restaurant critic and data analyst. 
-    Analyze the place "{place.name}".
+    You are an expert restaurant critic. Analyze the place "{place.name}".
     
     CONTEXT:
     {description_context}
-    {photos_context}
+    
+    INPUT DATA:
+    - Text reviews are provided below.
+    - Images of the place are attached to this request (if any). Use them to analyze interior, vibe, and cleanliness.
 
     REVIEWS:
     {reviews_text}
     
-    Output MUST be a valid JSON object matching the following schema exactly:
+    Output MUST be a valid JSON object matching this schema:
     {{
         "summary": {{
             "verdict": "Short summary in Russian",
@@ -115,19 +141,22 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
     ALLOWED SCENARIOS: {json.dumps(ALLOWED_SCENARIOS)}
     """
 
+    content_parts = [prompt]
+    content_parts.extend(image_objects)
+
     model_name = "gemini-2.5-flash"
 
     try:
-        model = genai.GenerativeModel(model_name)  # Используем стабильную версию
+        model = genai.GenerativeModel(model_name)
 
+        # Передаем список (Parts)
         response = await model.generate_content_async(
-            prompt, generation_config={"response_mime_type": "application/json"}
+            content_parts, generation_config={"response_mime_type": "application/json"}
         )
 
         result_json = json.loads(response.text)
         logger.info(f"🎉 Анализ завершен! Vibe Score: {result_json.get('vibe_score')}")
 
-        # Валидация через Pydantic
         return AIAnalysis(
             summary=Summary(**result_json["summary"]),
             scores=Scores(**result_json["scores"]),
