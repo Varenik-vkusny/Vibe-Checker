@@ -1,4 +1,3 @@
-import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from .llm_service import generate_search_params, rerank_and_explain
 from .vector_service import init_vector_db, insert_data_to_qdrant, search_places
@@ -60,14 +59,3 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
     )
 
     return final_result
-
-
-if __name__ == "__main__":
-    user_req = UserRequest(query="тихое место поработать с кофе", lat=43.2, lon=76.8)
-
-    result = asyncio.run(get_places_by_vibe(user_req))
-
-    import json
-
-    print("\n🏁 ФИНАЛЬНЫЙ РЕЗУЛЬТАТ:")
-    print(json.dumps(result.model_dump(), indent=2, ensure_ascii=False))

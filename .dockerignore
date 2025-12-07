@@ -1,0 +1,5 @@
+local_models_cache
+__pycache__
+venv
+.git
+.env

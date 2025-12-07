@@ -12,7 +12,7 @@ settings = get_settings()
 
 COLLECTION_NAME = settings.collection_name
 
-qdrant = AsyncQdrantClient(url="http://localhost:6333")
+qdrant = AsyncQdrantClient(url="http://qdrant:6333")
 
 CACHE_DIR = "/app/model_cache"
 

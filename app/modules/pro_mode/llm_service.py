@@ -3,7 +3,7 @@ import json
 from .schemas import SearchParams, FinalResponse
 
 client = AsyncOpenAI(
-    base_url="http://localhost:11434/v1",
+    base_url="http://host.docker.internal:11434/v1",
     api_key="ollama",
 )
 
@@ -54,14 +54,16 @@ async def rerank_and_explain(user_query: str, candidates: list[dict]) -> FinalRe
     {candidates_text}
     
     Task:
-    1. Select top 3-5 places that PERFECTLY match the user's specific vibe.
-    2. For the "reason" field: Write a UNIQUE explanation based on specific details found in the reviews (e.g., mention specific food, interior details, or noise level). Do NOT use generic phrases like "proximity to a cafe".
-    3. If the reviews mention negative aspects related to the user's request (e.g., "loud music" when user asked for "quiet"), discard that place.
+    1. Select top 3-5 places that best match the user's specific vibe.
+    2. For the "reason" field: Write a persuasive explanation strictly in RUSSIAN language. 
+       - Base it on specific details from the reviews (e.g., mention specific dishes or interior details).
+       - Explain WHY it matches the user request ("{user_query}").
+    3. If the reviews mention negative aspects directly contradicting the user's request (e.g., "loud music" when user asked for "quiet"), discard that place.
     
     Return strict JSON:
     {{
       "recommendations": [
-        {{ "place_id": "...", "name": "...", "match_score": 85, "reason": "Mentions comfortable chairs and quiet jazz, perfect for work." }}
+        {{ "place_id": "...", "name": "...", "match_score": 85, "reason": "Здесь очень уютно, в отзывах хвалят тихую джазовую музыку и мягкие диваны, идеально для работы." }}
       ]
     }}
     """
