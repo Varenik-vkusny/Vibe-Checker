@@ -1,79 +1,151 @@
-from openai import AsyncOpenAI
+import math
 import json
+import logging
+from openai import AsyncOpenAI
+from sentence_transformers import CrossEncoder
 from .schemas import SearchParams, FinalResponse
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 client = AsyncOpenAI(
     base_url="http://host.docker.internal:11434/v1",
     api_key="ollama",
 )
 
-MODEL_NAME = "llama3.1"
+QUERY_MODEL = "qwen3:4b"
+RERANK_MODEL = "qwen3:4b"
+
+reranker = CrossEncoder("BAAI/bge-reranker-v2-m3", device="cpu")
+
+
+def calculate_distance(lat1, lon1, lat2, lon2) -> int:
+    """Возвращает метры"""
+    if not lat1 or not lon1 or not lat2 or not lon2:
+        return 99999
+    R = 6371e3  # Метры
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return int(R * c)
 
 
 async def generate_search_params(user_text: str) -> SearchParams:
     """
-    Шаг 2: Превращаем "хочу пожрать дешево" в "cheap fast food near me"
+    Шаг 2: Генерируем запрос для Google.
+    Максимально простой промпт.
     """
-    prompt = f"""
-    You are a search assistant. Convert user description into a specific Google Maps search query.
-    User says: "{user_text}"
+    prompt = f"""Convert user request to Google Maps search query.
+    User: "{user_text}"
     
-    Return JSON only: {{ "google_search_query": "...", "place_type": "..." }}
+    JSON Output format: {{"q": "category", "type": "place_type"}}
+    
+    Examples:
+    User: "Хочу пиццу" -> {{"q": "Пиццерия", "type": "restaurant"}}
+    User: "Кофе попить" -> {{"q": "Кофейня", "type": "cafe"}}
+    User: "Gym near me" -> {{"q": "Gym", "type": "gym"}}
     """
 
     response = await client.chat.completions.create(
-        model=MODEL_NAME,
+        model=QUERY_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
+        temperature=0.1,
     )
 
-    data = json.loads(response.choices[0].message.content)
-    return SearchParams(**data)
+    try:
+        data = json.loads(response.choices[0].message.content)
+        return SearchParams(**data)
+    except Exception as e:
+        logger.error(f"Search params error: {e}")
+        return SearchParams(
+            google_search_query=user_text, place_type="point_of_interest"
+        )
 
 
-async def rerank_and_explain(user_query: str, candidates: list[dict]) -> FinalResponse:
+def smart_rerank(user_query: str, candidates: list[dict], top_k=3):
     """
-    Шаг 5: Анализируем кандидатов и пишем объяснение
+    Использует BERT-модель, чтобы оценить релевантность.
+    Это в 100 раз быстрее, чем спрашивать у LLM.
     """
-    candidates_text = json.dumps(
-        [
+    if not candidates:
+        return []
+
+    # Готовим пары [Запрос, Текст места]
+    pairs = []
+    for c in candidates:
+        # Собираем текст для оценки: Имя + Адрес + Немного отзывов
+        doc_text = (
+            f"{c['name']} {c.get('address','')} {c.get('reviews_summary','')[:500]}"
+        )
+        pairs.append([user_query, doc_text])
+
+    # Получаем scores
+    scores = reranker.predict(pairs)
+
+    # Приписываем очки кандидатам
+    for i, score in enumerate(scores):
+        candidates[i]["ai_score"] = float(score)  # score от -10 до 10 обычно
+
+    # Сортируем (от большего к меньшему)
+    sorted_candidates = sorted(candidates, key=lambda x: x["ai_score"], reverse=True)
+    return sorted_candidates[:top_k]
+
+
+async def explain_selection(user_query: str, top_places: list[dict]) -> FinalResponse:
+    """
+    LLM теперь не выбирает, она просто описывает уже выбранных победителей.
+    """
+
+    # Формируем короткий контекст только для победителей
+    context_list = []
+    for p in top_places:
+        context_list.append(
             {
-                "id": c.get("place_id"),
-                "name": c.get("name"),
-                "reviews": c.get("reviews_summary"),
+                "name": p["name"],
+                "review_snippet": (p.get("reviews_summary") or "")[
+                    :600
+                ],  # Мало текста -> быстро
             }
-            for c in candidates
-        ],
-        ensure_ascii=False,
-    )
+        )
 
     prompt = f"""
-    User Request: "{user_query}"
+    You are a foodie guide. Write a short reason (1 sentence) in Russian why these places fit the request: "{user_query}".
     
-    Candidate Places (with reviews):
-    {candidates_text}
+    Data: {json.dumps(context_list, ensure_ascii=False)}
     
-    Task:
-    1. Select top 3-5 places that best match the user's specific vibe.
-    2. For the "reason" field: Write a persuasive explanation strictly in RUSSIAN language. 
-       - Base it on specific details from the reviews (e.g., mention specific dishes or interior details).
-       - Explain WHY it matches the user request ("{user_query}").
-    3. If the reviews mention negative aspects directly contradicting the user's request (e.g., "loud music" when user asked for "quiet"), discard that place.
-    
-    Return strict JSON:
-    {{
-      "recommendations": [
-        {{ "place_id": "...", "name": "...", "match_score": 85, "reason": "Здесь очень уютно, в отзывах хвалят тихую джазовую музыку и мягкие диваны, идеально для работы." }}
-      ]
-    }}
+    Output JSON: {{ "recommendations": [ {{ "name": "...", "reason": "..." }} ] }}
     """
 
     response = await client.chat.completions.create(
-        model=MODEL_NAME,
+        model=RERANK_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
-        temperature=0.2,
+        temperature=0.3,
     )
 
-    data = json.loads(response.choices[0].message.content)
-    return FinalResponse(**data)
+    ai_resp = json.loads(response.choices[0].message.content)
+    ai_recs = {rec["name"]: rec["reason"] for rec in ai_resp.get("recommendations", [])}
+
+    # Собираем итоговый ответ
+    final_output = []
+    for p in top_places:
+        reason = ai_recs.get(p["name"], "Хороший вариант на основе отзывов.")
+        final_output.append(
+            {
+                "place_id": p["place_id"],
+                "name": p["name"],
+                "match_score": int(
+                    (p["ai_score"] + 10) * 5
+                ),  # Нормализация скора примерно в 0-100
+                "reason": reason,
+            }
+        )
+
+    return FinalResponse(recommendations=final_output)

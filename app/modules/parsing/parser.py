@@ -3,7 +3,7 @@ from serpapi import GoogleSearch
 import re
 from urllib.parse import unquote
 from ...config import get_settings
-from ..place.schemas import PlaceInfoDTO, Location
+from ..place.schemas import PlaceInfoDTO, Location, ReviewDTO
 
 settings = get_settings()
 
@@ -129,17 +129,16 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                     break
 
                 for item in batch:
-                    # Извлекаем данные
-                    author = item.get("user", {}).get("name", "Guest")
-                    rating = item.get("rating", "?")
-                    date = item.get("date", "")
                     text = item.get("snippet", "")
 
                     if text:
-                        # Формируем строку, так как PlaceInfoDTO.reviews требует List[str]
-                        # Формат: "Date | Rating | Author \n Review"
-                        review_str = f"Date: {date} | Rating: {rating} | Author: {author}\nReview: {text}"
-                        collected_reviews_strs.append(review_str)
+                        review = ReviewDTO(
+                            author=item.get("user", {}).get("name", "Guest"),
+                            rating=float(item.get("rating", 0)),
+                            date=item.get("date", ""),
+                            text=text,
+                        )
+                        place_dto.reviews.append(review)
 
                     if len(collected_reviews_strs) >= max_reviews:
                         break

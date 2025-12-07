@@ -1,63 +1,95 @@
+import math
+import asyncio
+import time
+from typing import List
 from serpapi import GoogleSearch
 from ...config import get_settings
+from ..place.schemas import PlaceInfoDTO, Location, ReviewDTO
 
 settings = get_settings()
 SERPAPI_KEY = settings.serpapi_key
 
 
-# ==========================================
-# 1. Функция поиска мест (Кандидатов)
-# ==========================================
-async def find_places_nearby(query: str, lat: float, lon: float, limit: int = 5):
+def calculate_distance(lat1, lon1, lat2, lon2) -> float:
     """
-    Ищет места через SerpApi Google Maps Search.
-    Возвращает список мест с базовой инфой (без текстов отзывов).
+    Вычисляет расстояние между двумя точками в километрах (Haversine formula).
     """
+    if not lat1 or not lon1 or not lat2 or not lon2:
+        return 99999.0  # Если координат нет, считаем что далеко
+
+    R = 6371  # Радиус Земли в км
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+    a = math.sin(dLat / 2) * math.sin(dLat / 2) + math.cos(
+        math.radians(lat1)
+    ) * math.cos(math.radians(lat2)) * math.sin(dLon / 2) * math.sin(dLon / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+# ==========================================
+# 1. Функция поиска (Возвращает список DTO)
+# ==========================================
+async def find_places_nearby(
+    query: str, lat: float, lon: float, limit: int = 5
+) -> List[PlaceInfoDTO]:
+
     print(f"🕵️‍♂️ [SEARCH] Ищем: '{query}' в точке {lat},{lon}")
 
     params = {
         "api_key": SERPAPI_KEY,
         "engine": "google_maps",
         "q": query,
-        "ll": f"@{lat},{lon},15z",  # 15z = зум примерно для района
+        "ll": f"@{lat},{lon},15z",
         "type": "search",
-        "hl": "ru",  # язык результатов
+        "hl": "ru",
     }
 
     try:
         search = GoogleSearch(params)
         results = search.get_dict()
-
         local_results = results.get("local_results", [])
 
-        # Если ничего не нашли
         if not local_results:
             print("❌ Ничего не найдено.")
             return []
 
         candidates = []
 
-        # Берем только топ-N мест, чтобы не тратить кредиты на парсинг отзывов для всех
-        for item in local_results[:limit]:
-            # SerpApi обычно возвращает gps_coordinates
+        for item in local_results:  # Берем всех, фильтруем, потом обрежем по limit
             gps = item.get("gps_coordinates", {})
+            place_lat = gps.get("latitude")
+            place_lon = gps.get("longitude")
 
-            place_data = {
-                "place_id": item.get("place_id") or item.get("data_id"),  # ID места
-                "name": item.get("title"),
-                "rating": item.get("rating", 0.0),
-                "reviews_count": item.get("reviews", 0),
-                "address": item.get("address"),
-                "location": {"lat": gps.get("latitude"), "lon": gps.get("longitude")},
-                "types": item.get("type", []),
-                "thumbnail": item.get("thumbnail"),
-                # Сюда позже положим отзывы
-                "reviews_summary": "",
-                "reviews": [],
-            }
-            candidates.append(place_data)
+            # 🔥 ЖЕСТКИЙ ФИЛЬТР РАССТОЯНИЯ (например, 15 км)
+            # Это уберет "Sempre" из Москвы, если ты в Астане
+            dist = calculate_distance(lat, lon, place_lat, place_lon)
+            if dist > 15.0:
+                # print(f"⚠️ Пропускаем '{item.get('title')}', так как он далеко ({dist:.1f} км)")
+                continue
 
-        print(f"✅ Найдено кандидатов: {len(candidates)}")
+            # Собираем фото
+            photos = []
+            if item.get("thumbnail"):
+                photos.append(item.get("thumbnail"))
+
+            dto = PlaceInfoDTO(
+                place_id=item.get("place_id") or item.get("data_id"),
+                name=item.get("title", "Unknown"),
+                address=item.get("address", ""),
+                rating=float(item.get("rating", 0.0)),
+                reviews_count=int(item.get("reviews", 0)),
+                location=Location(lat=place_lat, lon=place_lon),
+                photos=photos,
+                reviews=[],
+                url=None,
+            )
+            candidates.append(dto)
+
+            if len(candidates) >= limit:
+                break
+
+        print(f"✅ Найдено кандидатов (рядом): {len(candidates)}")
         return candidates
 
     except Exception as e:
@@ -66,11 +98,11 @@ async def find_places_nearby(query: str, lat: float, lon: float, limit: int = 5)
 
 
 # ==========================================
-# 2. Функция получения отзывов (Твой код, адаптированный под ID)
+# 2. Функция отзывов (Возвращает список строк)
 # ==========================================
-async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5):
+async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List[str]:
     """
-    Берет ID места и тянет отзывы через SerpApi (движок google_maps_reviews).
+    Тянет отзывы и форматирует их в строки для LLM.
     """
     if not place_id:
         return []
@@ -81,14 +113,12 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5):
         serp_params = {
             "api_key": SERPAPI_KEY,
             "engine": "google_maps_reviews",
-            "place_id": place_id,  # Важно: используем ID, а не data_id
-            "sort_by": "qualityScore",  # Лучше брать "полезные" для анализа вайба, или "newestRating"
+            "place_id": place_id,
+            "sort_by": "qualityScore",
             "hl": "ru",
         }
 
         collected_reviews = []
-
-        # Делаем 1 запрос (обычно дает 10 отзывов, нам хватит для анализа)
         search = GoogleSearch(serp_params)
         results = search.get_dict()
 
@@ -100,9 +130,14 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5):
 
         for item in reviews_data[:max_reviews]:
             text = item.get("snippet")
-            # Берем только если есть текст (звезды без текста бесполезны для LLM)
             if text:
-                collected_reviews.append(text)
+                review = ReviewDTO(
+                    author=item.get("user", {}).get("name", "Guest"),
+                    rating=float(item.get("rating", 0)),
+                    date=item.get("date", ""),
+                    text=text,
+                )
+                collected_reviews.append(review)
 
         return collected_reviews
 
@@ -112,32 +147,36 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5):
 
 
 # ==========================================
-# 3. Оркестратор этого файла (Главная функция сбора)
+# 3. Оркестратор (Возвращает DTO с отзывами)
 # ==========================================
 async def search_and_parse_places(
     query: str, lat: float, lon: float, limit_places: int = 5
-):
-    """
-    Полный цикл: Поиск -> Парсинг отзывов -> Склейка результата
-    """
-    # 1. Ищем места
+) -> List[PlaceInfoDTO]:
+
+    t0 = time.time()
+    # 1. Поиск мест
     candidates = await find_places_nearby(query, lat, lon, limit=limit_places)
+    print(f"   ⏱️ Sub-step: Google Search took {time.time() - t0:.2f}s")
 
-    detailed_places = []
+    if not candidates:
+        return []
 
-    # 2. Для каждого найденного места качаем отзывы
+    t1 = time.time()
+    # 2. Параллельная загрузка отзывов
+    tasks = []
     for place in candidates:
-        if place["place_id"]:
-            reviews = await enrich_place_with_reviews(place["place_id"], max_reviews=7)
+        if place.place_id:
+            tasks.append(enrich_place_with_reviews(place.place_id, max_reviews=7))
+        else:
+            tasks.append(asyncio.sleep(0, result=[]))
 
-            place["reviews"] = reviews
-            # Склеиваем отзывы в один текст для LLM / Векторной БД
-            place["reviews_summary"] = (
-                " ".join(reviews) if reviews else "Нет текстовых отзывов."
-            )
+    reviews_results = await asyncio.gather(*tasks)
+    print(
+        f"   ⏱️ Sub-step: Reviews Download ({len(tasks)} places parallel) took {time.time() - t1:.2f}s"
+    )
 
-            detailed_places.append(place)
-            # Небольшая пауза чтобы не спамить (опционально)
-            # time.sleep(0.5)
+    # 3. Сборка
+    for place, reviews in zip(candidates, reviews_results):
+        place.reviews = reviews
 
-    return detailed_places
+    return candidates

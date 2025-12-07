@@ -99,8 +99,12 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
         image_objects = await download_images(place.photos, limit=3)
         logger.info(f"✅ Скачано {len(image_objects)} изображений для анализа.")
 
-    # Склеиваем отзывы (они уже строки в формате "Date | Rating... Review")
-    reviews_text = "\n---\n".join(place.reviews[:50])
+    reviews_text_list = []
+    for r in place.reviews[:50]:
+        reviews_text_list.append(
+            f"Date: {r.date} | Rating: {r.rating} | Author: {r.author}\nReview: {r.text}"
+        )
+    reviews_text = "\n---\n".join(reviews_text_list)
 
     description_context = ""
     if place.description:

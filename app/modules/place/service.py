@@ -81,11 +81,17 @@ class PlaceService:
                 photos=data.photos,
             )
 
-        # 2. Сохраняем новые отзывы
+        await self.review_repo.delete(place_id=place.id)
+
         if data.reviews:
-            for review_text in data.reviews:
-                await self.review_repo.add(place_id=place.id, text=review_text)
+            for rev in data.reviews:
+                await self.review_repo.add(
+                    place_id=place.id,
+                    author_name=rev.author,
+                    rating=int(rev.rating),
+                    text=rev.text,
+                    published_time=rev.date,
+                )
 
         await self.place_repo.db.refresh(place)
-
         return place

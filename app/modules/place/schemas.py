@@ -17,6 +17,13 @@ class Location(BaseModel):
     lon: Optional[float] = None
 
 
+class ReviewDTO(BaseModel):
+    author: str = "Guest"
+    rating: float = 0.0
+    date: str = ""
+    text: str = ""
+
+
 class PlaceInfoDTO(BaseModel):
     place_id: str
     name: str
