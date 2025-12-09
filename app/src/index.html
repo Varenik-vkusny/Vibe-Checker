@@ -14,28 +14,7 @@
 <body>
     <canvas id="fluid-canvas"></canvas>
 
-    <header class="header">
-        <div class="logo">VibeCheck</div>
-        
-        <div class="header-right">
-            <nav class="nav-links">
-                <a href="map.html" data-text="Places">Places</a>
-                <a href="compare.html" data-text="Compare">Compare</a>
-                <a href="pro.html" data-text="AI Analysis">AI Analysis</a>
-            </nav>
-            
-            <button class="btn btn--outline">Sign In</button>
-            
-            <button class="theme-toggle-btn" aria-label="Toggle Dark Mode">
-                <svg class="theme-icon sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <svg class="theme-icon moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-            </button>
-        </div>
-    </header>
+    <div id="app-header"></div>
 
     <main>
         <section class="hero">
@@ -159,7 +138,7 @@
 
         <section class="cta-section">
             <h2>Ready to find your spot?</h2>
-            <button class="btn btn--primary">Try Now</button>
+            <a href="map.html" class="btn btn--primary">Try Now</a>
         </section>
 
     </main>
@@ -200,5 +179,6 @@
     <script src="js/theme.js"></script>
     <script src="js/fluid-sim.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/components/header.js"></script>
 </body>
 </html>

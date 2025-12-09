@@ -1,270 +1,56 @@
-/* --- GLOBAL VARIABLES & DARK MODE --- */
-:root {
-    --header-height: 72px;
-    
-    /* Light Mode Defaults - Matching lending page */
-    --bg-main: #ffffff;
-    --bg-surface: #f4f5f7;
-    --bg-glass: rgba(255, 255, 255, 0.75);
-    --bg-glass-strong: rgba(255, 255, 255, 0.95);
-    --bg-input: #ffffff;
-    --border-color: rgba(0, 0, 0, 0.08);
-    --text-main: #050505;
-    --text-muted: #525252;
-    --text-inverse: #ffffff;
-    --card-shadow: 0 4px 16px rgba(0,0,0,0.05);
-    
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-    --shadow-md: 0 12px 24px -6px rgba(0,0,0,0.08);
-    --shadow-lg: 0 24px 48px -12px rgba(0,0,0,0.12);
-    
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-full: 999px;
-    
-    --primary: #000000;
-    --primary-hover: #333333;
-    --accent-blue: #2563EB;
-    --font-main: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-display: 'Rajdhani', sans-serif;
-    
-    /* Animation */
-    --transition-fast: 0.2s ease;
-    --transition-medium: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    --theme-transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
-}
+/* --- Map Layout Styles --- */
 
-body.dark-theme {
-    /* Dark Mode Overrides - Matching lending page exactly */
-    --bg-main: #0a0a0a;
-    --bg-surface: #141414;
-    --bg-glass: rgba(10, 10, 10, 0.7);
-    --bg-glass-strong: rgba(0, 0, 0, 0.9);
-    --bg-input: #141414;
-    --border-color: rgba(255, 255, 255, 0.12);
-    --text-main: #ffffff;
-    --text-muted: #a3a3a3;
-    --text-inverse: #000000;
-    --card-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
-    --shadow-md: 0 8px 16px rgba(0,0,0,0.5);
-    --shadow-lg: 0 16px 32px rgba(0,0,0,0.6);
-    
-    --primary: #ffffff;
-    --primary-hover: #e5e5e5;
-}
-
-/* --- BASE & LAYOUT (FIXED) --- */
-*, *::before, *::after {
-    box-sizing: border-box; /* Важно для корректного расчета ширины */
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%; /* Гарантируем полную ширину */
-    overflow: hidden;
-    background-color: var(--bg-main);
-    font-family: var(--font-main);
-    transition: var(--theme-transition);
-}
-
-/* --- HEADER STYLES (Matching lending page) --- */
-.header {
-    width: 100%;
-    height: var(--header-height);
-    padding: 0 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-glass);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
+/* Main Container: Full Screen behind everything */
+main.map-layout {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1000;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.logo {
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: -0.5px;
-    text-decoration: none;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
-.nav-links {
-    display: flex;
-    gap: 32px;
-}
-
-.nav-links a {
-    position: relative;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 4px 0;
-    text-decoration: none;
-}
-
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: var(--text-main);
-    transition: width 0.3s ease;
-}
-
-.nav-links a:hover::after {
-    width: 100%;
-}
-
-/* --- THEME TOGGLE BUTTON --- */
-.theme-toggle-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--border-color);
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-main);
-    transition: all var(--transition-fast);
-    position: relative;
-    overflow: hidden;
-}
-
-.theme-toggle-btn:hover {
-    background: var(--bg-surface);
-    border-color: var(--text-main);
-    transform: rotate(15deg);
-}
-
-.theme-icon {
-    width: 20px;
-    height: 20px;
-    stroke-width: 2;
-}
-
-/* Icon Animation Logic */
-.theme-toggle-btn .sun-icon {
-    display: block;
-}
-.theme-toggle-btn .moon-icon {
-    display: none;
-}
-
-body.dark-theme .theme-toggle-btn .sun-icon {
-    display: none;
-}
-body.dark-theme .theme-toggle-btn .moon-icon {
-    display: block;
-}
-
-/* --- BUTTON STYLES (Matching lending page) --- */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    font-family: var(--font-main);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: var(--radius-full);
-    transition: all var(--transition-fast);
-    text-decoration: none;
-    border: none;
-    line-height: 1;
-}
-
-/* Outline Variant */
-.btn--outline {
-    background: transparent;
-    border: 1.5px solid var(--text-main);
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn--outline:hover {
-    background: var(--text-main);
-    color: var(--bg-main);
-}
-
-/* Primary Variant */
-.btn--primary {
-    background-color: var(--primary);
-    color: var(--bg-main);
-    padding: 16px 32px;
-    font-size: 16px;
-}
-
-.btn--primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    background-color: var(--primary-hover);
-}
-
-@media (max-width: 768px) {
-    .header {
-        padding: 0 20px;
-    }
-    .nav-links {
-        display: none;
-    }
-    .header-right {
-        gap: 12px;
-    }
-}
-
-/* Основной контейнер растягиваем жестко */
-main.map-layout {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
     right: 0;
     bottom: 0;
-    height: calc(100vh - var(--header-height));
-    width: 100%; 
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
 }
 
-
-/* --- SIDEBAR --- */
+/* --- SIDEBAR: Floating Card --- */
 .sidebar {
+    position: absolute;
+    top: 100px; /* Clear header */
+    left: 24px;
+    bottom: 24px;
     width: 400px;
-    background: var(--bg-main);
-    border-right: 1px solid var(--border-color);
-    position: relative;
-    z-index: 20;
+    z-index: 100;
+    
+    /* Reset layout properties */
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
     overflow: hidden;
-    box-shadow: 5px 0 25px rgba(0,0,0,0.05);
+    
+    /* Glass styles applied via .glass-panel class in HTML */
+    /* Ensure no solid bg override */
+    background-color: transparent; 
+    border-right: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+/* Custom Scrollbar */
+.sidebar-view::-webkit-scrollbar,
+.places-list::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-view::-webkit-scrollbar-track,
+.places-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-view::-webkit-scrollbar-thumb,
+.places-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+body.dark-theme .sidebar-view::-webkit-scrollbar-thumb,
+body.dark-theme .places-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-view {
@@ -275,7 +61,13 @@ main.map-layout {
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    background: var(--bg-main);
+    
+    /* Content background must be transparent to show glass effect, 
+       BUT we need some opacity if content scrolls. 
+       Actually, glass-panel sets the BG on the container.
+       So children should be transparent or semi-transparent.
+    */
+    background: transparent;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
@@ -283,20 +75,28 @@ main.map-layout {
 
 #view-list { transform: translateX(0); z-index: 1; }
 #view-detail { transform: translateX(100%); z-index: 2; }
-.sidebar.showing-detail #view-list { transform: translateX(-20%); opacity: 0.5; pointer-events: none; }
+.sidebar.showing-detail #view-list { 
+    transform: translateX(-20%); 
+    opacity: 0.4; 
+    pointer-events: none; 
+    filter: blur(8px); /* Blur effect */
+}
 .sidebar.showing-detail #view-detail { transform: translateX(0); }
 
-
-/* --- SIDEBAR HEADER, SEARCH & FILTERS --- */
+/* --- SIDEBAR HEADER --- */
 .sidebar-header {
     padding: 24px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--bg-main);
-    backdrop-filter: blur(10px);
+    /* Sticky header inside the card */
     position: sticky;
     top: 0;
     z-index: 10;
-    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.5); /* Semi-transparent for stickiness */
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+body.dark-theme .sidebar-header {
+    background: rgba(20, 20, 20, 0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .sidebar-header h2 {
@@ -307,6 +107,7 @@ main.map-layout {
     color: var(--text-main);
 }
 
+/* Search & Filters */
 .map-search-wrapper {
     position: relative;
     margin-bottom: 16px;
@@ -315,17 +116,15 @@ main.map-layout {
 .map-search-wrapper input {
     width: 100%;
     padding: 12px 12px 12px 40px;
-    border-radius: 8px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
-    background: var(--bg-input);
+    background: rgba(255,255,255,0.5);
     color: var(--text-main);
     outline: none;
     transition: all 0.2s;
 }
-.map-search-wrapper input::placeholder { color: var(--text-muted); }
-.map-search-wrapper input:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+body.dark-theme .map-search-wrapper input {
+    background: rgba(0,0,0,0.3);
 }
 
 .map-search-wrapper .search-icon {
@@ -347,7 +146,7 @@ main.map-layout {
 .filter-row::-webkit-scrollbar { display: none; }
 
 .filter-tag {
-    background: var(--bg-surface);
+    background: rgba(255,255,255,0.5);
     border: 1px solid var(--border-color);
     padding: 8px 16px;
     border-radius: 100px;
@@ -359,6 +158,7 @@ main.map-layout {
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
+body.dark-theme .filter-tag { background: rgba(255,255,255,0.05); }
 
 .filter-tag:hover {
     border-color: var(--text-muted);
@@ -373,12 +173,19 @@ main.map-layout {
     font-weight: 600;
 }
 
-/* --- PLACES LIST & CARDS --- */
+body.dark-theme .filter-tag.active {
+    background: var(--accent-blue);
+    color: #ffffff;
+    border-color: var(--accent-blue);
+}
+
+/* --- PLACES LIST --- */
 .places-list {
     padding: 16px;
     flex: 1;
     overflow-y: auto;
-    background: var(--bg-main);
+    /* Remove solid bg */
+    background: transparent; 
 }
 
 .place-card {
@@ -389,10 +196,12 @@ main.map-layout {
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    background: var(--bg-surface);
+    
+    background: rgba(255,255,255,0.6);
     border: 1px solid var(--border-color);
     box-shadow: var(--card-shadow);
 }
+body.dark-theme .place-card { background: rgba(30,30,30,0.6); }
 
 .place-card:hover {
     border-color: var(--accent-blue);
@@ -400,13 +209,14 @@ main.map-layout {
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     z-index: 5;
     position: relative;
+    background: var(--bg-surface);
 }
 
 .place-img {
     width: 80px;
     height: 80px;
     border-radius: 12px;
-    background-color: var(--bg-main);
+    background-color: rgba(0,0,0,0.05);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -421,7 +231,7 @@ main.map-layout {
 
 .place-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .place-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.place-header h3 { font-size: 16px; font-weight: 600; color: var(--text-main); }
+.place-header h3 { font-size: 16px; font-weight: 600; color: var(--text-main); margin: 0; }
 .place-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 
 .rating-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 700; background: #ecfdf5; color: #059669; padding: 2px 6px; border-radius: 4px; }
@@ -429,16 +239,15 @@ body.dark-theme .rating-badge { background: rgba(16, 185, 129, 0.2); color: #34d
 
 .place-vibe { display: flex; gap: 6px; flex-wrap: wrap; }
 .vibe-tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
-.vibe-tag:nth-child(1) { background: #eff6ff; color: #2563eb; } /* Blue */
-.vibe-tag:nth-child(2) { background: #fef2f2; color: #dc2626; } /* Red */
-.vibe-tag:nth-child(3) { background: #f0fdf4; color: #16a34a; } /* Green */
-.vibe-tag:nth-child(4) { background: #fffbeb; color: #d97706; } /* Amber */
+.vibe-tag:nth-child(1) { background: #eff6ff; color: #2563eb; } 
+.vibe-tag:nth-child(2) { background: #fef2f2; color: #dc2626; } 
+.vibe-tag:nth-child(3) { background: #f0fdf4; color: #16a34a; } 
+.vibe-tag:nth-child(4) { background: #fffbeb; color: #d97706; } 
 
-/* Dark mode styles for vibe tags */
-body.dark-theme .vibe-tag:nth-child(1) { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3); } /* Blue */
-body.dark-theme .vibe-tag:nth-child(2) { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.3); } /* Red */
-body.dark-theme .vibe-tag:nth-child(3) { background: rgba(22, 163, 74, 0.2); color: #34d399; border: 1px solid rgba(22, 163, 74, 0.3); } /* Green */
-body.dark-theme .vibe-tag:nth-child(4) { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); } /* Amber */
+body.dark-theme .vibe-tag:nth-child(1) { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3); } 
+body.dark-theme .vibe-tag:nth-child(2) { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.3); } 
+body.dark-theme .vibe-tag:nth-child(3) { background: rgba(22, 163, 74, 0.2); color: #34d399; border: 1px solid rgba(22, 163, 74, 0.3); } 
+body.dark-theme .vibe-tag:nth-child(4) { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); } 
 
 
 /* --- DETAIL VIEW --- */
@@ -446,13 +255,15 @@ body.dark-theme .vibe-tag:nth-child(4) { background: rgba(217, 119, 6, 0.2); col
 .back-btn:hover { color: var(--text-main); }
 .icon-svg { width: 20px; height: 20px; stroke-width: 2; }
 
-.detail-hero { padding: 0 24px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: var(--bg-main); }
-#detail-title { font-size: 28px; margin-bottom: 8px; letter-spacing: -1px; color: var(--text-main); }
+.detail-hero { padding: 0 24px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+#detail-title { font-size: 28px; margin-bottom: 8px; letter-spacing: -1px; color: var(--text-main); margin-top: 0; }
 .detail-subtitle { color: var(--text-muted); font-size: 14px; }
 .detail-badges { display: flex; gap: 8px; margin-top: 12px; }
-.detail-content { padding: 24px; padding-bottom: 100px; overflow-y: auto; background: var(--bg-main); }
 
-.score-card { display: flex; gap: 16px; margin-bottom: 32px; background: var(--bg-surface); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
+.detail-content { padding: 24px; padding-bottom: 100px; overflow-y: auto; }
+
+.score-card { display: flex; gap: 16px; margin-bottom: 32px; background: rgba(255,255,255,0.5); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
+body.dark-theme .score-card { background: rgba(0,0,0,0.2); }
 .big-score { font-size: 48px; font-weight: 700; letter-spacing: -2px; line-height: 1; color: var(--text-main); }
 .score-meta { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
 .score-meta span { color: var(--text-muted); font-size: 13px; }
@@ -466,15 +277,15 @@ body.dark-theme .bar-track { background: rgba(255,255,255,0.1); }
 .status-badge { font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
 .status-badge.open { background: #dcfce7; color: #15803d; }
 body.dark-theme .status-badge.open { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-.status-badge.price { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); }
+.status-badge.price { background: rgba(0,0,0,0.05); border: 1px solid var(--border-color); color: var(--text-main); }
 
 .ai-verdict-box { background: linear-gradient(145deg, rgba(37,99,235,0.05) 0%, rgba(124,58,237,0.05) 100%); border: 1px solid rgba(37,99,235,0.2); padding: 16px; border-radius: 12px; margin-bottom: 32px; }
 body.dark-theme .ai-verdict-box { border-color: rgba(59, 130, 246, 0.4); }
 .ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .ai-icon { width: 20px; height: 20px; }
-.ai-header h3 { font-size: 14px; font-weight: 700; color: #2563EB; }
+.ai-header h3 { font-size: 14px; font-weight: 700; color: #2563EB; margin: 0; }
 body.dark-theme .ai-header h3 { color: #60a5fa; }
-.ai-verdict-box p { font-size: 14px; line-height: 1.5; color: var(--text-main); }
+.ai-verdict-box p { font-size: 14px; line-height: 1.5; color: var(--text-main); margin: 0; }
 
 .detail-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
 .full-width { width: 100%; text-align: center; }
@@ -483,7 +294,7 @@ body.dark-theme .ai-header h3 { color: #60a5fa; }
 .vibe-signature { margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 24px; }
 .section-head { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
 .sensory-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
-.sensory-item { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.sensory-item { background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
 .sensory-icon { font-size: 20px; }
 .sensory-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
 .sensory-value { font-size: 13px; font-weight: 600; color: var(--text-main); }
@@ -495,34 +306,43 @@ body.dark-theme .ai-header h3 { color: #60a5fa; }
 .legend-item { display: flex; align-items: center; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-/* --- MAP & PINS (FIXED) --- */
+/* --- MAP STAGE --- */
 .map-stage {
-    flex: 1; /* Растягивает на всю оставшуюся ширину */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    position: relative;
+    z-index: 0;
     background: #e5e5e5;
-    z-index: 1;
-    width: 100%; /* Гарантия ширины внутри флекс-элемента */
+}
+body.dark-theme .map-stage { background: #0a0a0a; }
+
+/* Leaflet Overrides */
+body.dark-theme .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+body.dark-theme .leaflet-control-attribution { background: rgba(0,0,0,0.8) !important; color: #ccc !important; }
+body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
+
+/* Move Zoom Controls */
+.leaflet-control-zoom {
+    position: absolute !important;
+    bottom: 24px;
+    right: 24px;
+    top: auto !important;
+    left: auto !important;
+    border: none !important;
+    box-shadow: var(--shadow-md) !important;
+}
+.leaflet-bar a {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-main) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+.leaflet-bar a:hover {
+    background-color: var(--bg-main) !important;
 }
 
-/* FIX: Применяем фильтр ТОЛЬКО к слою с картой, а не ко всему контейнеру */
-body.dark-theme .map-stage {
-    background: #0a0a0a; /* Matching dark mode bg-main */
-}
-
-/* Это магия для Leaflet: инвертируем только тайлы (картинки) */
-body.dark-theme .leaflet-tile-pane {
-    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
-}
-/* А вот это (опционально) затемняет копирайт внизу, чтобы он не светился белым */
-body.dark-theme .leaflet-control-attribution {
-    background: rgba(0,0,0,0.8) !important;
-    color: #ccc !important;
-}
-body.dark-theme .leaflet-control-attribution a {
-    color: #fff !important;
-}
-
+/* Custom Pin Styles */
 .custom-map-pin { background: transparent; border: none; }
 .pin-bubble { width: 40px; height: 40px; background: var(--text-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin: 0 auto; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 .custom-map-pin.active .pin-bubble { transform: scale(1.2); background: var(--accent-blue); }
@@ -530,9 +350,219 @@ body.dark-theme .leaflet-control-attribution a {
 .pin-point { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--text-main); margin: -1px auto 0; }
 .custom-map-pin.active .pin-point { border-top-color: var(--accent-blue); }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 900px) {
-    main.map-layout { flex-direction: column; position: relative; top: 0; height: calc(100vh - var(--header-height)); }
-    .sidebar { width: 100%; height: 50%; order: 2; border-right: none; border-top: 1px solid var(--border-color); }
-    .map-stage { height: 50%; order: 1; width: 100%; }
+/* Sidebar Title Row (Mobile) */
+.sidebar-title-row {
+    display: block;
+}
+.sidebar-title-row h2 {
+    margin-bottom: 16px;
+}
+.mobile-toggle-btn { display: none; }
+
+/* --- MOBILE BOTTOM SHEET (New Implementation) --- */
+
+/* Default hidden on desktop */
+#mobile-bottom-sheet {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* Hide Global Header Elements on Map Page */
+    body .logo,
+    body .header-right,
+    body .nav-center {
+        display: none !important;
+    }
+    
+    /* Hide Desktop Sidebar */
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Show Mobile Bottom Sheet */
+    #mobile-bottom-sheet {
+        display: flex;
+    }
+
+    /* 1. The Container (The Glass Background) */
+    .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(20, 20, 20, 0.85); /* Stronger dark glass */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        z-index: 1000;
+        transition: height 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        flex-direction: column;
+        overflow: hidden; /* Hide list when collapsed */
+        box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
+    }
+
+    /* HEIGHT LOGIC */
+    .bottom-sheet.collapsed {
+        height: 150px; /* Search (50) + Nav (60) + Margins/Chevron */
+    }
+
+    .bottom-sheet.expanded {
+        height: 85vh; /* Almost full screen */
+    }
+
+    /* 2. The Chevron / Handle */
+    .sheet-handle-area {
+        width: 100%;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .chevron-icon {
+        width: 40px;
+        height: 4px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 4px;
+    }
+
+    /* 3. Search Header */
+    .sheet-header {
+        padding: 0 20px;
+        margin-bottom: 10px;
+        flex-shrink: 0; /* Don't shrink */
+    }
+    
+    .sheet-header .map-search-wrapper {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+    
+    .sheet-header input {
+        color: white;
+        background: transparent;
+        border: none;
+    }
+    
+    .sheet-header ::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* 4. The List Content */
+    .sheet-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 20px 80px 20px; /* 80px bottom padding for Nav Dock space */
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none; /* No clicks when hidden */
+    }
+
+    .bottom-sheet.expanded .sheet-content {
+        opacity: 1;
+        pointer-events: auto;
+        transition-delay: 0.1s; /* Fade in after height starts growing */
+    }
+
+    /* --- MOBILE FOCUS MODE STYLES (Phase 1) --- */
+
+    /* 1. Hide the global dock when this class is added */
+    .mobile-nav-overlay.dock-hidden {
+        transform: translate(0, 150%); /* Slide down out of view */
+        pointer-events: none;
+        transition: transform 0.4s ease;
+    }
+
+    /* 2. Detail Container Tweaks */
+    .detail-content-wrapper {
+        padding: 0 0 120px 0; /* Huge bottom padding for scroll space */
+        opacity: 0;
+        display: none; /* Hidden by default */
+        animation: fadeIn 0.3s ease;
+        flex: 1;
+        overflow-y: auto;
+        flex-direction: column;
+    }
+
+    .detail-content-wrapper.active {
+        display: flex;
+        opacity: 1;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-content-wrapper .detail-hero {
+        padding: 20px 20px 0 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .detail-content-wrapper .detail-content {
+        padding: 20px;
+    }
+
+    /* 3. The "Action Bar" (Sticky Bottom for Place Details) */
+    .place-action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 24px;
+        background: linear-gradient(to top, rgba(20, 20, 20, 1) 40%, rgba(20, 20, 20, 0) 100%);
+        z-index: 1050; /* Higher than everything */
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        /* Hidden by default, shown via JS */
+        transform: translateY(100%); 
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .place-action-bar.visible {
+        transform: translateY(0);
+    }
+
+    /* 5. The Nav Dock (Transparent Overlay) */
+    .mobile-nav-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px; /* Fixed height at bottom */
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background: transparent; /* KEY: No background */
+        /* Optional: faint gradient to ensure text readability if list scrolls behind */
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        z-index: 1002;
+        transition: transform 0.4s ease;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        font-size: 10px;
+        text-decoration: none;
+    }
+
+    .nav-item.active {
+        color: white; /* White for dark mode bottom sheet */
+    }
+    
+    /* Zoom controls position adjustment */
+    .leaflet-control-zoom {
+        bottom: 160px !important;
+        right: 16px !important;
+    }
 }

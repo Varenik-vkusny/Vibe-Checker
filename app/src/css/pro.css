@@ -14,10 +14,6 @@ body.pro-body {
     transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* --- LIGHT THEME OVERRIDES (When dark-theme class is ABSENT) --- */
-/* By default, theme.js adds .dark-theme based on pref. 
-   If user toggles to Light, .dark-theme is removed. 
-   We target the body when it DOES NOT have .dark-theme */
 body.pro-body:not(.dark-theme) {
     --pro-bg: #eef2f6;
     --pro-surface: rgba(255, 255, 255, 0.6);
@@ -26,47 +22,20 @@ body.pro-body:not(.dark-theme) {
     --pro-accent: #2563EB;
 }
 
-/* Light mode specific background override for canvas container */
 body.pro-body:not(.dark-theme) #canvas-container {
     background: radial-gradient(circle at 50% 50%, #ffffff 0%, #dbeafe 100%);
 }
 
-/* --- Header --- */
-.pro-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 32px;
-    z-index: 100;
-    border-bottom: 1px solid var(--pro-border);
-    background: var(--pro-surface);
-    backdrop-filter: blur(10px);
+/* --- Header Override for Pro Mode --- */
+/* Targeted via JS added class .header--pro */
+.header--pro {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(20px) !important;
 }
 
-.logo-pro {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: var(--pro-text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pro-badge {
-    background: var(--pro-accent);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 700;
+.header--pro .nav-links {
+    display: none !important; /* Hide middle links */
 }
 
 /* --- Canvas --- */
@@ -176,43 +145,42 @@ body.pro-body:not(.dark-theme) #canvas-container {
     letter-spacing: 2px;
 }
 
-/* Floating Input */
+/* --- New Input Style: Transparent with Glowing Bottom Border --- */
 .pro-search-wrapper {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     position: relative;
     margin: 0 auto 32px;
 }
 
 #pro-input {
     width: 100%;
-    background: var(--pro-surface);
-    border: 1px solid var(--pro-border);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 24px 32px;
-    border-radius: 99px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+    border-radius: 0;
+    padding: 20px 0;
     color: var(--pro-text);
     font-family: var(--font-main);
-    font-size: 18px;
+    font-size: 32px;
     text-align: center;
     transition: all 0.3s;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    font-weight: 300;
 }
 
 #pro-input:focus {
     outline: none;
-    border-color: var(--pro-accent);
-    box-shadow: 0 0 0 2px var(--pro-accent), 0 20px 60px rgba(0, 0, 0, 0.2);
-    transform: scale(1.02);
+    border-bottom-color: var(--pro-accent);
+    box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3);
 }
 
 #pro-input::placeholder {
     color: var(--pro-text);
-    opacity: 0.5;
+    opacity: 0.3;
+    font-style: italic;
 }
 
-/* --- FIX: Suggestion Chips Readability --- */
+/* Suggestion Chips */
 .suggestion-chips {
     display: flex;
     gap: 12px;
@@ -220,35 +188,35 @@ body.pro-body:not(.dark-theme) #canvas-container {
 }
 
 .chip {
-    background: rgba(10, 10, 10, 0.5); /* Darker background for contrast */
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--pro-border);
-    color: #ccc;
+    color: var(--pro-text);
     font-family: var(--font-main);
     font-size: 13px;
-    padding: 10px 20px;
+    padding: 10px 24px;
     border-radius: 99px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    backdrop-filter: blur(12px); /* Blur behind the chip */
+    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* Light mode chips adjustment */
 body.pro-body:not(.dark-theme) .chip {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.05);
     color: #333;
+    border-color: rgba(0,0,0,0.1);
 }
 
 .chip-img {
     width: 16px;
     height: 16px;
     object-fit: contain;
-    filter: grayscale(0.5);
+    filter: grayscale(1);
     transition: filter 0.2s;
+    opacity: 0.7;
 }
 
 .chip:hover {
@@ -256,11 +224,82 @@ body.pro-body:not(.dark-theme) .chip {
     border-color: var(--pro-accent);
     color: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .chip:hover .chip-img {
     filter: grayscale(0);
+    opacity: 1;
+}
+
+/* --- Geek Controls --- */
+.geek-controls {
+    display: flex;
+    gap: 20px;
+    margin: 0 auto 40px;
+    max-width: 600px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.control-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+.control-col.wide { flex: 1; min-width: 200px; }
+
+.control-col label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--pro-text);
+    opacity: 0.6;
+}
+
+.range-display { display: flex; align-items: center; gap: 8px; }
+.range-display span { font-family: var(--font-mono); font-size: 12px; color: var(--pro-accent); }
+
+.pro-range {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    outline: none;
+}
+.pro-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--pro-accent); cursor: pointer;
+}
+
+.pro-number {
+    background: transparent;
+    border: 1px solid var(--pro-border);
+    color: var(--pro-text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 80px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+.pro-text-sm {
+    background: transparent;
+    border: 1px solid var(--pro-border);
+    color: var(--pro-text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+    font-family: var(--font-main);
+    font-size: 13px;
+}
+
+.pro-number:focus, .pro-text-sm:focus {
+    border-color: var(--pro-accent);
+    outline: none;
 }
 
 /* --- Process State --- */
@@ -281,4 +320,10 @@ body.pro-body:not(.dark-theme) .chip {
     padding: 6px 12px;
     border-radius: 4px;
     border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+@media (max-width: 768px) {
+    .geek-controls { flex-direction: column; width: 100%; padding: 0 20px; }
+    .control-col { width: 100%; }
+    .pro-title { font-size: 40px; }
 }

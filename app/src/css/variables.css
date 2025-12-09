@@ -20,6 +20,8 @@
     --shadow-md: 0 12px 24px -6px rgba(0,0,0,0.08);
     --shadow-lg: 0 24px 48px -12px rgba(0,0,0,0.12);
 
+    --chart-grid: rgba(0, 0, 0, 0.1);
+
     /* --- Dimensions --- */
     --header-height: 72px;
     --max-width: 1440px;
@@ -62,4 +64,6 @@ body.dark-theme {
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
     --shadow-md: 0 8px 16px rgba(0,0,0,0.5);
     --shadow-lg: 0 16px 32px rgba(0,0,0,0.6);
+
+    --chart-grid: rgba(255, 255, 255, 0.2);
 }

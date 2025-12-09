@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     renderSidebarList();
+    initBottomSheet();
 });
 
 // Mock Data
@@ -117,10 +118,16 @@ function initMap() {
         clearSelection();
     });
 
-    // Back button listener
+    // Back button listener (Desktop)
     const backBtn = document.getElementById('back-to-list');
     if (backBtn) {
         backBtn.addEventListener('click', clearSelection);
+    }
+    
+    // Back button listener (Mobile)
+    const mobileBackBtn = document.getElementById('mobile-back-to-list');
+    if (mobileBackBtn) {
+        mobileBackBtn.addEventListener('click', closePlaceMobile);
     }
 
     // FIX: Force map resize calculation to ensure tiles load correctly
@@ -130,45 +137,46 @@ function initMap() {
 }
 
 function renderSidebarList() {
-    const container = document.getElementById('places-list-container');
-    if (!container) return;
+    // Render to both Desktop and Mobile containers
+    const containers = [
+        document.getElementById('places-list-container'),
+        document.getElementById('mobile-places-list')
+    ];
     
-    container.innerHTML = ''; 
-
-    Object.keys(mockData).forEach(id => {
-        const data = mockData[id];
+    containers.forEach(container => {
+        if (!container) return;
         
-        const card = document.createElement('div');
-        card.className = 'place-card';
-        card.dataset.id = id;
-        card.onclick = () => selectPlace(id);
+        container.innerHTML = ''; 
 
-        card.innerHTML = `
-            <div class="place-img" style="background-color: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 32px;">
-                <img src="${data.icon}" width="32" height="32" alt="icon">
-            </div>
-            <div class="place-info">
-                <div class="place-header">
-                    <h3>${data.title}</h3>
-                    <span class="rating-badge">${data.score}</span>
+        Object.keys(mockData).forEach(id => {
+            const data = mockData[id];
+            
+            const card = document.createElement('div');
+            card.className = 'place-card';
+            card.dataset.id = id;
+            card.onclick = () => selectPlace(id);
+
+            card.innerHTML = `
+                <div class="place-img" style="background-color: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                    <img src="${data.icon}" width="32" height="32" alt="icon">
                 </div>
-                <div class="place-meta">${data.meta}</div>
-                <div class="place-vibe">
-                    ${data.tags.map(tag => `<span class="vibe-tag">${tag}</span>`).join('')}
+                <div class="place-info">
+                    <div class="place-header">
+                        <h3>${data.title}</h3>
+                        <span class="rating-badge">${data.score}</span>
+                    </div>
+                    <div class="place-meta">${data.meta}</div>
+                    <div class="place-vibe">
+                        ${data.tags.map(tag => `<span class="vibe-tag">${tag}</span>`).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
-        container.appendChild(card);
+            `;
+            container.appendChild(card);
+        });
     });
 }
 
 function selectPlace(id) {
-    const sidebar = document.getElementById('sidebar');
-    const cards = document.querySelectorAll('.place-card');
-
-    // 1. Update UI Classes
-    sidebar.classList.add('showing-detail');
-
     // Highlight Marker
     Object.values(markers).forEach(m => {
         const icon = m.getElement();
@@ -185,18 +193,32 @@ function selectPlace(id) {
     }
 
     // Highlight Card
+    const cards = document.querySelectorAll('.place-card');
     cards.forEach(card => {
         if (card.dataset.id === id) card.style.background = 'var(--bg-surface)';
         else card.style.background = '';
     });
 
-    // 2. Update Content
+    // Update Content
     updateDetailContent(id);
+
+    // Mobile vs Desktop Logic
+    if (window.innerWidth <= 768) {
+        openPlaceMobile(id);
+    } else {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.add('showing-detail');
+        sidebar.classList.remove('minimized');
+    }
 }
 
 function clearSelection() {
+    // Desktop
     const sidebar = document.getElementById('sidebar');
-    sidebar.classList.remove('showing-detail');
+    if (sidebar) sidebar.classList.remove('showing-detail');
+
+    // Mobile
+    closeMobileDetail();
 
     // Reset Markers
     Object.values(markers).forEach(m => {
@@ -212,60 +234,230 @@ function updateDetailContent(id) {
     const data = mockData[id];
     if (!data) return;
 
-    // Basic Info
-    const titleEl = document.getElementById('detail-title');
-    const subtitleEl = document.querySelector('.detail-subtitle');
-    const scoreEl = document.getElementById('detail-score');
-    const reviewsEl = document.getElementById('detail-reviews');
+    // Helper to update text by ID prefix
+    const updateText = (suffix, text) => {
+        const elDesktop = document.getElementById(suffix);
+        const elMobile = document.getElementById('mobile-' + suffix);
+        if (elDesktop) elDesktop.innerText = text;
+        if (elMobile) elMobile.innerText = text;
+    };
 
-    if (titleEl) titleEl.innerText = data.title;
-    if (subtitleEl) subtitleEl.innerText = data.meta;
-    if (scoreEl) scoreEl.innerText = data.score;
-    if (reviewsEl) reviewsEl.innerText = Math.floor(Math.random() * 500) + 50;
+    // Helper to update style width
+    const updateWidth = (suffix, width) => {
+        const elDesktop = document.getElementById(suffix);
+        const elMobile = document.getElementById('mobile-' + suffix);
+        if (elDesktop) elDesktop.style.width = width + '%';
+        if (elMobile) elMobile.style.width = width + '%';
+    };
+
+    updateText('detail-title', data.title);
+    
+    // Subtitle is a class query in desktop, ID in mobile (or I used class in HTML, let's check HTML)
+    // HTML has <p class="detail-subtitle"> in both.
+    const subs = document.querySelectorAll('.detail-subtitle');
+    subs.forEach(s => s.innerText = data.meta);
+
+    updateText('detail-score', data.score);
+    
+    const reviews = Math.floor(Math.random() * 500) + 50;
+    updateText('detail-reviews', reviews);
 
     // Bars
-    const barFood = document.getElementById('bar-food');
-    const barService = document.getElementById('bar-service');
-    if (barFood) barFood.style.width = (data.bars?.food || 0) + '%';
-    if (barService) barService.style.width = (data.bars?.service || 0) + '%';
+    updateWidth('bar-food', data.bars?.food || 0);
+    updateWidth('bar-service', data.bars?.service || 0);
 
     // AI Verdict
-    const verdictEl = document.getElementById('detail-verdict');
-    if (verdictEl) verdictEl.innerText = data.verdict || 'No analysis available.';
+    updateText('detail-verdict', data.verdict || 'No analysis available.');
 
     // Vibe Signature
-    const noiseEl = document.getElementById('val-noise');
-    const lightEl = document.getElementById('val-light');
-    const wifiEl = document.getElementById('val-wifi');
-    if (noiseEl) noiseEl.innerText = data.noise || '-';
-    if (lightEl) lightEl.innerText = data.light || '-';
-    if (wifiEl) wifiEl.innerText = data.wifi || '-';
+    updateText('val-noise', data.noise || '-');
+    updateText('val-light', data.light || '-');
+    updateText('val-wifi', data.wifi || '-');
 
     // Audience Bar
-    const barContainer = document.getElementById('audience-bar');
-    const legendContainer = document.getElementById('audience-legend');
+    // We need to target both containers
+    const containers = [
+        { bar: document.getElementById('audience-bar'), legend: document.getElementById('audience-legend') },
+        { bar: document.getElementById('mobile-audience-bar'), legend: document.getElementById('mobile-audience-legend') }
+    ];
 
-    if (barContainer && legendContainer && data.audience) {
-        barContainer.innerHTML = '';
-        legendContainer.innerHTML = '';
+    containers.forEach(({ bar, legend }) => {
+        if (bar && legend && data.audience) {
+            bar.innerHTML = '';
+            legend.innerHTML = '';
 
-        data.audience.forEach(segment => {
-            // Bar Segment
-            const segDiv = document.createElement('div');
-            segDiv.className = 'split-seg';
-            segDiv.style.width = segment.pct + '%';
-            segDiv.style.backgroundColor = segment.color;
-            segDiv.dataset.label = segment.label;
-            barContainer.appendChild(segDiv);
+            data.audience.forEach(segment => {
+                const segDiv = document.createElement('div');
+                segDiv.className = 'split-seg';
+                segDiv.style.width = segment.pct + '%';
+                segDiv.style.backgroundColor = segment.color;
+                segDiv.dataset.label = segment.label;
+                bar.appendChild(segDiv);
 
-            // Legend Item
-            const legItem = document.createElement('div');
-            legItem.className = 'legend-item';
-            legItem.innerHTML = `
-                <span class="legend-dot" style="background:${segment.color}"></span>
-                <span>${segment.label} (${segment.pct}%)</span>
-            `;
-            legendContainer.appendChild(legItem);
+                const legItem = document.createElement('div');
+                legItem.className = 'legend-item';
+                legItem.innerHTML = `
+                    <span class="legend-dot" style="background:${segment.color}"></span>
+                    <span>${segment.label} (${segment.pct}%)</span>
+                `;
+                legend.appendChild(legItem);
+            });
+        }
+    });
+}
+
+// Function triggered when a user clicks a pin or a list item
+function openPlaceMobile(id) {
+    const dock = document.querySelector('.mobile-nav-overlay');
+    const bottomSheet = document.getElementById('mobile-bottom-sheet');
+    const listView = document.getElementById('sheet-list-view');
+    const detailView = document.getElementById('sheet-detail-view');
+    const actionBar = document.querySelector('.place-action-bar');
+
+    // 1. Hide the Global Nav Dock
+    if (dock) dock.classList.add('dock-hidden');
+
+    // 2. Expand the Sheet completely
+    if (bottomSheet) {
+        bottomSheet.classList.remove('collapsed');
+        bottomSheet.classList.add('expanded');
+    }
+
+    // 3. Swap Content (List -> Detail)
+    if (listView) listView.style.display = 'none';
+    if (detailView) detailView.classList.add('active');
+    
+    // 4. Populate Data
+    updateDetailContent(id);
+
+    // 5. Slide up the specific Place Actions (Directions/Compare)
+    if (actionBar) actionBar.classList.add('visible');
+}
+
+// Function triggered when user clicks "Back" or "Close"
+function closePlaceMobile() {
+    const dock = document.querySelector('.mobile-nav-overlay');
+    const listView = document.getElementById('sheet-list-view');
+    const detailView = document.getElementById('sheet-detail-view');
+    const actionBar = document.querySelector('.place-action-bar');
+
+    // 1. Hide Place Actions
+    if (actionBar) actionBar.classList.remove('visible');
+
+    // 2. Swap Content (Detail -> List)
+    if (detailView) detailView.classList.remove('active');
+    setTimeout(() => {
+        if (listView) listView.style.display = 'block';
+    }, 200); // Wait for fade out
+
+    // 3. Bring back the Global Dock
+    if (dock) dock.classList.remove('dock-hidden');
+}
+
+function initBottomSheet() {
+    const sheet = document.getElementById('mobile-bottom-sheet');
+    if (!sheet) return;
+
+    const handle = document.getElementById('sheet-toggle');
+    const searchInput = sheet.querySelector('input');
+    
+    // Toggle Function
+    const toggleSheet = (forceState = null) => {
+        if (forceState === 'expand') {
+            sheet.classList.remove('collapsed');
+            sheet.classList.add('expanded');
+        } else if (forceState === 'collapse') {
+            sheet.classList.remove('expanded');
+            sheet.classList.add('collapsed');
+            // Blur input to hide keyboard
+            if (searchInput) searchInput.blur();
+        } else {
+            // Toggle
+            if (sheet.classList.contains('collapsed')) {
+                toggleSheet('expand');
+            } else {
+                toggleSheet('collapse');
+            }
+        }
+    };
+
+    // Events
+    if (handle) {
+        handle.addEventListener('click', () => toggleSheet());
+    }
+    
+    // Expand when typing
+    if (searchInput) {
+        searchInput.addEventListener('focus', () => toggleSheet('expand'));
+    }
+
+    // Collapse when clicking the map
+    const mapEl = document.getElementById('map');
+    if (mapEl) {
+        mapEl.addEventListener('click', () => toggleSheet('collapse'));
+    }
+
+    // Handle "Places" nav click to toggle
+    const placesNav = document.querySelector('.mobile-nav-overlay a[data-target="places"]');
+    if (placesNav) {
+        placesNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSheet();
         });
     }
+    
+    initGestures(sheet);
+}
+
+function initGestures(sheet) {
+    const handle = document.getElementById('sheet-toggle');
+    if (!handle) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    const threshold = 50; // Distance to trigger state change
+
+    const onTouchStart = (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        sheet.style.transition = 'none'; // Disable CSS transition for direct tracking
+    };
+
+    const onTouchMove = (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        
+        // Simple resistance/tracking logic could go here
+        // For now, we just track the delta for the end event
+    };
+
+    const onTouchEnd = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        sheet.style.transition = ''; // Re-enable CSS transition
+
+        const deltaY = currentY - startY;
+
+        // Determine direction
+        if (deltaY < -threshold) {
+            // Swipe UP -> Expand
+            sheet.classList.remove('collapsed');
+            sheet.classList.add('expanded');
+        } else if (deltaY > threshold) {
+            // Swipe DOWN -> Collapse
+            sheet.classList.remove('expanded');
+            sheet.classList.add('collapsed');
+            
+            // Also close detail view if open?
+            // closeMobileDetail(); // Optional
+        } else {
+            // Snap back to nearest or current state logic
+        }
+    };
+
+    handle.addEventListener('touchstart', onTouchStart, { passive: true });
+    handle.addEventListener('touchmove', onTouchMove, { passive: true });
+    handle.addEventListener('touchend', onTouchEnd);
 }

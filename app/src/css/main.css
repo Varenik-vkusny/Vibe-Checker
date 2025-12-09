@@ -1,5 +1,6 @@
 @import 'variables.css';
 @import 'base.css';
+@import 'glass.css';
 
 /* Components */
 @import 'components/buttons.css';

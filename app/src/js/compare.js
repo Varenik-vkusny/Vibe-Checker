@@ -6,29 +6,42 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentComparisonData = null;
 
 function initComparison() {
-    const btns = document.querySelectorAll('.competitor-btn');
     const stepSelection = document.getElementById('step-selection');
     const stepResult = document.getElementById('step-result');
     const resetBtn = document.getElementById('reset-btn');
 
-    // Selection Logic - For now, using mock data, but ready for API integration
-    btns.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
+    // Add Place Button Flow
+    const addBtn = document.getElementById('add-place-btn');
+    const modal = document.getElementById('compare-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const modalItems = document.querySelectorAll('.modal-item');
+
+    if (addBtn && modal) {
+        addBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            gsap.fromTo('.modal-glass', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 });
+        });
+    }
+
+    if (closeModal && modal) {
+        closeModal.addEventListener('click', () => {
+            gsap.to('.modal-glass', { y: 20, opacity: 0, duration: 0.2, onComplete: () => {
+                modal.style.display = 'none';
+            }});
+        });
+    }
+
+    modalItems.forEach(item => {
+        item.addEventListener('click', async () => {
+            const id = item.dataset.id;
             
-            // TODO: Replace with actual API call
-            // For now, using mock data that matches the backend format
+            // Hide Modal
+            modal.style.display = 'none';
+
+            // Get Mock Data
             const mockData = getMockComparisonData(id);
             
             try {
-                // Simulate API call
-                // const response = await fetch('/api/compare', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({ url_a: placeAUrl, url_b: placeBUrl, limit: 50 })
-                // });
-                // const data = await response.json();
-                
                 currentComparisonData = mockData;
                 populateComparison(mockData);
 
@@ -52,7 +65,6 @@ function initComparison() {
                 });
             } catch (error) {
                 console.error('Error loading comparison:', error);
-                alert('Failed to load comparison. Please try again.');
             }
         });
     });
@@ -236,7 +248,7 @@ function populateComparison(data) {
     if (comparison.key_differences) {
         comparison.key_differences.forEach(diff => {
             const li = document.createElement('li');
-            li.innerText = diff;
+            li.innerHTML = `<span class="diff-icon">⚡</span> ${diff}`;
             differencesList.appendChild(li);
         });
     }
@@ -275,29 +287,34 @@ function updateBars(winnerCategory) {
 
         const leftBar = barRow.querySelector('.bar-fill.left');
         const rightBar = barRow.querySelector('.bar-fill.right');
+        const leftValEl = barRow.querySelector('.bar-value.left .value-number');
+        const rightValEl = barRow.querySelector('.bar-value.right .value-number');
         
         if (!leftBar || !rightBar) return;
 
         const winner = winnerCategory[category];
         
-        // Set bar widths: winner gets 60%, loser gets 40%
+        let leftPct = 50, rightPct = 50;
+
         if (winner === 'place_a') {
-            leftBar.style.width = '60%';
-            rightBar.style.width = '40%';
-            barRow.dataset.left = '60';
-            barRow.dataset.right = '40';
+            leftPct = 65 + Math.floor(Math.random() * 15); // 65-80
+            rightPct = 100 - leftPct;
         } else if (winner === 'place_b') {
-            leftBar.style.width = '40%';
-            rightBar.style.width = '60%';
-            barRow.dataset.left = '40';
-            barRow.dataset.right = '60';
+            rightPct = 65 + Math.floor(Math.random() * 15); // 65-80
+            leftPct = 100 - rightPct;
         } else {
-            // Draw - equal bars
-            leftBar.style.width = '50%';
-            rightBar.style.width = '50%';
-            barRow.dataset.left = '50';
-            barRow.dataset.right = '50';
+            leftPct = 50; rightPct = 50;
         }
+
+        // Apply width via GSAP or transition
+        // We'll use CSS transition by setting style, but wait for animation trigger
+        // Store values in dataset for animation function
+        barRow.dataset.left = leftPct;
+        barRow.dataset.right = rightPct;
+        
+        // Update text immediately
+        if (leftValEl) leftValEl.innerText = leftPct + '%';
+        if (rightValEl) rightValEl.innerText = rightPct + '%';
     });
 }
 
@@ -336,8 +353,20 @@ function animateResultElements() {
 
         // Animate
         setTimeout(() => {
-            leftBar.style.width = (leftVal / 2) + '%';
-            rightBar.style.width = (rightVal / 2) + '%';
+            leftBar.style.width = leftVal + '%'; // Don't divide by 2, visual bar takes full width of its side? 
+            // Wait, CSS: bar-visual is 100% width. Left bar and Right bar sit inside it?
+            // CSS: 
+            // .bar-fill.left { margin-right: auto; }
+            // .bar-fill.right { margin-left: auto; }
+            // They are stacked or side by side? 
+            // The HTML structure has .bar-visual containing both .bar-fill.left and .bar-fill.right.
+            // If they are `position: relative`, they might stack. 
+            // CSS says `display: flex` on `.bar-visual`.
+            // So left bar and right bar share the space.
+            // So width should be proportional to 100%.
+            
+            leftBar.style.width = leftVal + '%';
+            rightBar.style.width = rightVal + '%';
         }, 300 + (i * 100));
     });
 

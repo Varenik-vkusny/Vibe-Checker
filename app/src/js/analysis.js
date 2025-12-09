@@ -54,7 +54,22 @@ const reviewsData = [
 document.addEventListener('DOMContentLoaded', () => {
     renderReviews(reviewsData);
     setupFilters();
+    initTypewriter();
+    setupPopularTimes();
 });
+
+function setupPopularTimes() {
+    const bars = document.querySelectorAll('.popular-times-graph .bar');
+    bars.forEach(bar => {
+        bar.addEventListener('click', () => {
+            bars.forEach(b => b.classList.remove('active'));
+            bar.classList.add('active');
+            
+            // Move "Now" label if needed or just visual toggle
+            // Assuming simplified visual toggle for now
+        });
+    });
+}
 
 // Exposed function for clicking links in the Pros/Cons list
 window.filterReviews = function(keyword) {
@@ -115,13 +130,12 @@ function renderReviews(data) {
         card.className = 'review-card';
         
         const initials = r.name.split(' ').map(n=>n[0]).join('');
-        const verifiedHtml = r.verified ? `<span class="verified-badge">Verified</span>` : '';
+        // const verifiedHtml = r.verified ? `<span class="verified-badge">Verified</span>` : ''; // Removed per request
         
         // Stars
         let starsHtml = '<div style="display:flex; gap:2px;">';
         for(let i=1; i<=5; i++) {
             const cls = i <= r.rating ? '' : 'gray';
-            // Simple gray fill or orange fill based on class
             const fill = i <= r.rating ? '#f59e0b' : (document.body.classList.contains('dark-theme') ? '#374151' : '#e5e7eb');
             starsHtml += `
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="${fill}">
@@ -151,11 +165,68 @@ function renderReviews(data) {
                         </div>
                     </div>
                 </div>
-                ${verifiedHtml}
             </div>
             <div class="rc-body">"${reviewText}"</div>
             <div>${tagsHtml}</div>
         `;
         grid.appendChild(card);
     });
+}
+
+// Typewriter Logic
+function initTypewriter() {
+    const box = document.querySelector('.ai-summary-box');
+    if (!box) return;
+
+    const originalContent = box.innerHTML;
+    box.innerHTML = ''; // Clear
+    
+    // Temporary container to parse nodes
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = originalContent;
+    
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    box.appendChild(cursor);
+
+    async function typeNode(node, target) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            // Use a span to hold text to ensure we don't break cursor position if mixed
+            // But standard TextNode is fine
+            const textNode = document.createTextNode('');
+            target.insertBefore(textNode, cursor); // Insert before cursor
+            
+            for (let char of text) {
+                textNode.textContent += char;
+                await new Promise(r => setTimeout(r, 15)); // Typing speed
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node.cloneNode(false); // Shallow clone (tag only)
+            target.insertBefore(el, cursor);
+            
+            // Enter the element with the cursor
+            el.appendChild(cursor);
+            
+            // Recursively type children
+            for (let child of node.childNodes) {
+                await typeNode(child, el);
+            }
+            
+            // Once done with children, move cursor back to parent (target)
+            // But wait, if we are in 'target', we just append cursor back to 'target' after 'el'
+            target.appendChild(cursor);
+        }
+    }
+
+    const nodes = Array.from(tempDiv.childNodes);
+    
+    (async () => {
+        // Initial delay
+        await new Promise(r => setTimeout(r, 500));
+        for (let node of nodes) {
+            await typeNode(node, box);
+        }
+        // Keep cursor blinking at end (handled by CSS)
+    })();
 }
