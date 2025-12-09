@@ -28,9 +28,7 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
 
     # --- 2. LLM Query Generation ---
     t_start = time.time()
-    search_params = await generate_search_params(
-        user_text=user_query.query, lat=user_query.lat, lon=user_query.lon
-    )
+    search_params = await generate_search_params(user_text=user_query.query)
     logger.info(f"🔍 Сгенерирован запрос: {search_params.google_search_query}")
     logger.info(f"⏱️ [2/6] LLM (Query Gen): {time.time() - t_start:.2f}s")
 
@@ -40,7 +38,7 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
         query=search_params.google_search_query,
         lat=user_query.lat,
         lon=user_query.lon,
-        limit_places=5,
+        limit_places=15,
     )
     logger.info(f"⏱️ [3/6] Parsing (Google + Reviews): {time.time() - t_start:.2f}s")
 
@@ -63,14 +61,20 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
         lat=user_query.lat,
         lon=user_query.lon,
         radius_meters=user_query.radius,
-        limit=5,
+        limit=15,
     )
     logger.info(f"⏱️ [5/6] Qdrant (Upsert + Search): {time.time() - t_start:.2f}s")
 
     # --- 6. LLM Reranking ---
     t_start = time.time()
 
-    top_candidates = smart_rerank(user_query.query, candidates, top_k=3)
+    for c in candidates:
+        print(f"Name: {c.get('name')}")
+        print(f"Summary data: {c.get('reviews_summary')}")
+        print(f"Address: {c.get('address')}")
+        print("-" * 20)
+
+    top_candidates = smart_rerank(user_query.query, candidates, top_k=5)
     final_result = await explain_selection(user_query.query, top_candidates)
     logger.info(f"⏱️ [6/6] LLM (Final Rerank): {time.time() - t_start:.2f}s")
 

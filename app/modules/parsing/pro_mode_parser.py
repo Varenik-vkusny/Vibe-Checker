@@ -1,6 +1,7 @@
 import math
 import asyncio
 import time
+import json
 from typing import List
 from serpapi import GoogleSearch
 from ...config import get_settings
@@ -56,19 +57,51 @@ async def find_places_nearby(
 
         candidates = []
 
-        for item in local_results:  # Берем всех, фильтруем, потом обрежем по limit
+        for item in local_results:
             gps = item.get("gps_coordinates", {})
             place_lat = gps.get("latitude")
             place_lon = gps.get("longitude")
 
-            # 🔥 ЖЕСТКИЙ ФИЛЬТР РАССТОЯНИЯ (например, 15 км)
-            # Это уберет "Sempre" из Москвы, если ты в Астане
             dist = calculate_distance(lat, lon, place_lat, place_lon)
             if dist > 15.0:
-                # print(f"⚠️ Пропускаем '{item.get('title')}', так как он далеко ({dist:.1f} км)")
                 continue
 
-            # Собираем фото
+            # --- 🔥 ФИКС АДРЕСА ---
+            # --- 🔥 УЛУЧШЕННЫЙ ФИКС АДРЕСА ---
+            address = item.get("address", "")
+
+            # 1. Если адреса нет, проверяем vicinity (хотя в google_maps engine оно редкость)
+            if not address:
+                address = item.get("vicinity", "")
+
+            # 2. Если все еще нет, проверяем extensions (иногда там лежит строка с адресом или категория + адрес)
+            if not address:
+                extensions = item.get("extensions", [])
+                if extensions and isinstance(extensions, list):
+                    # Часто адрес лежит вторым элементом или просто текстом
+                    # Это эвристика, надо проверять на реальных данных
+                    address = ", ".join(
+                        [str(e) for e in extensions if "km" not in str(e)]
+                    )
+
+            # 3. Если все еще нет, пробуем описание (description)
+            if not address:
+                address = item.get("description", "")
+
+            # 4. Фолбэк, если совсем ничего нет
+            if not address:
+                address = "Адрес не указан"
+
+            # Если всё ещё пусто, попробуем собрать из расширенных данных (если есть)
+            if not address:
+                address = "Адрес не указан в картах"
+                print(f"⚠️ DEBUG: Нет адреса у '{item.get('title')}'. Сырые данные:")
+                print(json.dumps(item, indent=2, ensure_ascii=False))
+
+            # Логируем, чтобы проверить прямо тут
+            print(f"📍 Найден: {item.get('title')} | Адрес: {address}")
+            # ----------------------
+
             photos = []
             if item.get("thumbnail"):
                 photos.append(item.get("thumbnail"))
@@ -76,7 +109,7 @@ async def find_places_nearby(
             dto = PlaceInfoDTO(
                 place_id=item.get("place_id") or item.get("data_id"),
                 name=item.get("title", "Unknown"),
-                address=item.get("address", ""),
+                address=address,  # <--- Теперь тут точно что-то будет
                 rating=float(item.get("rating", 0.0)),
                 reviews_count=int(item.get("reviews", 0)),
                 location=Location(lat=place_lat, lon=place_lon),
@@ -89,7 +122,6 @@ async def find_places_nearby(
             if len(candidates) >= limit:
                 break
 
-        print(f"✅ Найдено кандидатов (рядом): {len(candidates)}")
         return candidates
 
     except Exception as e:

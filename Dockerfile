@@ -4,13 +4,13 @@ WORKDIR /app
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-RUN pip install --upgrade pip
+COPY requirements-heavy.txt .
+
+RUN pip install --no-cache-dir -r requirements-heavy.txt
 
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-RUN playwright install chromium --with-deps
 
 COPY . .
 

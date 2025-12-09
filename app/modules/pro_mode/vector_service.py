@@ -20,7 +20,6 @@ CACHE_DIR = "/app/model_cache"
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    # Добавляем cache_dir
     embedding_model = TextEmbedding(
         model_name="intfloat/multilingual-e5-large", cache_dir=CACHE_DIR
     )
@@ -49,19 +48,21 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
         return
 
     texts = []
-    ids = []  # Сюда будем складывать стабильные ID
+    ids = []
 
     for p in places:
+        # ИЗМЕНЕНИЕ 1: Формируем более полный текст для вектора
+        # Теперь адрес и имя есть всегда, даже если есть отзывы.
+        base_info = f"{p.name}, {p.address}"
+
         if p.reviews:
-            summary = "\n".join([f"{r.text}" for r in p.reviews])
+            reviews_text = "\n".join([f"{r.text}" for r in p.reviews])
+            summary = f"{base_info}. Reviews: {reviews_text}"
         else:
-            summary = f"{p.name} {p.address}"
+            summary = base_info
 
         texts.append(summary)
 
-        # 🔥 ГЕНЕРИРУЕМ СТАБИЛЬНЫЙ ID
-        # uuid5 создает уникальный хеш на основе строки (place_id).
-        # Для одного и того же place_id результат ВСЕГДА будет одинаковым.
         stable_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, p.place_id))
         ids.append(stable_id)
 
@@ -69,12 +70,13 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
 
     points = [
         PointStruct(
-            id=point_id,  # <--- Используем наш стабильный ID
+            id=point_id,
             vector=vector.tolist(),
             payload={
                 "place_id": p.place_id,
                 "name": p.name,
-                "reviews_summary": text_summary,
+                "address": p.address,  # <--- ДОБАВИЛИ СОХРАНЕНИЕ АДРЕСА
+                "reviews_summary": text_summary,  # Тут теперь тоже есть адрес внутри текста
                 "lat_float": p.location.lat,
                 "lon_float": p.location.lon,
                 "location": {"lat": p.location.lat, "lon": p.location.lon},
@@ -83,15 +85,11 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
         for p, vector, text_summary, point_id in zip(places, vectors, texts, ids)
     ]
 
-    # Qdrant Upsert: если ID совпадает, он обновит данные. Дубликатов не будет.
-    await qdrant.upsert(
-        collection_name=COLLECTION_NAME,
-        points=points,
-    )
+    await qdrant.upsert(collection_name=COLLECTION_NAME, points=points)
 
 
 async def search_places(
-    user_query: str, lat: float, lon: float, radius_meters: int, limit: int = 10
+    user_query: str, lat: float, lon: float, radius_meters: int, limit: int = 100
 ) -> list:
 
     user_vector = list(embedding_model.embed([user_query]))[0]
@@ -115,5 +113,7 @@ async def search_places(
         limit=limit,
         with_payload=True,
     )
+
+    logging.info(f"Первый payload: {hits.points[0].payload}")
 
     return [hit.payload for hit in hits.points]

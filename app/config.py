@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     db_user: str
     db_password: str
     db_name: str
+    hf_home: str
 
     algorithm: str
     secret_key: str

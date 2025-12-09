@@ -42,3 +42,6 @@ qdrant_storage/
 # Local model
 local_models_cache/
 model_cache/
+
+repomix-output.xml
+repomix.config.json

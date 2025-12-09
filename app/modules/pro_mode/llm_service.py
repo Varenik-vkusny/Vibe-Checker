@@ -1,149 +1,206 @@
-import math
 import json
 import logging
-from openai import AsyncOpenAI
+import google.generativeai as genai
 from sentence_transformers import CrossEncoder
 from .schemas import SearchParams, FinalResponse
+from ...config import get_settings
+
+settings = get_settings()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+GOOGLE_API_KEY = settings.gemini_api_key
+genai.configure(api_key=GOOGLE_API_KEY)
 
-client = AsyncOpenAI(
-    base_url="http://host.docker.internal:11434/v1",
-    api_key="ollama",
+model = genai.GenerativeModel(
+    "gemini-2.5-flash", generation_config={"response_mime_type": "application/json"}
 )
 
-QUERY_MODEL = "qwen3:4b"
-RERANK_MODEL = "qwen3:4b"
-
-reranker = CrossEncoder("BAAI/bge-reranker-v2-m3", device="cpu")
-
-
-def calculate_distance(lat1, lon1, lat2, lon2) -> int:
-    """Возвращает метры"""
-    if not lat1 or not lon1 or not lat2 or not lon2:
-        return 99999
-    R = 6371e3  # Метры
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(dphi / 2) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return int(R * c)
+print("Загружаю Reranker (работает локально на CPU)...")
+# BGE-M3 отличный выбор, он мультиязычный
+try:
+    reranker = CrossEncoder("BAAI/bge-reranker-v2-m3", device="cpu")
+    print("Reranker готов.")
+except Exception as e:
+    logger.error(f"Ошибка загрузки Reranker: {e}")
+    raise e
 
 
-async def generate_search_params(user_text: str) -> SearchParams:
-    """
-    Шаг 2: Генерируем запрос для Google.
-    Максимально простой промпт.
-    """
-    prompt = f"""Convert user request to Google Maps search query.
-    User: "{user_text}"
-    
-    JSON Output format: {{"q": "category", "type": "place_type"}}
-    
-    Examples:
-    User: "Хочу пиццу" -> {{"q": "Пиццерия", "type": "restaurant"}}
-    User: "Кофе попить" -> {{"q": "Кофейня", "type": "cafe"}}
-    User: "Gym near me" -> {{"q": "Gym", "type": "gym"}}
-    """
+def clean_json_string(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```json"):
+        return text[7:]
+    elif text.startswith("```"):
+        return text[3:]
+    if text.endswith("```"):
+        return text[:-3]
+    return text.strip()
 
-    response = await client.chat.completions.create(
-        model=QUERY_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"},
-        temperature=0.1,
-    )
 
+async def run_gemini_inference(prompt: str) -> str:
     try:
-        data = json.loads(response.choices[0].message.content)
-        return SearchParams(**data)
+        response = await model.generate_content_async(prompt)
+        return response.text
     except Exception as e:
-        logger.error(f"Search params error: {e}")
+        logger.error(f"Gemini Error: {e}")
+        return "{}"
+
+
+# --- ШАГ 1: Поиск ---
+async def generate_search_params(user_text: str) -> SearchParams:
+    prompt = f"""You are a query generator for Google Maps.
+    User request: "{user_text}"
+    Extract the main category and place type.
+    JSON format: {{"q": "Search Query", "type": "place_type"}}
+    """
+    txt = await run_gemini_inference(prompt)
+    try:
+        data = json.loads(clean_json_string(txt))
+        return SearchParams(**data)
+    except:
         return SearchParams(
             google_search_query=user_text, place_type="point_of_interest"
         )
 
 
-def smart_rerank(user_query: str, candidates: list[dict], top_k=3):
-    """
-    Использует BERT-модель, чтобы оценить релевантность.
-    Это в 100 раз быстрее, чем спрашивать у LLM.
-    """
+def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
     if not candidates:
         return []
 
-    # Готовим пары [Запрос, Текст места]
     pairs = []
-    for c in candidates:
-        # Собираем текст для оценки: Имя + Адрес + Немного отзывов
-        doc_text = (
-            f"{c['name']} {c.get('address','')} {c.get('reviews_summary','')[:500]}"
-        )
-        pairs.append([user_query, doc_text])
+    doc_indices = []
 
-    # Получаем scores
+    for i, c in enumerate(candidates):
+        name = c.get("name", "")
+        # Используем 'or', чтобы даже если ключ есть но значение пустая строка, сработал дефолт
+        address = c.get("address") or "Адрес не указан"
+
+        logging.info(f"Адрес в реранке: {address}")
+
+        summary = c.get("reviews_summary")
+        if not summary and c.get("types"):
+            summary = " ".join(c["types"])
+
+        desc = summary if summary else "Нет описания"
+
+        # ИЗМЕНЕНИЕ: Добавляем адрес в контекст для BERT'а
+        # Теперь BERT поймет, если юзер искал конкретную улицу
+        doc_text = f"Title: {name}. Address: {address}. Description: {desc}"
+
+        pairs.append([user_query, doc_text])
+        doc_indices.append(i)
+
+    if not pairs:
+        return candidates[:top_k]
+
+    # Получаем сырые очки (logits). Они могут быть отрицательными (-10...10)
     scores = reranker.predict(pairs)
 
-    # Приписываем очки кандидатам
-    for i, score in enumerate(scores):
-        candidates[i]["ai_score"] = float(score)  # score от -10 до 10 обычно
+    # --- ИСПРАВЛЕНИЕ ОЦЕНОК (Min-Max Scaling) ---
+    # Чтобы оценки были красивые (например от 60 до 99), а не все 50.
+    min_score = min(scores)
+    max_score = max(scores)
 
-    # Сортируем (от большего к меньшему)
-    sorted_candidates = sorted(candidates, key=lambda x: x["ai_score"], reverse=True)
+    scored_results = []
+
+    for idx, raw_score in enumerate(scores):
+        original_candidate_index = doc_indices[idx]
+        candidate = candidates[original_candidate_index]
+
+        # Нормализация: (x - min) / (max - min).
+        # Если max == min (один результат), даем 0.9
+        if max_score > min_score:
+            norm_score = (raw_score - min_score) / (max_score - min_score)
+        else:
+            norm_score = 0.9
+
+        # Немного магии: чтобы не было 0%, подтянем нижнюю границу к 50%
+        # Итоговая формула: 0.5 + (0.5 * norm_score) -> диапазон 50-100 баллов
+        final_score = 0.5 + (0.49 * norm_score)
+
+        candidate["ai_score"] = float(final_score)
+        candidate["debug_raw_score"] = float(raw_score)  # для отладки
+        scored_results.append(candidate)
+
+    # Сортируем от лучшего к худшему
+    sorted_candidates = sorted(
+        scored_results, key=lambda x: x["ai_score"], reverse=True
+    )
+
+    # Возвращаем только TOP_K лучших
     return sorted_candidates[:top_k]
 
 
+# --- ШАГ 3: Объяснение (ОБНОВЛЕННЫЙ) ---
 async def explain_selection(user_query: str, top_places: list[dict]) -> FinalResponse:
-    """
-    LLM теперь не выбирает, она просто описывает уже выбранных победителей.
-    """
+    if not top_places:
+        return FinalResponse(recommendations=[])
 
-    # Формируем короткий контекст только для победителей
-    context_list = []
-    for p in top_places:
-        context_list.append(
+    places_context = []
+    for idx, p in enumerate(top_places):
+        summary = p.get("reviews_summary", "Нет отзывов")
+        if summary and len(summary) > 600:
+            summary = summary[:600] + "..."
+
+        # ИЗМЕНЕНИЕ: Передаем адрес в промпт для Gemini
+        # Если адреса нет (или он пустой), передаем "Адрес не указан"
+        final_address = p.get("address") or "Адрес не указан"
+        places_context.append(
             {
+                "id": idx,
                 "name": p["name"],
-                "review_snippet": (p.get("reviews_summary") or "")[
-                    :600
-                ],  # Мало текста -> быстро
+                "address": final_address,
+                "info": summary,
             }
         )
 
+        logging.info(f"Адрес места: {final_address}")
+
     prompt = f"""
-    You are a foodie guide. Write a short reason (1 sentence) in Russian why these places fit the request: "{user_query}".
+    User Request: "{user_query}"
     
-    Data: {json.dumps(context_list, ensure_ascii=False)}
+    You are a local guide. Provided below are the TOP {len(top_places)} places found for this request.
+    Generate a short, convincing reason (in Russian) why EACH place fits the request.
     
-    Output JSON: {{ "recommendations": [ {{ "name": "...", "reason": "..." }} ] }}
+    If the user asked for a specific location, mention the address.
+    
+    RULES:
+    1. Output JSON only: {{ "reviews": {{ "0": "reason...", "1": "reason..." }} }}
+    2. Be concise (max 1 sentence per place).
+    3. Use details from 'info' and 'address'.
+    
+    Places:
+    {json.dumps(places_context, ensure_ascii=False)}
     """
 
-    response = await client.chat.completions.create(
-        model=RERANK_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"},
-        temperature=0.3,
-    )
+    resp_text = await run_gemini_inference(prompt)
 
-    ai_resp = json.loads(response.choices[0].message.content)
-    ai_recs = {rec["name"]: rec["reason"] for rec in ai_resp.get("recommendations", [])}
+    reasons_map = {}
+    try:
+        clean = clean_json_string(resp_text)
+        parsed = json.loads(clean)
+        reasons_map = parsed.get("reviews", {})
+    except Exception as e:
+        logger.error(f"Explain JSON Error: {e}")
 
-    # Собираем итоговый ответ
     final_output = []
-    for p in top_places:
-        reason = ai_recs.get(p["name"], "Хороший вариант на основе отзывов.")
+    for idx, p in enumerate(top_places):
+        # Получаем reason по индексу
+        reason = reasons_map.get(str(idx))
+        if not reason:
+            reason = f"Хороший вариант: {p.get('name')}"
+
+        # Теперь ai_score точно есть, так как мы берем places из smart_rerank
+        ai_score = p.get("ai_score", 0.5)
+        match_score = int(ai_score * 100)
+
         final_output.append(
             {
-                "place_id": p["place_id"],
+                "place_id": p.get("place_id", "unknown"),
                 "name": p["name"],
-                "match_score": int(
-                    (p["ai_score"] + 10) * 5
-                ),  # Нормализация скора примерно в 0-100
+                "address": p.get("address", ""),  # <--- Можно добавить и сюда
+                "match_score": match_score,
                 "reason": reason,
             }
         )

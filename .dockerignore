@@ -3,3 +3,5 @@ __pycache__
 venv
 .git
 .env
+repomix-output.xml
+repomix.config.json
