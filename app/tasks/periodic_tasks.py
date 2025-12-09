@@ -6,6 +6,7 @@ from sqlalchemy import select
 from ..celery_app import celery
 from ..database import AsyncLocalSession
 from ..modules.place.models import Place
+from ..modules.analysis_result.models import AnalysisResult
 from .analysis_tasks import analyze_place_task
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,13 @@ async def _find_and_refresh_places():
     threshold_date = datetime.utcnow() - timedelta(days=30)
 
     async with AsyncLocalSession() as db:
-        query = select(Place).limit(5)
+        query = (
+            select(Place)
+            .join(Place.analysis)
+            .where(AnalysisResult.created_at < threshold_date)
+            .limit(5)
+        )
+
         result = await db.execute(query)
         places = result.scalars().all()
 
@@ -68,4 +75,3 @@ async def _find_and_refresh_places():
             count += 1
 
     logger.info(f"Queued {count} places for refresh.")
-    return f"Queued {count} places"
