@@ -225,9 +225,10 @@ function animate() {
     particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
 
     // Draw particles
-    particleCtx.fillStyle = '#ffffff';
+    const isDark = document.body.classList.contains('dark-theme');
+    particleCtx.fillStyle = isDark ? '#ffffff' : '#000000';
     particleCtx.shadowBlur = 10;
-    particleCtx.shadowColor = '#4080ff';
+    particleCtx.shadowColor = isDark ? '#4080ff' : '#2563EB';
 
     particles.forEach((p, i) => {
         // Dynamic movement based on shape
@@ -264,11 +265,12 @@ function animate() {
 
 function initInteraction() {
     const input = document.getElementById('pro-input');
-    const chips = document.querySelectorAll('.chip');
+    const submitBtn = document.getElementById('pro-submit');
+    const chips = document.querySelectorAll('.suggestion-pill');
 
     const startProcess = (query) => {
         const inputState = document.getElementById('ui-input-state');
-        const processState = document.getElementById('ui-process-state');
+        const processState = document.getElementById('pro-loader');
         const processText = document.getElementById('process-text');
         const processSub = document.getElementById('process-sub');
 
@@ -320,6 +322,14 @@ function initInteraction() {
         });
     }
 
+    if (submitBtn && input) {
+        submitBtn.addEventListener('click', () => {
+            if (input.value.trim() !== "") {
+                startProcess(input.value);
+            }
+        });
+    }
+
     if (chips) {
         chips.forEach(chip => {
             chip.addEventListener('click', () => {
@@ -339,4 +349,3 @@ initParticleSystem();
 initInteraction();
 
 // Theme is handled by theme.js
-

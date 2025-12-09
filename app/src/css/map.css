@@ -11,6 +11,9 @@ main.map-layout {
     height: 100%;
     z-index: 0;
     display: block;
+    /* Reset global constraints */
+    max-width: none;
+    padding: 0;
 }
 
 /* --- SIDEBAR: Floating Card --- */
@@ -197,7 +200,7 @@ body.dark-theme .filter-tag.active {
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     
-    background: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.95);
     border: 1px solid var(--border-color);
     box-shadow: var(--card-shadow);
 }
@@ -367,13 +370,6 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
 }
 
 @media (max-width: 768px) {
-    /* Hide Global Header Elements on Map Page */
-    body .logo,
-    body .header-right,
-    body .nav-center {
-        display: none !important;
-    }
-    
     /* Hide Desktop Sidebar */
     .sidebar {
         display: none !important;
@@ -390,16 +386,22 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
         bottom: 0;
         left: 0;
         width: 100%;
-        background: rgba(20, 20, 20, 0.85); /* Stronger dark glass */
+        background: rgba(255, 255, 255, 0.85); /* Light glass */
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
         z-index: 1000;
         transition: height 0.4s cubic-bezier(0.19, 1, 0.22, 1);
         flex-direction: column;
         overflow: hidden; /* Hide list when collapsed */
+        box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+    }
+
+    body.dark-theme .bottom-sheet {
+        background: rgba(20, 20, 20, 0.85); /* Stronger dark glass */
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
         box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
     }
 
@@ -426,8 +428,12 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
     .chevron-icon {
         width: 40px;
         height: 4px;
-        background: rgba(255,255,255,0.3);
+        background: rgba(0, 0, 0, 0.2);
         border-radius: 4px;
+    }
+    
+    body.dark-theme .chevron-icon {
+        background: rgba(255, 255, 255, 0.3);
     }
 
     /* 3. Search Header */
@@ -438,19 +444,24 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
     }
     
     .sheet-header .map-search-wrapper {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+    }
+
+    body.dark-theme .sheet-header .map-search-wrapper {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
     }
     
     .sheet-header input {
-        color: white;
+        color: var(--text-main);
         background: transparent;
         border: none;
     }
     
     .sheet-header ::placeholder {
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-muted);
     }
 
     /* 4. The List Content */
@@ -472,8 +483,8 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
     /* --- MOBILE FOCUS MODE STYLES (Phase 1) --- */
 
     /* 1. Hide the global dock when this class is added */
-    .mobile-nav-overlay.dock-hidden {
-        transform: translate(0, 150%); /* Slide down out of view */
+    .nav-center.dock-hidden {
+        transform: translate(-50%, 150%) !important; /* Slide down out of view */
         pointer-events: none;
         transition: transform 0.4s ease;
     }
@@ -515,7 +526,7 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
         left: 0;
         width: 100%;
         padding: 24px;
-        background: linear-gradient(to top, rgba(20, 20, 20, 1) 40%, rgba(20, 20, 20, 0) 100%);
+        background: linear-gradient(to top, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 100%);
         z-index: 1050; /* Higher than everything */
         display: flex;
         flex-direction: column;
@@ -525,40 +536,15 @@ body.dark-theme .leaflet-control-attribution a { color: #fff !important; }
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    body.dark-theme .place-action-bar {
+        background: linear-gradient(to top, rgba(20, 20, 20, 1) 40%, rgba(20, 20, 20, 0) 100%);
+    }
+
     .place-action-bar.visible {
         transform: translateY(0);
     }
 
-    /* 5. The Nav Dock (Transparent Overlay) */
-    .mobile-nav-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 70px; /* Fixed height at bottom */
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        background: transparent; /* KEY: No background */
-        /* Optional: faint gradient to ensure text readability if list scrolls behind */
-        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-        z-index: 1002;
-        transition: transform 0.4s ease;
-    }
-
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        color: var(--text-muted);
-        font-size: 10px;
-        text-decoration: none;
-    }
-
-    .nav-item.active {
-        color: white; /* White for dark mode bottom sheet */
-    }
+    /* 5. The Nav Dock (Transparent Overlay) - Removed as we use global nav */
     
     /* Zoom controls position adjustment */
     .leaflet-control-zoom {

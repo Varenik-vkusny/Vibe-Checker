@@ -1,329 +1,337 @@
-:root {
-    --pro-bg: #050505;
-    --pro-surface: rgba(20, 20, 20, 0.6);
-    --pro-border: rgba(255, 255, 255, 0.15);
-    --pro-text: #EDEDED;
-    --pro-accent: #3B82F6;
-    --font-mono: 'JetBrains Mono', monospace;
-}
+/* --- Pro Mode Layout --- */
 
-body.pro-body {
-    background: var(--pro-bg);
-    color: var(--pro-text);
-    overflow: hidden;
-    transition: background 0.5s ease, color 0.5s ease;
-}
-
-body.pro-body:not(.dark-theme) {
-    --pro-bg: #eef2f6;
-    --pro-surface: rgba(255, 255, 255, 0.6);
-    --pro-border: rgba(0, 0, 0, 0.1);
-    --pro-text: #1a1a1a;
-    --pro-accent: #2563EB;
-}
-
-body.pro-body:not(.dark-theme) #canvas-container {
-    background: radial-gradient(circle at 50% 50%, #ffffff 0%, #dbeafe 100%);
-}
-
-/* --- Header Override for Pro Mode --- */
-/* Targeted via JS added class .header--pro */
-.header--pro {
-    background: rgba(0, 0, 0, 0.8) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(20px) !important;
-}
-
-.header--pro .nav-links {
-    display: none !important; /* Hide middle links */
-}
-
-/* --- Canvas --- */
+/* Canvas Background */
 #canvas-container {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 0;
-    background: radial-gradient(circle at 50% 50%, #151515 0%, #000000 100%);
-    transition: background 0.5s ease;
+    background: var(--bg-main);
+    transition: background 0.4s ease;
 }
 
-/* --- UI Overlay --- */
-.pro-main {
+/* Main Overlay */
+.pro-layout {
     position: relative;
     z-index: 10;
+    width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    pointer-events: none; /* Let clicks pass to canvas where no UI */
+}
+
+/* Stage (Input Area) */
+.pro-stage {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 600px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.pro-stage.minimized {
+    transform: translateY(-200px);
+    opacity: 0;
     pointer-events: none;
 }
 
-.pro-main>* {
-    pointer-events: auto;
-}
-
-.ui-state {
-    display: none;
-    flex-direction: column;
-    align-items: center;
+/* Hero Text */
+.hero-text {
     text-align: center;
+    color: var(--text-main);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+}
+
+body.dark-theme .hero-text {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+}
+
+body:not(.dark-theme) .hero-text {
+    color: #000;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.2), 0 0 40px rgba(0, 0, 0, 0.1);
+}
+
+.hero-text h1 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+}
+
+.hero-text p {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* Glass Input Container */
+.glass-input-container {
     width: 100%;
-    max-width: 800px;
-    opacity: 0;
-    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 8px;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
 }
 
-.ui-state.active {
+.glass-input-container:focus-within {
+    background: var(--bg-glass-strong);
+    border-color: var(--border-strong);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+
+.input-wrapper {
     display: flex;
-    opacity: 1;
+    align-items: center;
+    padding: 4px 12px;
 }
 
-/* --- Circular Scanner --- */
-.scanner-ring {
+.search-icon {
+    font-size: 20px;
+    margin-right: 12px;
+    opacity: 0.7;
+}
+
+#pro-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 16px;
+    padding: 12px 0;
+    outline: none;
+}
+#pro-input::placeholder { color: var(--text-muted); }
+
+.send-btn {
+    background: var(--accent-blue);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+.send-btn:hover { transform: scale(1.1); background: #3b82f6; }
+
+/* Filters */
+.pro-filters {
+    padding: 16px 12px 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* Optional: Hide initially and show on focus? 
+       For now, let's keep it visible or maybe CSS transition height */
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.filter-group label {
+    font-size: 12px;
+    color: var(--text-muted);
+    width: 60px;
+}
+
+.range-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.styled-range {
+    flex: 1;
+    -webkit-appearance: none;
+    background: var(--border-color);
+    height: 4px;
+    border-radius: 2px;
+}
+.styled-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--primary);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.chips-row {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-chip {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-chip:hover { background: var(--bg-surface); }
+.filter-chip.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+/* Suggestions */
+.suggestions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.suggestion-pill {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 13px;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+}
+.suggestion-pill:hover {
+    background: var(--bg-surface);
+    transform: translateY(-2px);
+}
+
+/* Results Panel */
+.results-panel {
+    pointer-events: auto;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    border: 1px solid var(--pro-border);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.5;
-}
-
-.scanner-ring::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    border-top-color: var(--pro-text);
-    opacity: 0.2;
-    animation: rotateRing 10s linear infinite;
-}
-
-.scanner-line {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--pro-accent), transparent);
-    transform: translate(-50%, -50%) rotate(-45deg);
-    opacity: 0.3;
-}
-
-@keyframes rotateRing {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* --- Input State Styling --- */
-.center-content {
-    position: relative;
-    padding: 60px;
-}
-
-.pro-title {
-    font-size: 56px;
-    font-weight: 500;
-    letter-spacing: -2px;
-    margin-bottom: 16px;
-    color: var(--pro-text);
-}
-
-.pro-subtitle {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--pro-text);
-    opacity: 0.6;
-    margin-bottom: 48px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-/* --- New Input Style: Transparent with Glowing Bottom Border --- */
-.pro-search-wrapper {
-    width: 100%;
-    max-width: 600px;
-    position: relative;
-    margin: 0 auto 32px;
-}
-
-#pro-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid rgba(255,255,255,0.2);
-    border-radius: 0;
-    padding: 20px 0;
-    color: var(--pro-text);
-    font-family: var(--font-main);
-    font-size: 32px;
-    text-align: center;
-    transition: all 0.3s;
-    font-weight: 300;
-}
-
-#pro-input:focus {
-    outline: none;
-    border-bottom-color: var(--pro-accent);
-    box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3);
-}
-
-#pro-input::placeholder {
-    color: var(--pro-text);
-    opacity: 0.3;
-    font-style: italic;
-}
-
-/* Suggestion Chips */
-.suggestion-chips {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
-
-.chip {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--pro-border);
-    color: var(--pro-text);
-    font-family: var(--font-main);
-    font-size: 13px;
-    padding: 10px 24px;
-    border-radius: 99px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-body.pro-body:not(.dark-theme) .chip {
-    background: rgba(0, 0, 0, 0.05);
-    color: #333;
-    border-color: rgba(0,0,0,0.1);
-}
-
-.chip-img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-    filter: grayscale(1);
-    transition: filter 0.2s;
-    opacity: 0.7;
-}
-
-.chip:hover {
-    background: var(--pro-accent);
-    border-color: var(--pro-accent);
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-}
-
-.chip:hover .chip-img {
-    filter: grayscale(0);
-    opacity: 1;
-}
-
-/* --- Geek Controls --- */
-.geek-controls {
-    display: flex;
-    gap: 20px;
-    margin: 0 auto 40px;
-    max-width: 600px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.control-col {
+    width: 90%;
+    max-width: 480px;
+    max-height: 70vh;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    text-align: left;
-}
-.control-col.wide { flex: 1; min-width: 200px; }
-
-.control-col label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--pro-text);
-    opacity: 0.6;
+    padding: 24px;
+    /* Dark glass override */
+    background: rgba(20, 20, 20, 0.75);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-.range-display { display: flex; align-items: center; gap: 8px; }
-.range-display span { font-family: var(--font-mono); font-size: 12px; color: var(--pro-accent); }
-
-.pro-range {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 2px;
-    outline: none;
-}
-.pro-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px; height: 12px; border-radius: 50%;
-    background: var(--pro-accent); cursor: pointer;
+.results-panel.hidden {
+    display: none;
 }
 
-.pro-number {
-    background: transparent;
-    border: 1px solid var(--pro-border);
-    color: var(--pro-text);
-    padding: 8px 12px;
-    border-radius: 8px;
-    width: 80px;
-    font-family: var(--font-mono);
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 12px;
+}
+.panel-header h3 { color: #fff; font-size: 18px; }
+.close-panel { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 24px; cursor: pointer; }
+.close-panel:hover { color: #fff; }
+
+.results-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.05);
+    padding: 12px;
+    border-radius: 12px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+.result-item:hover { background: rgba(255,255,255,0.1); }
+
+.result-score {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-blue);
+    font-weight: 700;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
-.pro-text-sm {
-    background: transparent;
-    border: 1px solid var(--pro-border);
-    color: var(--pro-text);
-    padding: 8px 12px;
-    border-radius: 8px;
-    width: 100%;
-    font-family: var(--font-main);
-    font-size: 13px;
+.result-info h4 { color: #fff; font-size: 16px; margin-bottom: 4px; }
+.result-info p { color: rgba(255,255,255,0.6); font-size: 12px; }
+
+/* Loader */
+.loader-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+.loader-overlay.hidden { display: none; }
+
+.loader-content {
+    text-align: center;
+    color: #fff;
 }
 
-.pro-number:focus, .pro-text-sm:focus {
-    border-color: var(--pro-accent);
-    outline: none;
+.spinner-ring {
+    width: 48px; height: 48px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 1s linear infinite;
 }
 
-/* --- Process State --- */
-.process-title {
-    font-size: 32px;
-    font-weight: 300;
-    color: var(--pro-text);
-    margin-top: 300px;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- Pro Mode Header Override --- */
+/* Only force dark appearance if we are actually in dark mode, or allow header to follow theme normally */
+/* By removing !important and checking for dark theme explicitly, we let the normal header styles work in light mode */
+
+body.dark-theme .header--pro {
+    background: rgba(20, 20, 20, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.process-sub {
-    font-family: var(--font-mono);
-    color: var(--pro-accent);
-    font-size: 12px;
-    letter-spacing: 1px;
-    margin-top: 12px;
-    background: rgba(59, 130, 246, 0.1);
-    padding: 6px 12px;
-    border-radius: 4px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-@media (max-width: 768px) {
-    .geek-controls { flex-direction: column; width: 100%; padding: 0 20px; }
-    .control-col { width: 100%; }
-    .pro-title { font-size: 40px; }
+/* In light mode, let it inherit from main.css/header.css, or provide light-specific overrides if needed */
+body:not(.dark-theme) .header--pro {
+    background: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }

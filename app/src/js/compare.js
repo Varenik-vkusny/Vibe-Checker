@@ -2,412 +2,301 @@ document.addEventListener('DOMContentLoaded', () => {
     initComparison();
 });
 
-// Store comparison data
-let currentComparisonData = null;
+const placeAData = {
+    name: "Burger King",
+    stats: { food: 80, service: 74, noise: 65 },
+    pros: ["Consistent taste", "Fast service", "Good location"],
+    color: "#2563eb" // Blue
+};
 
 function initComparison() {
-    const stepSelection = document.getElementById('step-selection');
-    const stepResult = document.getElementById('step-result');
-    const resetBtn = document.getElementById('reset-btn');
-
-    // Add Place Button Flow
+    // UI Elements
     const addBtn = document.getElementById('add-place-btn');
+    const resetBtn = document.getElementById('reset-btn');
     const modal = document.getElementById('compare-modal');
     const closeModal = document.querySelector('.close-modal');
     const modalItems = document.querySelectorAll('.modal-item');
+    
+    // Actions & Views
+    const compareActions = document.getElementById('compare-actions');
+    const detailedView = document.getElementById('detailed-comparison');
+    const triggerBtn = document.getElementById('trigger-compare-btn');
+    const closeDetailBtn = document.getElementById('close-detail-btn');
 
+    // Card Elements
+    const cardB = document.getElementById('card-b');
+    const cardBContent = cardB.querySelector('.competitor-content');
+
+    // Modal Interactions
     if (addBtn && modal) {
         addBtn.addEventListener('click', () => {
-            modal.style.display = 'flex';
-            gsap.fromTo('.modal-glass', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 });
+            modal.classList.add('active');
+            gsap.fromTo('.modal-glass', 
+                { y: 20, opacity: 0, scale: 0.95 }, 
+                { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.7)" }
+            );
         });
     }
 
     if (closeModal && modal) {
         closeModal.addEventListener('click', () => {
-            gsap.to('.modal-glass', { y: 20, opacity: 0, duration: 0.2, onComplete: () => {
-                modal.style.display = 'none';
+            closeModalFunc();
+        });
+    }
+
+    // Modal Item Selection
+    modalItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.id;
+            
+            // 1. Close Modal
+            closeModalFunc();
+
+            // 2. Load Data
+            const data = getMockComparisonData(id);
+            populateCompetitorCard(data);
+            populateDetailedView(data);
+
+            // 3. UI Transition
+            // Hide Add Button
+            addBtn.classList.add('hidden');
+            
+            // Show Card Content
+            cardB.classList.remove('empty');
+            cardB.classList.add('filled');
+            cardBContent.classList.remove('hidden');
+            
+            // Animate Entrance
+            gsap.fromTo(cardBContent, 
+                { opacity: 0, y: 10 }, 
+                { opacity: 1, y: 0, duration: 0.4, delay: 0.1 }
+            );
+
+            // 4. Show Compare Actions
+            compareActions.classList.remove('hidden');
+            gsap.fromTo(compareActions,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.5, delay: 0.3, ease: "power2.out" }
+            );
+
+            // 5. Trigger Bar Animations (Card)
+            setTimeout(() => {
+                animateBars(data);
+            }, 500);
+
+            // 6. Mobile Story Mode: Auto-Advance to Verdict
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    // Unhide detailed view so it joins the scroll track
+                    detailedView.classList.remove('hidden');
+                    
+                    // Scroll to the end (Slide 3)
+                    const engine = document.querySelector('.comparison-engine');
+                    if (engine) {
+                        engine.scrollTo({
+                            left: engine.scrollWidth,
+                            behavior: 'smooth'
+                        });
+                    }
+                    
+                    // Animate the detail bars
+                    animateDetailBars();
+                }, 1200);
+            }
+        });
+    });
+
+    // Reset Comparison
+    if (resetBtn) {
+        resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click
+            
+            // Hide Actions
+            compareActions.classList.add('hidden');
+            detailedView.classList.add('hidden'); // Close detail if open
+
+            // Reset Card B
+            gsap.to(cardBContent, { opacity: 0, duration: 0.3, onComplete: () => {
+                cardBContent.classList.add('hidden');
+                addBtn.classList.remove('hidden');
+                
+                cardB.classList.remove('filled');
+                cardB.classList.add('empty');
+
+                // Reset Bars
+                resetBarWidths();
             }});
         });
     }
 
-    modalItems.forEach(item => {
-        item.addEventListener('click', async () => {
-            const id = item.dataset.id;
+    // Open Detailed View
+    if (triggerBtn) {
+        triggerBtn.addEventListener('click', () => {
+            detailedView.classList.remove('hidden');
+            // Animate In
+            gsap.fromTo(detailedView, 
+                { opacity: 0, y: 50 }, 
+                { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }
+            );
             
-            // Hide Modal
-            modal.style.display = 'none';
-
-            // Get Mock Data
-            const mockData = getMockComparisonData(id);
-            
-            try {
-                currentComparisonData = mockData;
-                populateComparison(mockData);
-
-                // Transition with GSAP
-                gsap.to(stepSelection, {
-                    opacity: 0,
-                    y: -20,
-                    duration: 0.4,
-                    onComplete: () => {
-                        stepSelection.classList.remove('active');
-                        stepResult.classList.add('active');
-
-                        gsap.fromTo(stepResult,
-                            { opacity: 0, y: 20 },
-                            { opacity: 1, y: 0, duration: 0.4 }
-                        );
-
-                        // Animate Bars and Elements
-                        animateResultElements();
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading comparison:', error);
-            }
+            // Trigger Bar Animations (Detail)
+            animateDetailBars();
         });
-    });
+    }
 
-    // Reset Logic
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            gsap.to(stepResult, {
-                opacity: 0,
-                y: 20,
-                duration: 0.4,
-                onComplete: () => {
-                    stepResult.classList.remove('active');
-                    stepSelection.classList.add('active');
-                    resetBars();
-                    currentComparisonData = null;
+    // Close Detailed View
+    if (closeDetailBtn) {
+        closeDetailBtn.addEventListener('click', () => {
+            gsap.to(detailedView, { opacity: 0, y: 50, duration: 0.3, onComplete: () => {
+                detailedView.classList.add('hidden');
+            }});
+        });
+    }
 
-                    gsap.fromTo(stepSelection,
-                        { opacity: 0, y: -20 },
-                        { opacity: 1, y: 0, duration: 0.4 }
-                    );
+    function closeModalFunc() {
+        if (!modal) return;
+        modal.classList.remove('active');
+    }
+
+    // Story Progress Logic (Mobile)
+    const engine = document.querySelector('.comparison-engine');
+    const progressBars = document.querySelectorAll('.story-progress .progress-bar');
+
+    if (engine && progressBars.length > 0) {
+        const updateProgress = () => {
+            const scrollLeft = engine.scrollLeft;
+            const width = window.innerWidth;
+            const index = Math.round(scrollLeft / width);
+            
+            progressBars.forEach((bar, i) => {
+                if (i <= index) {
+                    bar.classList.add('active');
+                } else {
+                    bar.classList.remove('active');
                 }
             });
-        });
+        };
+
+        engine.addEventListener('scroll', updateProgress, { passive: true });
+        window.addEventListener('resize', updateProgress);
+        
+        // Initial call
+        updateProgress();
     }
 }
 
 function getMockComparisonData(id) {
-    // Mock data matching the backend format
     const mockData = {
         'mcd': {
-            place_a: {
-                name: "Burger King",
-                google_rating: 4.8,
-                url: "https://example.com/burgerking",
-                latitude: 51.505,
-                longitude: -0.09
+            name: "McDonald's",
+            meta: "Fast Food • 0.8km",
+            score: "8.9",
+            img: "https://em-content.zobj.net/source/apple/419/french-fries_1f35f.png",
+            stats: {
+                food: 75,
+                vibe: 50,
+                service: 88,
+                noise: 80
             },
-            place_b: {
-                name: "McDonald's",
-                google_rating: 4.7,
-                url: "https://example.com/mcdonalds",
-                latitude: 51.51,
-                longitude: -0.1
-            },
-            comparison: {
-                winner_category: {
-                    food: "place_a",
-                    service: "place_b",
-                    atmosphere: "place_a",
-                    value: "place_b"
-                },
-                key_differences: [
-                    "McDonald's is significantly faster in service than Burger King.",
-                    "Burger King offers flame-grilled burgers, while McDonald's focuses on classic fast food.",
-                    "McDonald's has more locations and better accessibility.",
-                    "Burger King generally has better food quality ratings."
-                ],
-                place_a_unique_pros: [
-                    "Flame-grilled burgers",
-                    "Better food quality",
-                    "More spacious seating"
-                ],
-                place_b_unique_pros: [
-                    "Very fast service",
-                    "Iconic fries",
-                    "24/7 availability"
-                ],
-                verdict: "If speed is your priority, McDonald's wins. However, Burger King edges out on flavor profile and food quality."
-            }
+            pros: ["Cheaper", "Better Fries", "More locations"],
+            verdict: "McDonald's is faster and cheaper, but Burger King wins on taste.",
+            winner: "Burger King",
+            diff: "+0.3"
         },
         'kfc': {
-            place_a: {
-                name: "Burger King",
-                google_rating: 4.8,
-                url: "https://example.com/burgerking",
-                latitude: 51.505,
-                longitude: -0.09
+            name: "KFC",
+            meta: "Chicken • 0.5km",
+            score: "8.5",
+            img: "https://em-content.zobj.net/source/apple/419/poultry-leg_1f357.png",
+            stats: {
+                food: 85,
+                vibe: 55,
+                service: 60,
+                noise: 50
             },
-            place_b: {
-                name: "KFC",
-                google_rating: 4.5,
-                url: "https://example.com/kfc",
-                latitude: 51.51,
-                longitude: -0.1
-            },
-            comparison: {
-                winner_category: {
-                    food: "place_b",
-                    service: "place_a",
-                    atmosphere: "place_a",
-                    value: "place_a"
-                },
-                key_differences: [
-                    "KFC offers a distinct texture experience with crispy chicken, but Burger King maintains better consistency.",
-                    "Burger King has faster service times compared to KFC.",
-                    "KFC specializes in chicken, while Burger King offers more variety.",
-                    "Burger King generally provides better value for money."
-                ],
-                place_a_unique_pros: [
-                    "Faster service",
-                    "Better value",
-                    "More variety"
-                ],
-                place_b_unique_pros: [
-                    "Crispy chicken",
-                    "Spicy options",
-                    "Unique flavor profile"
-                ],
-                verdict: "KFC offers a distinct texture experience, but Burger King maintains better consistency across locations and provides better overall value."
-            }
+            pros: ["Better Chicken", "Spicy Options", "Less Crowded"],
+            verdict: "KFC has superior chicken quality, but Burger King offers a better overall vibe for sitting down.",
+            winner: "Burger King",
+            diff: "+0.7"
         }
     };
-    
     return mockData[id] || mockData['mcd'];
 }
 
-function populateComparison(data) {
-    const { place_a, place_b, comparison } = data;
+function populateCompetitorCard(data) {
+    document.getElementById('comp-name').innerText = data.name;
+    document.getElementById('comp-meta').innerText = data.meta;
+    document.getElementById('comp-score').innerText = data.score;
+    document.getElementById('comp-img').src = data.img;
+}
 
-    // Populate Left Column (Place A)
-    const leftIcon = document.querySelector('.col-place.left .col-icon-wrapper img');
-    const leftName = document.getElementById('place-a-name-display');
-    const leftScore = document.getElementById('place-a-score');
-    const leftTags = document.getElementById('place-a-tags');
-    
-    if (leftIcon) leftIcon.src = getPlaceIcon(place_a.name);
-    if (leftName) leftName.innerText = place_a.name;
-    if (leftScore) leftScore.innerText = place_a.google_rating.toFixed(1);
-    
-    // Tags for Place A
-    if (leftTags) {
-        leftTags.innerHTML = '';
-        if (comparison.place_a_unique_pros && comparison.place_a_unique_pros.length > 0) {
-            comparison.place_a_unique_pros.slice(0, 3).forEach(pro => {
-                const span = document.createElement('span');
-                span.className = 'vibe-pill';
-                span.innerText = pro;
-                leftTags.appendChild(span);
-            });
-        }
-    }
-
-    // Populate Right Column (Place B)
-    document.getElementById('comp-name').innerText = place_b.name;
-    document.getElementById('comp-score').innerText = place_b.google_rating.toFixed(1);
-    document.getElementById('comp-icon').src = getPlaceIcon(place_b.name);
-
-    // Tags from unique pros
-    const tagContainer = document.getElementById('comp-tags');
-    tagContainer.innerHTML = '';
-    if (comparison.place_b_unique_pros && comparison.place_b_unique_pros.length > 0) {
-        comparison.place_b_unique_pros.slice(0, 3).forEach(pro => {
-            const span = document.createElement('span');
-            span.className = 'vibe-pill';
-            span.innerText = pro;
-            tagContainer.appendChild(span);
-        });
-    }
-
-    // Update bars based on winner categories
-    updateBars(comparison.winner_category);
-
+function populateDetailedView(data) {
     // Verdict
-    document.getElementById('verdict-text').innerText = comparison.verdict || 'No verdict available.';
+    document.getElementById('detailed-winner').querySelector('span').innerText = data.winner;
+    document.getElementById('detailed-summary').innerText = data.verdict;
 
-    // Determine Overall Winner
-    const winnerBox = document.getElementById('winner-box');
-    const placeAWins = Object.values(comparison.winner_category).filter(w => w === 'place_a').length;
-    const placeBWins = Object.values(comparison.winner_category).filter(w => w === 'place_b').length;
+    // Pros lists
+    const prosA = document.getElementById('pros-a');
+    const prosB = document.getElementById('pros-b');
     
-    if (placeBWins > placeAWins) {
-        winnerBox.innerHTML = `Winner: <strong>${place_b.name}</strong> for <em>Overall Vibe</em>`;
-    } else {
-        winnerBox.innerHTML = `Winner: <strong>${place_a.name}</strong> for <em>Overall Vibe</em>`;
-    }
+    // Place A Pros
+    prosA.innerHTML = placeAData.pros.map(p => `<li>${p}</li>`).join('');
+    // Place B Pros
+    prosB.innerHTML = data.pros.map(p => `<li>${p}</li>`).join('');
 
-    // Key Differences
-    const differencesList = document.getElementById('key-differences');
-    differencesList.innerHTML = '';
-    if (comparison.key_differences) {
-        comparison.key_differences.forEach(diff => {
-            const li = document.createElement('li');
-            li.innerHTML = `<span class="diff-icon">⚡</span> ${diff}`;
-            differencesList.appendChild(li);
-        });
-    }
-
-    // Unique Pros
-    document.getElementById('place-a-name').innerText = place_a.name;
-    document.getElementById('place-b-name').innerText = place_b.name;
+    // Metrics Values
+    const rows = document.querySelectorAll('.metric-compare-group');
     
-    const placeAPros = document.getElementById('place-a-pros');
-    placeAPros.innerHTML = '';
-    if (comparison.place_a_unique_pros) {
-        comparison.place_a_unique_pros.forEach(pro => {
-            const li = document.createElement('li');
-            li.innerText = pro;
-            placeAPros.appendChild(li);
-        });
-    }
+    // Food
+    rows[0].querySelector('.val-a').innerText = placeAData.stats.food + '%';
+    rows[0].querySelector('.val-b').innerText = data.stats.food + '%';
+    rows[0].dataset.valA = placeAData.stats.food;
+    rows[0].dataset.valB = data.stats.food;
 
-    const placeBPros = document.getElementById('place-b-pros');
-    placeBPros.innerHTML = '';
-    if (comparison.place_b_unique_pros) {
-        comparison.place_b_unique_pros.forEach(pro => {
-            const li = document.createElement('li');
-            li.innerText = pro;
-            placeBPros.appendChild(li);
-        });
-    }
+    // Service
+    rows[1].querySelector('.val-a').innerText = placeAData.stats.service + '%';
+    rows[1].querySelector('.val-b').innerText = data.stats.service + '%';
+    rows[1].dataset.valA = placeAData.stats.service;
+    rows[1].dataset.valB = data.stats.service;
+
+    // Noise
+    rows[2].querySelector('.val-a').innerText = placeAData.stats.noise + '%';
+    rows[2].querySelector('.val-b').innerText = data.stats.noise + '%';
+    rows[2].dataset.valA = placeAData.stats.noise;
+    rows[2].dataset.valB = data.stats.noise;
 }
 
-function updateBars(winnerCategory) {
-    const categories = ['food', 'service', 'atmosphere', 'value'];
-    
-    categories.forEach(category => {
-        const barRow = document.querySelector(`.bar-row[data-category="${category}"]`);
-        if (!barRow) return;
+function animateBars(data) {
+    // Animate Card B Bars
+    const foodBar = document.getElementById('comp-bar-food');
+    const vibeBar = document.getElementById('comp-bar-vibe');
 
-        const leftBar = barRow.querySelector('.bar-fill.left');
-        const rightBar = barRow.querySelector('.bar-fill.right');
-        const leftValEl = barRow.querySelector('.bar-value.left .value-number');
-        const rightValEl = barRow.querySelector('.bar-value.right .value-number');
-        
-        if (!leftBar || !rightBar) return;
-
-        const winner = winnerCategory[category];
-        
-        let leftPct = 50, rightPct = 50;
-
-        if (winner === 'place_a') {
-            leftPct = 65 + Math.floor(Math.random() * 15); // 65-80
-            rightPct = 100 - leftPct;
-        } else if (winner === 'place_b') {
-            rightPct = 65 + Math.floor(Math.random() * 15); // 65-80
-            leftPct = 100 - rightPct;
-        } else {
-            leftPct = 50; rightPct = 50;
-        }
-
-        // Apply width via GSAP or transition
-        // We'll use CSS transition by setting style, but wait for animation trigger
-        // Store values in dataset for animation function
-        barRow.dataset.left = leftPct;
-        barRow.dataset.right = rightPct;
-        
-        // Update text immediately
-        if (leftValEl) leftValEl.innerText = leftPct + '%';
-        if (rightValEl) rightValEl.innerText = rightPct + '%';
-    });
+    if (foodBar) foodBar.style.width = data.stats.food + '%';
+    if (vibeBar) vibeBar.style.width = data.stats.vibe + '%';
 }
 
-function getPlaceIcon(name) {
-    // Simple icon mapping - can be enhanced
-    const iconMap = {
-        "Burger King": 'https://em-content.zobj.net/source/apple/419/hamburger_1f354.png',
-        "McDonald's": 'https://em-content.zobj.net/source/apple/419/french-fries_1f35f.png',
-        "KFC": 'https://em-content.zobj.net/source/apple/419/poultry-leg_1f357.png',
-    };
-    
-    // Try to find match (case insensitive)
-    for (const [key, icon] of Object.entries(iconMap)) {
-        if (name.toLowerCase().includes(key.toLowerCase().split("'")[0])) {
-            return icon;
-        }
-    }
-    
-    // Default icon
-    return 'https://em-content.zobj.net/source/apple/419/round-pushpin_1f4cd.png';
-}
-
-function animateResultElements() {
-    // Stagger animate bars
-    const rows = document.querySelectorAll('.bar-row');
-    rows.forEach((row, i) => {
-        const leftVal = parseFloat(row.dataset.left) || 0;
-        const rightVal = parseFloat(row.dataset.right) || 0;
-
-        const leftBar = row.querySelector('.bar-fill.left');
-        const rightBar = row.querySelector('.bar-fill.right');
-
-        // Reset first
-        leftBar.style.width = '0%';
-        rightBar.style.width = '0%';
+function animateDetailBars() {
+    const groups = document.querySelectorAll('.metric-compare-group');
+    groups.forEach(group => {
+        const valA = group.dataset.valA;
+        const valB = group.dataset.valB;
+        
+        const barA = group.querySelector('.bar-a');
+        const barB = group.querySelector('.bar-b');
+        
+        // Reset
+        barA.style.width = '0%';
+        barB.style.width = '0%';
 
         // Animate
         setTimeout(() => {
-            leftBar.style.width = leftVal + '%'; // Don't divide by 2, visual bar takes full width of its side? 
-            // Wait, CSS: bar-visual is 100% width. Left bar and Right bar sit inside it?
-            // CSS: 
-            // .bar-fill.left { margin-right: auto; }
-            // .bar-fill.right { margin-left: auto; }
-            // They are stacked or side by side? 
-            // The HTML structure has .bar-visual containing both .bar-fill.left and .bar-fill.right.
-            // If they are `position: relative`, they might stack. 
-            // CSS says `display: flex` on `.bar-visual`.
-            // So left bar and right bar share the space.
-            // So width should be proportional to 100%.
-            
-            leftBar.style.width = leftVal + '%';
-            rightBar.style.width = rightVal + '%';
-        }, 300 + (i * 100));
+            barA.style.width = valA + '%';
+            barB.style.width = valB + '%';
+        }, 100);
     });
-
-    // Confetti Effect
-    triggerConfetti();
 }
 
-function resetBars() {
-    const fills = document.querySelectorAll('.bar-fill');
-    fills.forEach(fill => fill.style.width = '0%');
-}
-
-function triggerConfetti() {
-    const colors = ['#f09433', '#e6683c', '#dc2743', '#cc2366', '#bc1888'];
-    const count = 50;
-
-    for (let i = 0; i < count; i++) {
-        const confetti = document.createElement('div');
-        confetti.style.position = 'fixed';
-        confetti.style.width = '8px';
-        confetti.style.height = '8px';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.left = '50%';
-        confetti.style.top = '50%';
-        confetti.style.zIndex = '100';
-        confetti.style.pointerEvents = 'none';
-        document.body.appendChild(confetti);
-
-        const angle = Math.random() * Math.PI * 2;
-        const velocity = 100 + Math.random() * 200;
-        const x = Math.cos(angle) * velocity;
-        const y = Math.sin(angle) * velocity;
-
-        gsap.to(confetti, {
-            x: x,
-            y: y,
-            opacity: 0,
-            rotation: Math.random() * 720,
-            duration: 1 + Math.random(),
-            ease: "power2.out",
-            onComplete: () => confetti.remove()
-        });
-    }
+function resetBarWidths() {
+    document.getElementById('comp-bar-food').style.width = '0%';
+    document.getElementById('comp-bar-vibe').style.width = '0%';
 }

@@ -183,7 +183,7 @@ body.dark-theme .divider::before, body.dark-theme .divider::after { border-botto
 
 .divider span { padding: 0 12px; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; font-weight: 700; }
 
-.social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.social-grid { display: grid; gap: 16px; }
 
 .social-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;

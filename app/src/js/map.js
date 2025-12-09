@@ -116,6 +116,15 @@ function initMap() {
 
     map.on('click', () => {
         clearSelection();
+        // Collapse sheet on map click (Mobile)
+        const sheet = document.getElementById('mobile-bottom-sheet');
+        if (sheet && sheet.classList.contains('expanded')) {
+            sheet.classList.remove('expanded');
+            sheet.classList.add('collapsed');
+            // Ensure actions are hidden
+            const actionBar = document.querySelector('.place-action-bar');
+            if (actionBar) actionBar.classList.remove('visible');
+        }
     });
 
     // Back button listener (Desktop)
@@ -369,6 +378,11 @@ function initBottomSheet() {
         } else if (forceState === 'collapse') {
             sheet.classList.remove('expanded');
             sheet.classList.add('collapsed');
+            
+            // HIDE BUTTONS when minimizing
+            const actionBar = document.querySelector('.place-action-bar');
+            if (actionBar) actionBar.classList.remove('visible');
+
             // Blur input to hide keyboard
             if (searchInput) searchInput.blur();
         } else {
@@ -391,11 +405,8 @@ function initBottomSheet() {
         searchInput.addEventListener('focus', () => toggleSheet('expand'));
     }
 
-    // Collapse when clicking the map
-    const mapEl = document.getElementById('map');
-    if (mapEl) {
-        mapEl.addEventListener('click', () => toggleSheet('collapse'));
-    }
+    // Collapse when clicking the map - HANDLED BY LEAFLET CLICK EVENT IN initMap
+    // Removing generic listener to prevent conflict with marker clicks
 
     // Handle "Places" nav click to toggle
     const placesNav = document.querySelector('.mobile-nav-overlay a[data-target="places"]');
@@ -450,8 +461,9 @@ function initGestures(sheet) {
             sheet.classList.remove('expanded');
             sheet.classList.add('collapsed');
             
-            // Also close detail view if open?
-            // closeMobileDetail(); // Optional
+            // HIDE BUTTONS when swiping down
+            const actionBar = document.querySelector('.place-action-bar');
+            if (actionBar) actionBar.classList.remove('visible');
         } else {
             // Snap back to nearest or current state logic
         }

@@ -14,10 +14,8 @@
         rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/pro.css">
-    <link rel="stylesheet" href="css/components/theme-toggle.css">
 </head>
 
 <body class="pro-body">
@@ -29,67 +27,87 @@
     <div id="canvas-container"></div>
 
     <!-- UI Overlay -->
-    <main class="pro-main">
+    <main class="pro-layout">
 
-        <!-- Decoration Ring -->
-        <div class="scanner-ring">
-            <div class="scanner-line"></div>
-        </div>
+        <!-- Center Stage: Input -->
+        <div class="pro-stage" id="ui-input-state">
+            
+            <div class="hero-text">
+                <h1>Describe your vibe</h1>
+                <p>AI-powered semantic search across 1.4M reviews.</p>
+            </div>
 
-        <!-- State 0: Input (Initial) -->
-        <div id="ui-input-state" class="ui-state active">
-            <div class="center-content">
-                <h1 class="pro-title">Describe the perfect vibe.</h1>
-                <p class="pro-subtitle">I'm analyzing 1.4M reviews in real-time.</p>
-
-                <div class="pro-search-wrapper">
-                    <input type="text" id="pro-input" placeholder="Example: A quiet place for a Zoom call..."
-                        autocomplete="off">
+            <!-- The Glass Input Bar -->
+            <div class="glass-input-container">
+                <div class="input-wrapper">
+                    <input type="text" id="pro-input" placeholder="Quiet cafe with plants and fast wifi..." autocomplete="off">
+                    <button class="send-btn" id="pro-submit">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
                 </div>
-
-                <!-- Geek Mode Controls -->
-                <div class="geek-controls">
-                    <div class="control-col">
+                
+                <!-- Expanded Filters (Hidden by default) -->
+                <div class="pro-filters">
+                    <div class="filter-group">
                         <label>Radius</label>
-                        <div class="range-display">
-                            <input type="range" min="1" max="20" value="5" class="pro-range">
-                            <span>5km</span>
+                        <div class="range-wrapper">
+                            <span>1km</span>
+                            <input type="range" min="1" max="20" value="5" class="styled-range">
+                            <span>20km</span>
                         </div>
                     </div>
-                    <div class="control-col">
-                        <label>Min Reviews</label>
-                        <input type="number" value="50" class="pro-number">
-                    </div>
-                    <div class="control-col wide">
+                    <div class="filter-group">
                         <label>Must Have</label>
-                        <input type="text" placeholder="wifi, power..." class="pro-text-sm">
+                        <div class="chips-row">
+                            <button class="filter-chip active">Wi-Fi</button>
+                            <button class="filter-chip">Power</button>
+                            <button class="filter-chip">Quiet</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="suggestion-chips">
-                    <button class="chip">
-                        <img src="https://em-content.zobj.net/source/apple/419/hot-beverage_2615.png" class="chip-img"
-                            alt="coffee">
-                        Work Friendly
-                    </button>
-                    <button class="chip">
-                        <img src="https://em-content.zobj.net/source/apple/419/red-heart_2764-fe0f.png" class="chip-img"
-                            alt="heart">
-                        Romantic Date
-                    </button>
-                    <button class="chip">
-                        <img src="https://em-content.zobj.net/source/apple/419/french-fries_1f35f.png" class="chip-img"
-                            alt="fries">
-                        Cheap Eats
-                    </button>
+            <!-- Quick Suggestions -->
+            <div class="suggestions">
+                <button class="suggestion-pill">💻 Work Friendly</button>
+                <button class="suggestion-pill">🍷 Romantic Spot</button>
+                <button class="suggestion-pill">🌯 Cheap Eats</button>
+            </div>
+
+        </div>
+
+        <!-- Result Overlay (Initially Hidden) -->
+        <div id="pro-results" class="glass-panel results-panel hidden">
+            <div class="panel-header">
+                <h3>Top Matches</h3>
+                <button class="close-panel" id="close-results">&times;</button>
+            </div>
+            <div class="results-list">
+                <!-- Items will be injected here -->
+                <div class="result-item">
+                    <div class="result-score">98%</div>
+                    <div class="result-info">
+                        <h4>The Green Room</h4>
+                        <p>Perfect match for "plants" and "wifi"</p>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="result-score">92%</div>
+                    <div class="result-info">
+                        <h4>Botanica Coffee</h4>
+                        <p>Great atmosphere, slightly noisy</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- State 1: Processing -->
-        <div id="ui-process-state" class="ui-state">
-            <h2 class="process-title" id="process-text">Initializing...</h2>
-            <div class="process-sub" id="process-sub">AI Agents active</div>
+        <!-- Processing State (Overlay) -->
+        <div id="pro-loader" class="loader-overlay hidden">
+            <div class="loader-content">
+                <div class="spinner-ring"></div>
+                <p id="process-text">Analyzing vibes...</p>
+                <p id="process-sub" style="font-size: 0.9em; opacity: 0.7; margin-top: 8px;"></p>
+            </div>
         </div>
 
     </main>
