@@ -9,20 +9,16 @@ async def compare_places_service(
     urla: str, urlb: str, limit: int, db: AsyncSession
 ) -> CompareResponse:
 
-    # 1. Получаем анализ первого места (вернет AIResponseOut)
     try:
         response_a = await get_or_create_place_analysis(url=urla, limit=limit, db=db)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка анализа Place A: {str(e)}")
 
-    # 2. Получаем анализ второго места
     try:
         response_b = await get_or_create_place_analysis(url=urlb, limit=limit, db=db)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка анализа Place B: {str(e)}")
 
-    # 3. Сравниваем (передаем Pydantic модели AIAnalysis)
-    # compare_places_with_gemini в model.py мы уже обновили, она принимает объекты
     comparison_data = await compare_places_with_gemini(
         analysis_a=response_a.ai_analysis,
         analysis_b=response_b.ai_analysis,
@@ -30,7 +26,6 @@ async def compare_places_service(
         name_b=response_b.place_info.name,
     )
 
-    # 4. Формируем ответ
     return CompareResponse(
         place_a=response_a.place_info,
         place_b=response_b.place_info,

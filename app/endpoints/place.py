@@ -19,7 +19,7 @@ router = APIRouter()
 @router.post("/analyze", response_model=AIResponseOut, status_code=status.HTTP_200_OK)
 async def get_place_analysis(
     place: AIResponseIn,
-    user: User = Depends(get_current_user),
+    user_auth: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
 
@@ -29,7 +29,11 @@ async def get_place_analysis(
 
 
 @router.post("/compare", response_model=CompareResponse, status_code=status.HTTP_200_OK)
-async def compare_places(places: CompareRequest, db: AsyncSession = Depends(get_db)):
+async def compare_places(
+    places: CompareRequest,
+    user_auth: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
 
     compare_result = await compare_places_service(
         urla=places.url_a, urlb=places.url_b, limit=places.limit, db=db
@@ -41,7 +45,11 @@ async def compare_places(places: CompareRequest, db: AsyncSession = Depends(get_
 @router.post(
     "/pro_analyze", response_model=FinalResponse, status_code=status.HTTP_200_OK
 )
-async def pro_place_analyze(user: UserRequest, db: AsyncSession = Depends(get_db)):
+async def pro_place_analyze(
+    user: UserRequest,
+    user_auth: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
 
     result = await get_places_by_vibe(user_query=user, db=db)
 

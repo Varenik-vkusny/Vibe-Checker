@@ -39,7 +39,6 @@ async def init_vector_db():
 
 
 def get_embeddings(texts: list[str]):
-
     return list(embedding_model.embed(texts))
 
 
@@ -51,8 +50,6 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
     ids = []
 
     for p in places:
-        # ИЗМЕНЕНИЕ 1: Формируем более полный текст для вектора
-        # Теперь адрес и имя есть всегда, даже если есть отзывы.
         base_info = f"{p.name}, {p.address}"
 
         if p.reviews:
@@ -75,8 +72,8 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
             payload={
                 "place_id": p.place_id,
                 "name": p.name,
-                "address": p.address,  # <--- ДОБАВИЛИ СОХРАНЕНИЕ АДРЕСА
-                "reviews_summary": text_summary,  # Тут теперь тоже есть адрес внутри текста
+                "address": p.address,
+                "reviews_summary": text_summary,
                 "lat_float": p.location.lat,
                 "lon_float": p.location.lon,
                 "location": {"lat": p.location.lat, "lon": p.location.lon},
@@ -114,6 +111,6 @@ async def search_places(
         with_payload=True,
     )
 
-    logging.info(f"Первый payload: {hits.points[0].payload}")
+    logging.info(f"First payload: {hits.points[0].payload}")
 
     return [hit.payload for hit in hits.points]

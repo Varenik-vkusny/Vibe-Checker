@@ -62,16 +62,13 @@ ALLOWED_SCENARIOS = [
 
 
 async def download_images(urls: list[str], limit: int = 3):
-    """
-    Асинхронно скачивает картинки по URL и превращает их в PIL.Image
-    """
+
     images = []
     async with httpx.AsyncClient(timeout=10.0) as client:
         for url in urls[:limit]:  # Берем только первые N фото, чтобы не перегружать
             try:
                 resp = await client.get(url)
                 if resp.status_code == 200:
-                    # Превращаем байты в объект картинки
                     img_bytes = io.BytesIO(resp.content)
                     img = Image.open(img_bytes)
                     images.append(img)
@@ -81,23 +78,19 @@ async def download_images(urls: list[str], limit: int = 3):
     return images
 
 
-# --- ГЛАВНАЯ ФУНКЦИЯ АНАЛИЗА ---
 async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
-    """
-    Принимает PlaceInfoDTO (с отзывами, фото и описанием).
-    Возвращает типизированный AIAnalysis.
-    """
-    logger.info(f"🚀 Запуск анализа для места: '{place.name}'")
+
+    logger.info(f"Запуск анализа для места: '{place.name}'")
 
     if not place.reviews and not place.description:
-        logger.warning("⚠️ Нет данных для анализа (отзывов и описания нет).")
+        logger.warning("Нет данных для анализа (отзывов и описания нет).")
         return _get_empty_analysis()
 
     image_objects = []
     if place.photos:
-        logger.info(f"📸 Скачиваем фото ({len(place.photos)} шт found)...")
+        logger.info(f"Скачиваем фото ({len(place.photos)} шт found)...")
         image_objects = await download_images(place.photos, limit=3)
-        logger.info(f"✅ Скачано {len(image_objects)} изображений для анализа.")
+        logger.info(f"Скачано {len(image_objects)} изображений для анализа.")
 
     reviews_text_list = []
     for r in place.reviews[:50]:
@@ -153,13 +146,12 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
     try:
         model = genai.GenerativeModel(model_name)
 
-        # Передаем список (Parts)
         response = await model.generate_content_async(
             content_parts, generation_config={"response_mime_type": "application/json"}
         )
 
         result_json = json.loads(response.text)
-        logger.info(f"🎉 Анализ завершен! Vibe Score: {result_json.get('vibe_score')}")
+        logger.info(f"Анализ завершен! Vibe Score: {result_json.get('vibe_score')}")
 
         return AIAnalysis(
             summary=Summary(**result_json["summary"]),
@@ -174,12 +166,12 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
         )
 
     except Exception as e:
-        logger.error(f"🔥 Ошибка Gemini: {e}")
+        logger.error(f"Ошибка Gemini: {e}")
         return _get_empty_analysis()
 
 
 def _get_empty_analysis() -> AIAnalysis:
-    """Заглушка при ошибке"""
+
     return AIAnalysis(
         summary=Summary(verdict="Ошибка анализа", pros=[], cons=[]),
         scores=Scores(food=0, service=0, atmosphere=0, value=0),
@@ -191,13 +183,11 @@ def _get_empty_analysis() -> AIAnalysis:
     )
 
 
-# --- ФУНКЦИЯ СРАВНЕНИЯ ---
 async def compare_places_with_gemini(
     analysis_a: AIAnalysis, analysis_b: AIAnalysis, name_a: str, name_b: str
 ) -> ComparisonData:
-    logger.info("⚔️ Запуск AI сравнения...")
+    logger.info("Запуск AI сравнения...")
 
-    # Превращаем Pydantic модели в dict для промпта
     data_a = analysis_a.model_dump()
     data_b = analysis_b.model_dump()
 
@@ -233,7 +223,7 @@ async def compare_places_with_gemini(
             verdict=res["verdict"],
         )
     except Exception as e:
-        logger.error(f"🔥 Ошибка сравнения: {e}")
+        logger.error(f"Ошибка сравнения: {e}")
         return ComparisonData(
             winner_category=WinnerCategory(
                 food="draw", service="draw", atmosphere="draw", value="draw"

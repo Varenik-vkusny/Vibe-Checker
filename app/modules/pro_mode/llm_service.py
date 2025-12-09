@@ -17,13 +17,12 @@ model = genai.GenerativeModel(
     "gemini-2.5-flash", generation_config={"response_mime_type": "application/json"}
 )
 
-print("Загружаю Reranker (работает локально на CPU)...")
-# BGE-M3 отличный выбор, он мультиязычный
+print("Loading Reranker (CPU)...")
 try:
     reranker = CrossEncoder("BAAI/bge-reranker-v2-m3", device="cpu")
-    print("Reranker готов.")
+    print("Reranker ready.")
 except Exception as e:
-    logger.error(f"Ошибка загрузки Reranker: {e}")
+    logger.error(f"Error loading Reranker: {e}")
     raise e
 
 
@@ -39,6 +38,7 @@ def clean_json_string(text: str) -> str:
 
 
 async def run_gemini_inference(prompt: str) -> str:
+
     try:
         response = await model.generate_content_async(prompt)
         return response.text
@@ -47,8 +47,8 @@ async def run_gemini_inference(prompt: str) -> str:
         return "{}"
 
 
-# --- ШАГ 1: Поиск ---
 async def generate_search_params(user_text: str) -> SearchParams:
+
     prompt = f"""You are a query generator for Google Maps.
     User request: "{user_text}"
     Extract the main category and place type.
@@ -65,6 +65,7 @@ async def generate_search_params(user_text: str) -> SearchParams:
 
 
 def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
+
     if not candidates:
         return []
 
@@ -73,10 +74,9 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
 
     for i, c in enumerate(candidates):
         name = c.get("name", "")
-        # Используем 'or', чтобы даже если ключ есть но значение пустая строка, сработал дефолт
         address = c.get("address") or "Адрес не указан"
 
-        logging.info(f"Адрес в реранке: {address}")
+        logging.info(f"Rerank address processing: {address}")
 
         summary = c.get("reviews_summary")
         if not summary and c.get("types"):
@@ -84,8 +84,7 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
 
         desc = summary if summary else "Нет описания"
 
-        # ИЗМЕНЕНИЕ: Добавляем адрес в контекст для BERT'а
-        # Теперь BERT поймет, если юзер искал конкретную улицу
+        # Добавляем адрес в контекст
         doc_text = f"Title: {name}. Address: {address}. Description: {desc}"
 
         pairs.append([user_query, doc_text])
@@ -94,11 +93,9 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
     if not pairs:
         return candidates[:top_k]
 
-    # Получаем сырые очки (logits). Они могут быть отрицательными (-10...10)
     scores = reranker.predict(pairs)
 
-    # --- ИСПРАВЛЕНИЕ ОЦЕНОК (Min-Max Scaling) ---
-    # Чтобы оценки были красивые (например от 60 до 99), а не все 50.
+    # Min-Max Scaling для нормализации скоров
     min_score = min(scores)
     max_score = max(scores)
 
@@ -108,32 +105,27 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
         original_candidate_index = doc_indices[idx]
         candidate = candidates[original_candidate_index]
 
-        # Нормализация: (x - min) / (max - min).
-        # Если max == min (один результат), даем 0.9
         if max_score > min_score:
             norm_score = (raw_score - min_score) / (max_score - min_score)
         else:
             norm_score = 0.9
 
-        # Немного магии: чтобы не было 0%, подтянем нижнюю границу к 50%
-        # Итоговая формула: 0.5 + (0.5 * norm_score) -> диапазон 50-100 баллов
+        # Сдвигаем диапазон к 50-100 для более читаемого рейтинга
         final_score = 0.5 + (0.49 * norm_score)
 
         candidate["ai_score"] = float(final_score)
-        candidate["debug_raw_score"] = float(raw_score)  # для отладки
+        candidate["debug_raw_score"] = float(raw_score)
         scored_results.append(candidate)
 
-    # Сортируем от лучшего к худшему
     sorted_candidates = sorted(
         scored_results, key=lambda x: x["ai_score"], reverse=True
     )
 
-    # Возвращаем только TOP_K лучших
     return sorted_candidates[:top_k]
 
 
-# --- ШАГ 3: Объяснение (ОБНОВЛЕННЫЙ) ---
 async def explain_selection(user_query: str, top_places: list[dict]) -> FinalResponse:
+
     if not top_places:
         return FinalResponse(recommendations=[])
 
@@ -143,8 +135,6 @@ async def explain_selection(user_query: str, top_places: list[dict]) -> FinalRes
         if summary and len(summary) > 600:
             summary = summary[:600] + "..."
 
-        # ИЗМЕНЕНИЕ: Передаем адрес в промпт для Gemini
-        # Если адреса нет (или он пустой), передаем "Адрес не указан"
         final_address = p.get("address") or "Адрес не указан"
         places_context.append(
             {
@@ -155,7 +145,7 @@ async def explain_selection(user_query: str, top_places: list[dict]) -> FinalRes
             }
         )
 
-        logging.info(f"Адрес места: {final_address}")
+        logging.info(f"Place address for explanation: {final_address}")
 
     prompt = f"""
     User Request: "{user_query}"
@@ -186,12 +176,10 @@ async def explain_selection(user_query: str, top_places: list[dict]) -> FinalRes
 
     final_output = []
     for idx, p in enumerate(top_places):
-        # Получаем reason по индексу
         reason = reasons_map.get(str(idx))
         if not reason:
             reason = f"Хороший вариант: {p.get('name')}"
 
-        # Теперь ai_score точно есть, так как мы берем places из smart_rerank
         ai_score = p.get("ai_score", 0.5)
         match_score = int(ai_score * 100)
 
@@ -199,7 +187,7 @@ async def explain_selection(user_query: str, top_places: list[dict]) -> FinalRes
             {
                 "place_id": p.get("place_id", "unknown"),
                 "name": p["name"],
-                "address": p.get("address", ""),  # <--- Можно добавить и сюда
+                "address": p.get("address", ""),
                 "match_score": match_score,
                 "reason": reason,
             }

@@ -32,10 +32,10 @@ class PlaceInfoDTO(BaseModel):
     reviews_count: int = 0
     location: Location
     url: Optional[str] = None
-    description: Optional[str] = None  # Описание (editorial summary)
-    photos: List[str] = []  # Список URL картинок (src)
+    description: Optional[str] = None
+    photos: List[str] = []
 
-    reviews: List[str] = []  # Список текстов отзывов
+    reviews: List[str] = []
 
 
 class ReviewItem(BaseModel):

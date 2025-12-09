@@ -55,7 +55,31 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  # Здесь будет воркер для celery
+  worker:
+    build: .
+    container_name: vibe_worker
+    command: celery -A app.celery_app.celery worker --loglevel=info
+    volumes:
+      - .:/app
+      - ./backups:/app/backups
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  beat:
+    build: .
+    container_name: vibe_beat
+    command: celery -A app.celery_app.celery beat --loglevel=info
+    volumes:
+      - .:/app
+      - ./backups:/app/backups
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
 
 volumes:
   postgres_data:

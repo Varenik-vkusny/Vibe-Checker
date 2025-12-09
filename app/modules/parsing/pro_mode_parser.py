@@ -12,13 +12,11 @@ SERPAPI_KEY = settings.serpapi_key
 
 
 def calculate_distance(lat1, lon1, lat2, lon2) -> float:
-    """
-    Вычисляет расстояние между двумя точками в километрах (Haversine formula).
-    """
-    if not lat1 or not lon1 or not lat2 or not lon2:
-        return 99999.0  # Если координат нет, считаем что далеко
 
-    R = 6371  # Радиус Земли в км
+    if not lat1 or not lon1 or not lat2 or not lon2:
+        return 99999.0
+
+    R = 6371
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat / 2) * math.sin(dLat / 2) + math.cos(
@@ -28,14 +26,11 @@ def calculate_distance(lat1, lon1, lat2, lon2) -> float:
     return R * c
 
 
-# ==========================================
-# 1. Функция поиска (Возвращает список DTO)
-# ==========================================
 async def find_places_nearby(
     query: str, lat: float, lon: float, limit: int = 5
 ) -> List[PlaceInfoDTO]:
 
-    print(f"🕵️‍♂️ [SEARCH] Ищем: '{query}' в точке {lat},{lon}")
+    print(f"[SEARCH] Ищем: '{query}' в точке {lat},{lon}")
 
     params = {
         "api_key": SERPAPI_KEY,
@@ -52,7 +47,7 @@ async def find_places_nearby(
         local_results = results.get("local_results", [])
 
         if not local_results:
-            print("❌ Ничего не найдено.")
+            print("Ничего не найдено.")
             return []
 
         candidates = []
@@ -66,41 +61,30 @@ async def find_places_nearby(
             if dist > 15.0:
                 continue
 
-            # --- 🔥 ФИКС АДРЕСА ---
-            # --- 🔥 УЛУЧШЕННЫЙ ФИКС АДРЕСА ---
             address = item.get("address", "")
 
-            # 1. Если адреса нет, проверяем vicinity (хотя в google_maps engine оно редкость)
             if not address:
                 address = item.get("vicinity", "")
 
-            # 2. Если все еще нет, проверяем extensions (иногда там лежит строка с адресом или категория + адрес)
             if not address:
                 extensions = item.get("extensions", [])
                 if extensions and isinstance(extensions, list):
-                    # Часто адрес лежит вторым элементом или просто текстом
-                    # Это эвристика, надо проверять на реальных данных
                     address = ", ".join(
                         [str(e) for e in extensions if "km" not in str(e)]
                     )
 
-            # 3. Если все еще нет, пробуем описание (description)
             if not address:
                 address = item.get("description", "")
 
-            # 4. Фолбэк, если совсем ничего нет
             if not address:
                 address = "Адрес не указан"
 
-            # Если всё ещё пусто, попробуем собрать из расширенных данных (если есть)
             if not address:
                 address = "Адрес не указан в картах"
-                print(f"⚠️ DEBUG: Нет адреса у '{item.get('title')}'. Сырые данные:")
+                print(f"DEBUG: Нет адреса у '{item.get('title')}'. Сырые данные:")
                 print(json.dumps(item, indent=2, ensure_ascii=False))
 
-            # Логируем, чтобы проверить прямо тут
-            print(f"📍 Найден: {item.get('title')} | Адрес: {address}")
-            # ----------------------
+            print(f"Найден: {item.get('title')} | Адрес: {address}")
 
             photos = []
             if item.get("thumbnail"):
@@ -109,7 +93,7 @@ async def find_places_nearby(
             dto = PlaceInfoDTO(
                 place_id=item.get("place_id") or item.get("data_id"),
                 name=item.get("title", "Unknown"),
-                address=address,  # <--- Теперь тут точно что-то будет
+                address=address,
                 rating=float(item.get("rating", 0.0)),
                 reviews_count=int(item.get("reviews", 0)),
                 location=Location(lat=place_lat, lon=place_lon),
@@ -125,13 +109,10 @@ async def find_places_nearby(
         return candidates
 
     except Exception as e:
-        print(f"❌ Ошибка поиска SerpApi: {e}")
+        print(f"Ошибка поиска SerpApi: {e}")
         return []
 
 
-# ==========================================
-# 2. Функция отзывов (Возвращает список строк)
-# ==========================================
 async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List[str]:
     """
     Тянет отзывы и форматирует их в строки для LLM.
@@ -139,7 +120,7 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List
     if not place_id:
         return []
 
-    print(f"📥 [REVIEWS] Качаем отзывы для ID: {place_id}")
+    print(f"[REVIEWS] Качаем отзывы для ID: {place_id}")
 
     try:
         serp_params = {
@@ -155,7 +136,7 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List
         results = search.get_dict()
 
         if "error" in results:
-            print(f"⚠️ SerpApi Error: {results['error']}")
+            print(f"SerpApi Error: {results['error']}")
             return []
 
         reviews_data = results.get("reviews", [])
@@ -174,27 +155,22 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List
         return collected_reviews
 
     except Exception as e:
-        print(f"❌ Ошибка парсинга отзывов: {e}")
+        print(f"Ошибка парсинга отзывов: {e}")
         return []
 
 
-# ==========================================
-# 3. Оркестратор (Возвращает DTO с отзывами)
-# ==========================================
 async def search_and_parse_places(
     query: str, lat: float, lon: float, limit_places: int = 5
 ) -> List[PlaceInfoDTO]:
 
     t0 = time.time()
-    # 1. Поиск мест
     candidates = await find_places_nearby(query, lat, lon, limit=limit_places)
-    print(f"   ⏱️ Sub-step: Google Search took {time.time() - t0:.2f}s")
+    print(f"Sub-step: Google Search took {time.time() - t0:.2f}s")
 
     if not candidates:
         return []
 
     t1 = time.time()
-    # 2. Параллельная загрузка отзывов
     tasks = []
     for place in candidates:
         if place.place_id:
@@ -204,10 +180,9 @@ async def search_and_parse_places(
 
     reviews_results = await asyncio.gather(*tasks)
     print(
-        f"   ⏱️ Sub-step: Reviews Download ({len(tasks)} places parallel) took {time.time() - t1:.2f}s"
+        f"Sub-step: Reviews Download ({len(tasks)} places parallel) took {time.time() - t1:.2f}s"
     )
 
-    # 3. Сборка
     for place, reviews in zip(candidates, reviews_results):
         place.reviews = reviews
 

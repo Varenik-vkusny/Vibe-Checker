@@ -1,3 +1,4 @@
+import redis.asyncio as redis
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,11 +8,16 @@ from . import security
 from .modules.user.schemas import TokenData
 from .modules.user.models import User
 from .database import AsyncLocalSession
+from .config_redis import redis_pool
 
 
 async def get_db():
     async with AsyncLocalSession() as session:
         yield session
+
+
+def get_redis_client():
+    return redis.Redis(connection_pool=redis_pool)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")

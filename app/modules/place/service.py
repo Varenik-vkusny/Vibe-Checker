@@ -35,14 +35,9 @@ class PlaceService:
         return new_place
 
     def _generate_google_url(self, place_id: str) -> str:
-        """Генерирует ссылку, если её нет"""
         return f"https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}"
 
     async def save_or_update_place(self, data: PlaceInfoDTO):
-        """
-        Создает место или обновляет его, если оно уже есть.
-        Отзывы полностью перезаписываются (старые удаляются, новые добавляются).
-        """
         place = await self.place_repo.get_by_google_id(data.place_id)
 
         final_url = data.url if data.url else self._generate_google_url(data.place_id)
@@ -58,15 +53,12 @@ class PlaceService:
             place.description = data.description
             place.photos = data.photos
 
-            # Если пришла новая ссылка, обновляем
             if data.url and place.source_url != data.url:
                 place.source_url = data.url
 
-            # Удаляем ТОЛЬКО старые отзывы (Reviews), чтобы перезаписать их
             await self.review_repo.delete(place_id=place.id)
 
         else:
-            # === INSERT ===
             place = await self.place_repo.add(
                 google_place_id=data.place_id,
                 source_url=final_url,

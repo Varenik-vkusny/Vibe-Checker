@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     collection_name: str
 
+    redis_url: str
+
     @computed_field
     @property
     def db_url(self) -> str:

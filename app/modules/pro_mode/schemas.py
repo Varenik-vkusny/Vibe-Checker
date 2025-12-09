@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
-# Входные данные от юзера
 class UserRequest(BaseModel):
     query: str
     lat: float
@@ -10,7 +9,6 @@ class UserRequest(BaseModel):
     radius: int = 2000
 
 
-# Промежуточная структура (Результат работы LLM "Query Expansion")
 class SearchParams(BaseModel):
     google_search_query: str
     place_type: str = "restaurant"

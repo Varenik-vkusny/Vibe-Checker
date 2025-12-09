@@ -12,10 +12,8 @@ SERPAPI_KEY = settings.serpapi_key
 
 
 async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
-    print(f"🚀 [PARSER] Start: {url}")
+    print(f"[PARSER] Start: {url}")
 
-    # Инициализируем DTO с пустыми/дефолтными значениями
-    # PlaceInfoDTO требует обязательные поля при создании
     place_dto = PlaceInfoDTO(
         place_id="",
         name="Unknown Place",
@@ -23,11 +21,9 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         url=url,
     )
 
-    # --- ЭТАП 1: Google Maps API ---
     try:
         gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
-        # Координаты из URL
         coords_match = re.search(r"@([-.\d]+),([-.\d]+)", url)
         lat_url, lng_url = (
             (float(coords_match.group(1)), float(coords_match.group(2)))
@@ -35,13 +31,11 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
             else (None, None)
         )
 
-        # Имя из URL
         name_match = re.search(r"/place/([^/]+)/@", url)
         query_name = (
             unquote(name_match.group(1)).replace("+", " ") if name_match else ""
         )
 
-        # Поиск Place ID
         places_result = gmaps.places(
             query=query_name,
             location=(lat_url, lng_url) if lat_url and lng_url else None,
@@ -49,13 +43,12 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         )
 
         if not places_result["results"]:
-            print("❌ Place not found in Google API.")
+            print("Place not found in Google API.")
             return place_dto
 
         place_id = places_result["results"][0]["place_id"]
         place_dto.place_id = place_id
 
-        # Детали (Photos + Editorial Summary)
         details = gmaps.place(
             place_id=place_id,
             fields=[
@@ -70,22 +63,18 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         )
         data = details.get("result", {})
 
-        # Заполнение DTO
         place_dto.name = data.get("name", "Unknown Place")
         place_dto.rating = float(data.get("rating", 0.0))
         place_dto.reviews_count = data.get("user_ratings_total", 0)
         place_dto.address = data.get("formatted_address", "")
 
-        # Локация
         loc = data.get("geometry", {}).get("location", {})
         place_dto.location = Location(lat=loc.get("lat"), lon=loc.get("lng"))
 
-        # Описание (если есть)
         summary_obj = data.get("editorial_summary", {})
         if summary_obj:
             place_dto.description = summary_obj.get("overview")
 
-        # Фотографии (формируем ссылки)
         raw_photos = data.get("photos", [])
         photo_urls = []
         for p in raw_photos[:5]:
@@ -95,15 +84,14 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                 photo_urls.append(url_photo)
         place_dto.photos = photo_urls
 
-        print(f"✅ Info found: {place_dto.name}, Photos: {len(place_dto.photos)}")
+        print(f"Info found: {place_dto.name}, Photos: {len(place_dto.photos)}")
 
     except Exception as e:
-        print(f"❌ Google API Error: {e}")
+        print(f"Google API Error: {e}")
         return place_dto
 
-    # --- ЭТАП 2: SerpApi (Отзывы) ---
     if place_dto.place_id:
-        print("🔄 Fetching reviews via SerpApi...")
+        print("Fetching reviews via SerpApi...")
         try:
             serp_params = {
                 "api_key": SERPAPI_KEY,
@@ -121,7 +109,7 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                 results = search.get_dict()
 
                 if "error" in results:
-                    print(f"⚠️ SerpApi Error: {results['error']}")
+                    print(f"SerpApi Error: {results['error']}")
                     break
 
                 batch = results.get("reviews", [])
@@ -143,7 +131,6 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                     if len(collected_reviews_strs) >= max_reviews:
                         break
 
-                # Пагинация
                 if (
                     "serpapi_pagination" in results
                     and "next" in results["serpapi_pagination"]
@@ -153,9 +140,9 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                     break
 
             place_dto.reviews = collected_reviews_strs
-            print(f"✅ Reviews loaded: {len(place_dto.reviews)}")
+            print(f"Reviews loaded: {len(place_dto.reviews)}")
 
         except Exception as e:
-            print(f"❌ SerpApi Parsing Error: {e}")
+            print(f"SerpApi Parsing Error: {e}")
 
     return place_dto
