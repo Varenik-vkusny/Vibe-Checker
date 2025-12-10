@@ -1,115 +1,18 @@
 import asyncio
-import googlemaps
-from serpapi import GoogleSearch
 import re
 from urllib.parse import unquote
+from outscraper import ApiClient
 from ...config import get_settings
 from ..place.schemas import PlaceInfoDTO, Location, ReviewDTO
 
 settings = get_settings()
 
+# We only need the Outscraper key now for reviews/search
+OUTSCRAPER_API_KEY = settings.outscraper_api_key  # Make sure to add this to your config
+# If you still use Google Maps API for photos/static maps, keep it:
 GOOGLE_API_KEY = settings.google_api_key_parse
-SERPAPI_KEY = settings.serpapi_key
 
-
-async def fetch_reviews(place_dto: PlaceInfoDTO, max_reviews: int) -> bool:
-    print(f"Fetching reviews for place_id: {place_dto.place_id}")
-    try:
-        serp_params = {
-            "api_key": SERPAPI_KEY,
-            "engine": "google_maps_reviews",
-            "place_id": place_dto.place_id,
-            "sort_by": "newestRating",
-            "hl": "ru",
-            "start": 0,
-        }
-
-        while len(place_dto.reviews) < max_reviews:
-            search = GoogleSearch(serp_params)
-            results = await asyncio.to_thread(search.get_dict)
-
-            if "error" in results:
-                print(f"SerpApi Error: {results['error']}")
-                return False
-
-            batch = results.get("reviews", [])
-            if not batch:
-                print(f"SerpApi returned no reviews. Full response: {results}")
-                return False
-
-            for item in batch:
-                text = item.get("snippet", "")
-                if text:
-                    review = ReviewDTO(
-                        author=item.get("user", {}).get("name", "Guest"),
-                        rating=float(item.get("rating", 0)),
-                        date=item.get("date", ""),
-                        text=text,
-                    )
-                    place_dto.reviews.append(review)
-                if len(place_dto.reviews) >= max_reviews:
-                    break
-
-            if (
-                "serpapi_pagination" in results
-                and "next" in results["serpapi_pagination"]
-            ):
-                serp_params["start"] += 10
-            else:
-                break
-
-        print(f"Reviews loaded: {len(place_dto.reviews)}")
-        return True
-
-    except Exception as e:
-        print(f"SerpApi Parsing Error: {e}")
-        return False
-
-
-async def get_place_details(
-    gmaps: googlemaps.Client, place_id: str, place_dto: PlaceInfoDTO
-):
-    try:
-        details = await asyncio.to_thread(
-            gmaps.place,
-            place_id=place_id,
-            fields=[
-                "name",
-                "rating",
-                "user_ratings_total",
-                "geometry",
-                "formatted_address",
-                "editorial_summary",
-                "photo",
-            ],
-        )
-        data = details.get("result", {})
-
-        place_dto.name = data.get("name", "Unknown Place")
-        place_dto.rating = float(data.get("rating", 0.0))
-        place_dto.reviews_count = data.get("user_ratings_total", 0)
-        place_dto.address = data.get("formatted_address", "")
-
-        loc = data.get("geometry", {}).get("location", {})
-        place_dto.location = Location(lat=loc.get("lat"), lon=loc.get("lng"))
-
-        summary_obj = data.get("editorial_summary", {})
-        if summary_obj:
-            place_dto.description = summary_obj.get("overview")
-
-        raw_photos = data.get("photos", [])
-        photo_urls = []
-        for p in raw_photos[:5]:
-            ref = p.get("photo_reference")
-            if ref:
-                url_photo = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={ref}&key={GOOGLE_API_KEY}"
-                photo_urls.append(url_photo)
-        place_dto.photos = photo_urls
-
-        print(f"Info found: {place_dto.name}, Photos: {len(place_dto.photos)}")
-
-    except Exception as e:
-        print(f"Google API Error: {e}")
+client = ApiClient(api_key=OUTSCRAPER_API_KEY)
 
 
 async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
@@ -120,37 +23,65 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         name="Unknown Place",
         location=Location(lat=None, lon=None),
         url=url,
+        reviews=[],
     )
 
-    gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+    try:
+        # Outscraper can handle the Google Maps URL directly.
+        # It will fetch details AND reviews in one go.
+        results = await asyncio.to_thread(
+            client.google_maps_reviews,
+            query=[url],
+            reviews_limit=max_reviews,
+            language="ru",
+            limit=1,  # We expect 1 place from 1 URL
+        )
 
-    coords_match = re.search(r"@([-.\d]+),([-.\d]+)", url)
-    lat_url, lng_url = (
-        (float(coords_match.group(1)), float(coords_match.group(2)))
-        if coords_match
-        else (None, None)
-    )
+        if not results or not results[0]:
+            print("Outscraper returned no results.")
+            return place_dto
 
-    name_match = re.search(r"/place/([^/]+)/@", url)
-    query_name = unquote(name_match.group(1)).replace("+", " ") if name_match else ""
+        data = results[0]  # The first place found
 
-    places_result = await asyncio.to_thread(
-        gmaps.places,
-        query=query_name,
-        location=(lat_url, lng_url) if lat_url and lng_url else None,
-        radius=50 if lat_url and lng_url else None,
-    )
+        # 1. Map Basic Info
+        place_dto.place_id = data.get("place_id", "unknown")
+        place_dto.name = data.get("name", "Unknown Place")
+        place_dto.address = data.get("full_address", data.get("formatted_address", ""))
+        place_dto.rating = float(data.get("rating") or 0.0)
+        place_dto.reviews_count = int(data.get("reviews") or 0)
 
-    if not places_result["results"]:
-        print("Place not found in Google API.")
-        return place_dto
+        # 2. Map Location
+        place_dto.location = Location(
+            lat=data.get("latitude"), lon=data.get("longitude")
+        )
 
-    for place_result in places_result["results"]:
-        place_id = place_result["place_id"]
-        place_dto.place_id = place_id
+        # 3. Map Description (Outscraper often returns 'about' or 'description')
+        place_dto.description = (data.get("about") or {}).get("summary") or data.get(
+            "description", ""
+        )
 
-        if await fetch_reviews(place_dto, max_reviews):
-            await get_place_details(gmaps, place_id, place_dto)
-            break
+        # 4. Map Photos
+        # Outscraper returns photo URLs.
+        # If you prefer Google API photos, you can still use the place_id later,
+        # but Outscraper gives you direct links here.
+        place_dto.photos = data.get("photos", [])[:5]
+
+        # 5. Map Reviews
+        reviews_data = data.get("reviews_data", [])
+        for item in reviews_data:
+            review_text = item.get("review_text", "")
+            if review_text:
+                review = ReviewDTO(
+                    author=item.get("author_title", "Guest"),
+                    rating=float(item.get("review_rating") or 0),
+                    date=item.get("review_datetime_utc", ""),
+                    text=review_text,
+                )
+                place_dto.reviews.append(review)
+
+        print(f"Info found: {place_dto.name}, Reviews loaded: {len(place_dto.reviews)}")
+
+    except Exception as e:
+        print(f"Outscraper Error: {e}")
 
     return place_dto

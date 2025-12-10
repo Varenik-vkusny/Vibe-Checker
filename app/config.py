@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     gemini_api_key: str
     google_api_key_parse: str
     serpapi_key: str
+    outscraper_api_key: str
 
     collection_name: str
 
