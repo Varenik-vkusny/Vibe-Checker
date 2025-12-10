@@ -35,12 +35,4 @@ class PlaceInfoDTO(BaseModel):
     description: Optional[str] = None
     photos: List[str] = []
 
-    reviews: List[str] = []
-
-
-class ReviewItem(BaseModel):
-    author: str
-    rating: Union[float, str]
-    date: str
-    text: str
-    images: List[str] = []
+    reviews: List[ReviewDTO] = []

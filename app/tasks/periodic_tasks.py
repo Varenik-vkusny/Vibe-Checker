@@ -8,21 +8,22 @@ from ..database import AsyncLocalSession
 from ..modules.place.models import Place
 from ..modules.analysis_result.models import AnalysisResult
 from .analysis_tasks import analyze_place_task
+from ..config import get_settings
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
 
 @celery.task(name="backup_database_task")
 def backup_database_task():
-    """
-    Выполняет pg_dump базы данных и сохраняет в папку backups.
-    """
+
     logger.info("Starting Database Backup...")
 
-    db_user = os.getenv("POSTGRES_USER", "postgres")
-    db_password = os.getenv("POSTGRES_PASSWORD", "postgres")
-    db_host = os.getenv("POSTGRES_HOST", "db")
-    db_name = os.getenv("POSTGRES_DB", "vibe_db")
+    db_user = settings.db_user
+    db_password = settings.db_password
+    db_host = settings.db_host
+    db_name = settings.db_name
 
     backup_dir = "/app/backups"
     os.makedirs(backup_dir, exist_ok=True)

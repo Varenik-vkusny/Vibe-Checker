@@ -1,3 +1,4 @@
+import asyncio
 import googlemaps
 from serpapi import GoogleSearch
 import re
@@ -36,7 +37,9 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
             unquote(name_match.group(1)).replace("+", " ") if name_match else ""
         )
 
-        places_result = gmaps.places(
+        # Wrap blocking Google Maps API call in asyncio.to_thread
+        places_result = await asyncio.to_thread(
+            gmaps.places,
             query=query_name,
             location=(lat_url, lng_url) if lat_url and lng_url else None,
             radius=50 if lat_url and lng_url else None,
@@ -49,7 +52,9 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         place_id = places_result["results"][0]["place_id"]
         place_dto.place_id = place_id
 
-        details = gmaps.place(
+        # Wrap blocking place details call in asyncio.to_thread
+        details = await asyncio.to_thread(
+            gmaps.place,
             place_id=place_id,
             fields=[
                 "name",
@@ -102,11 +107,10 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                 "start": 0,
             }
 
-            collected_reviews_strs = []
-
-            while len(collected_reviews_strs) < max_reviews:
+            while len(place_dto.reviews) < max_reviews:
                 search = GoogleSearch(serp_params)
-                results = search.get_dict()
+                # Wrap blocking SerpAPI call in asyncio.to_thread
+                results = await asyncio.to_thread(search.get_dict)
 
                 if "error" in results:
                     print(f"SerpApi Error: {results['error']}")
@@ -128,7 +132,7 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                         )
                         place_dto.reviews.append(review)
 
-                    if len(collected_reviews_strs) >= max_reviews:
+                    if len(place_dto.reviews) >= max_reviews:
                         break
 
                 if (
@@ -139,7 +143,6 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
                 else:
                     break
 
-            place_dto.reviews = collected_reviews_strs
             print(f"Reviews loaded: {len(place_dto.reviews)}")
 
         except Exception as e:
