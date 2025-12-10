@@ -12,47 +12,64 @@ GOOGLE_API_KEY = settings.google_api_key_parse
 SERPAPI_KEY = settings.serpapi_key
 
 
-async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
-    print(f"[PARSER] Start: {url}")
-
-    place_dto = PlaceInfoDTO(
-        place_id="",
-        name="Unknown Place",
-        location=Location(lat=None, lon=None),
-        url=url,
-    )
-
+async def fetch_reviews(place_dto: PlaceInfoDTO, max_reviews: int) -> bool:
+    print(f"Fetching reviews for place_id: {place_dto.place_id}")
     try:
-        gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+        serp_params = {
+            "api_key": SERPAPI_KEY,
+            "engine": "google_maps_reviews",
+            "place_id": place_dto.place_id,
+            "sort_by": "newestRating",
+            "hl": "ru",
+            "start": 0,
+        }
 
-        coords_match = re.search(r"@([-.\d]+),([-.\d]+)", url)
-        lat_url, lng_url = (
-            (float(coords_match.group(1)), float(coords_match.group(2)))
-            if coords_match
-            else (None, None)
-        )
+        while len(place_dto.reviews) < max_reviews:
+            search = GoogleSearch(serp_params)
+            results = await asyncio.to_thread(search.get_dict)
 
-        name_match = re.search(r"/place/([^/]+)/@", url)
-        query_name = (
-            unquote(name_match.group(1)).replace("+", " ") if name_match else ""
-        )
+            if "error" in results:
+                print(f"SerpApi Error: {results['error']}")
+                return False
 
-        # Wrap blocking Google Maps API call in asyncio.to_thread
-        places_result = await asyncio.to_thread(
-            gmaps.places,
-            query=query_name,
-            location=(lat_url, lng_url) if lat_url and lng_url else None,
-            radius=50 if lat_url and lng_url else None,
-        )
+            batch = results.get("reviews", [])
+            if not batch:
+                print(f"SerpApi returned no reviews. Full response: {results}")
+                return False
 
-        if not places_result["results"]:
-            print("Place not found in Google API.")
-            return place_dto
+            for item in batch:
+                text = item.get("snippet", "")
+                if text:
+                    review = ReviewDTO(
+                        author=item.get("user", {}).get("name", "Guest"),
+                        rating=float(item.get("rating", 0)),
+                        date=item.get("date", ""),
+                        text=text,
+                    )
+                    place_dto.reviews.append(review)
+                if len(place_dto.reviews) >= max_reviews:
+                    break
 
-        place_id = places_result["results"][0]["place_id"]
-        place_dto.place_id = place_id
+            if (
+                "serpapi_pagination" in results
+                and "next" in results["serpapi_pagination"]
+            ):
+                serp_params["start"] += 10
+            else:
+                break
 
-        # Wrap blocking place details call in asyncio.to_thread
+        print(f"Reviews loaded: {len(place_dto.reviews)}")
+        return True
+
+    except Exception as e:
+        print(f"SerpApi Parsing Error: {e}")
+        return False
+
+
+async def get_place_details(
+    gmaps: googlemaps.Client, place_id: str, place_dto: PlaceInfoDTO
+):
+    try:
         details = await asyncio.to_thread(
             gmaps.place,
             place_id=place_id,
@@ -93,59 +110,47 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
 
     except Exception as e:
         print(f"Google API Error: {e}")
+
+
+async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
+    print(f"[PARSER] Start: {url}")
+
+    place_dto = PlaceInfoDTO(
+        place_id="",
+        name="Unknown Place",
+        location=Location(lat=None, lon=None),
+        url=url,
+    )
+
+    gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+
+    coords_match = re.search(r"@([-.\d]+),([-.\d]+)", url)
+    lat_url, lng_url = (
+        (float(coords_match.group(1)), float(coords_match.group(2)))
+        if coords_match
+        else (None, None)
+    )
+
+    name_match = re.search(r"/place/([^/]+)/@", url)
+    query_name = unquote(name_match.group(1)).replace("+", " ") if name_match else ""
+
+    places_result = await asyncio.to_thread(
+        gmaps.places,
+        query=query_name,
+        location=(lat_url, lng_url) if lat_url and lng_url else None,
+        radius=50 if lat_url and lng_url else None,
+    )
+
+    if not places_result["results"]:
+        print("Place not found in Google API.")
         return place_dto
 
-    if place_dto.place_id:
-        print("Fetching reviews via SerpApi...")
-        try:
-            serp_params = {
-                "api_key": SERPAPI_KEY,
-                "engine": "google_maps_reviews",
-                "place_id": place_dto.place_id,
-                "sort_by": "newestRating",
-                "hl": "ru",
-                "start": 0,
-            }
+    for place_result in places_result["results"]:
+        place_id = place_result["place_id"]
+        place_dto.place_id = place_id
 
-            while len(place_dto.reviews) < max_reviews:
-                search = GoogleSearch(serp_params)
-                # Wrap blocking SerpAPI call in asyncio.to_thread
-                results = await asyncio.to_thread(search.get_dict)
-
-                if "error" in results:
-                    print(f"SerpApi Error: {results['error']}")
-                    break
-
-                batch = results.get("reviews", [])
-                if not batch:
-                    break
-
-                for item in batch:
-                    text = item.get("snippet", "")
-
-                    if text:
-                        review = ReviewDTO(
-                            author=item.get("user", {}).get("name", "Guest"),
-                            rating=float(item.get("rating", 0)),
-                            date=item.get("date", ""),
-                            text=text,
-                        )
-                        place_dto.reviews.append(review)
-
-                    if len(place_dto.reviews) >= max_reviews:
-                        break
-
-                if (
-                    "serpapi_pagination" in results
-                    and "next" in results["serpapi_pagination"]
-                ):
-                    serp_params["start"] += 10
-                else:
-                    break
-
-            print(f"Reviews loaded: {len(place_dto.reviews)}")
-
-        except Exception as e:
-            print(f"SerpApi Parsing Error: {e}")
+        if await fetch_reviews(place_dto, max_reviews):
+            await get_place_details(gmaps, place_id, place_dto)
+            break
 
     return place_dto

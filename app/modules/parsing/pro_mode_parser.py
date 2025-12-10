@@ -141,6 +141,9 @@ async def enrich_place_with_reviews(place_id: str, max_reviews: int = 5) -> List
 
         reviews_data = results.get("reviews", [])
 
+        if not reviews_data:
+            print(f"SerpApi returned no reviews. Full response: {results}")
+
         for item in reviews_data[:max_reviews]:
             text = item.get("snippet")
             if text:

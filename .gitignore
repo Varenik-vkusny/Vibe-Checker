@@ -43,5 +43,6 @@ qdrant_storage/
 local_models_cache/
 model_cache/
 
+# А вот нехуй сюда смотреть блять, да я пидр нейрослопный
 repomix-output.xml
 repomix.config.json
