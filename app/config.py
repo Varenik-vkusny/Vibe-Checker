@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     google_api_key_parse: str
     serpapi_key: str
     outscraper_api_key: str
+    apify_api_token: str
+    serper_api_key: str
 
     collection_name: str
 
