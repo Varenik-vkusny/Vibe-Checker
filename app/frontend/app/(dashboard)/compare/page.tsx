@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
 import { Trophy, Check } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const compareSchema = z.object({
   url_a: z.string().url('Please enter a valid URL'),
@@ -21,6 +22,7 @@ type CompareValues = z.infer<typeof compareSchema>;
 export default function ComparePage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const { register, handleSubmit, formState: { errors } } = useForm<CompareValues>({
     resolver: zodResolver(compareSchema),
@@ -45,25 +47,25 @@ export default function ComparePage() {
   return (
     <div className="container mx-auto p-6 space-y-8 max-w-5xl">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Compare Places</h1>
-        <p className="text-muted-foreground">See which spot wins the vibe check.</p>
+        <h1 className="text-3xl font-bold">{t.compare.title}</h1>
+        <p className="text-muted-foreground">{t.compare.subtitle}</p>
       </div>
 
       <Card>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-[1fr_1fr_auto] items-end">
             <div className="space-y-2">
-              <Label htmlFor="url_a">Place A URL</Label>
-              <Input id="url_a" placeholder="First place..." {...register('url_a')} />
+              <Label htmlFor="url_a">{t.compare.placeALabel}</Label>
+              <Input id="url_a" placeholder={t.compare.placeAPlaceholder} {...register('url_a')} />
               {errors.url_a && <span className="text-destructive text-xs">{errors.url_a.message}</span>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="url_b">Place B URL</Label>
-              <Input id="url_b" placeholder="Second place..." {...register('url_b')} />
+              <Label htmlFor="url_b">{t.compare.placeBLabel}</Label>
+              <Input id="url_b" placeholder={t.compare.placeBPlaceholder} {...register('url_b')} />
               {errors.url_b && <span className="text-destructive text-xs">{errors.url_b.message}</span>}
             </div>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Comparing...' : 'Compare'}
+              {loading ? t.compare.comparingButton : t.compare.compareButton}
             </Button>
           </form>
         </CardContent>
@@ -75,9 +77,9 @@ export default function ComparePage() {
           <div className="md:col-span-2 bg-primary/10 border border-primary/20 rounded-xl p-6 text-center">
             <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
                 <Trophy className="h-6 w-6 text-yellow-500" />
-                Winner: {result.comparison.verdict}
+                {t.compare.winner}: {result.comparison.verdict}
             </h2>
-            <p className="text-muted-foreground">Based on reviews, atmosphere, and value.</p>
+            <p className="text-muted-foreground">{t.compare.winnerSubtitle}</p>
           </div>
 
           <Card className="border-primary/50 relative overflow-hidden">
@@ -116,24 +118,24 @@ export default function ComparePage() {
 
           <Card className="md:col-span-2">
             <CardHeader>
-                <CardTitle>Head-to-Head</CardTitle>
+                <CardTitle>{t.compare.headToHead}</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div className="p-4 bg-secondary rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-1">Food</div>
+                        <div className="text-xs text-muted-foreground mb-1">{t.analysis.food}</div>
                         <div className="font-bold">{result.comparison.winner_category.food}</div>
                     </div>
                     <div className="p-4 bg-secondary rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-1">Service</div>
+                        <div className="text-xs text-muted-foreground mb-1">{t.analysis.service}</div>
                         <div className="font-bold">{result.comparison.winner_category.service}</div>
                     </div>
                     <div className="p-4 bg-secondary rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-1">Atmosphere</div>
+                        <div className="text-xs text-muted-foreground mb-1">{t.analysis.atmosphere}</div>
                         <div className="font-bold">{result.comparison.winner_category.atmosphere}</div>
                     </div>
                     <div className="p-4 bg-secondary rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-1">Value</div>
+                        <div className="text-xs text-muted-foreground mb-1">{t.analysis.value}</div>
                         <div className="font-bold">{result.comparison.winner_category.value}</div>
                     </div>
                 </div>

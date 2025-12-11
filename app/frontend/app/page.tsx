@@ -1,8 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
@@ -13,20 +18,20 @@ export default function Home() {
         
         <div className="relative z-10 max-w-2xl space-y-6">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
-            Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Vibe</span>.
+            {t.landing.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{t.landing.titleSuffix}</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            Discover places that match your mood. Powered by AI and real reviews.
+            {t.landing.subtitle}
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/map">
               <Button size="lg" className="rounded-full px-8 text-lg h-12">
-                Explore Map
+                {t.landing.exploreMap}
               </Button>
             </Link>
             <Link href="/analysis">
               <Button size="lg" variant="outline" className="rounded-full px-8 text-lg h-12">
-                Analyze Link
+                {t.landing.analyzeLink}
               </Button>
             </Link>
           </div>

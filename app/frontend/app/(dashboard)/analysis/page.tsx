@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '@/lib/api';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const analysisSchema = z.object({
   url: z.string().url('Please enter a valid URL'),
@@ -20,6 +21,7 @@ type AnalysisValues = z.infer<typeof analysisSchema>;
 export default function AnalysisPage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const { register, handleSubmit, formState: { errors } } = useForm<AnalysisValues>({
     resolver: zodResolver(analysisSchema),
@@ -41,32 +43,32 @@ export default function AnalysisPage() {
   };
 
   const scores = result ? [
-    { name: 'Food', score: result.ai_analysis.scores.food, fill: 'var(--chart-1)' },
-    { name: 'Service', score: result.ai_analysis.scores.service, fill: 'var(--chart-2)' },
-    { name: 'Atmosphere', score: result.ai_analysis.scores.atmosphere, fill: 'var(--chart-3)' },
-    { name: 'Value', score: result.ai_analysis.scores.value, fill: 'var(--chart-4)' },
+    { name: t.analysis.food, score: result.ai_analysis.scores.food, fill: 'var(--chart-1)' },
+    { name: t.analysis.service, score: result.ai_analysis.scores.service, fill: 'var(--chart-2)' },
+    { name: t.analysis.atmosphere, score: result.ai_analysis.scores.atmosphere, fill: 'var(--chart-3)' },
+    { name: t.analysis.value, score: result.ai_analysis.scores.value, fill: 'var(--chart-4)' },
   ] : [];
 
   return (
     <div className="container mx-auto p-6 space-y-8 max-w-4xl">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">AI Analysis</h1>
-        <p className="text-muted-foreground">Get detailed vibe insights from any Google Maps link.</p>
+        <h1 className="text-3xl font-bold">{t.analysis.title}</h1>
+        <p className="text-muted-foreground">{t.analysis.subtitle}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Analyze Place</CardTitle>
+          <CardTitle>{t.analysis.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4 items-end">
             <div className="grid w-full gap-2">
-              <Label htmlFor="url">Google Maps URL</Label>
+              <Label htmlFor="url">{t.analysis.urlLabel}</Label>
               <Input id="url" placeholder="https://maps.google.com/..." {...register('url')} />
               {errors.url && <span className="text-destructive text-xs">{errors.url.message}</span>}
             </div>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Analyzing...' : 'Analyze'}
+              {loading ? t.analysis.analyzingButton : t.analysis.analyzeButton}
             </Button>
           </form>
         </CardContent>
@@ -90,7 +92,7 @@ export default function AnalysisPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Scores</CardTitle>
+              <CardTitle>{t.analysis.scoresTitle}</CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -107,24 +109,24 @@ export default function AnalysisPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Details</CardTitle>
+              <CardTitle>{t.analysis.detailsTitle}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                   <span className="text-muted-foreground text-sm">Noise Level</span>
+                   <span className="text-muted-foreground text-sm">{t.analysis.noiseLevel}</span>
                    <div className="font-medium">{result.ai_analysis.detailed_attributes.noise_level || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">Service Speed</span>
+                   <span className="text-muted-foreground text-sm">{t.analysis.serviceSpeed}</span>
                    <div className="font-medium">{result.ai_analysis.detailed_attributes.service_speed || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">Cleanliness</span>
+                   <span className="text-muted-foreground text-sm">{t.analysis.cleanliness}</span>
                    <div className="font-medium">{result.ai_analysis.detailed_attributes.cleanliness || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">Price</span>
+                   <span className="text-muted-foreground text-sm">{t.analysis.price}</span>
                    <div className="font-medium">{result.ai_analysis.price_level}</div>
                  </div>
                </div>

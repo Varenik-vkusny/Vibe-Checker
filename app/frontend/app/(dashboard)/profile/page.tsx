@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bookmark, Settings, Search, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-6 max-w-[1440px] mx-auto min-h-[calc(100vh-72px)]">
@@ -21,20 +23,20 @@ export default function ProfilePage() {
           <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-8">
             <TabsTrigger value="saved" className="flex gap-2">
               <Bookmark className="h-4 w-4" />
-              Saved Places
+              {t.profile.savedPlaces}
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex gap-2">
               <Settings className="h-4 w-4" />
-              Settings
+              {t.profile.settings}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="saved" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Your Collection</h2>
+              <h2 className="text-2xl font-bold">{t.profile.yourCollection}</h2>
               <div className="relative w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search saved..." className="pl-8" />
+                <Input placeholder={t.profile.searchPlaceholder} className="pl-8" />
               </div>
             </div>
 
@@ -70,22 +72,22 @@ export default function ProfilePage() {
             <Card>
               <CardContent className="space-y-6 p-6">
                 <div>
-                   <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
+                   <h2 className="text-xl font-semibold mb-4">{t.profile.accountSettings}</h2>
                    <div className="grid gap-4">
                       <div className="grid gap-2">
-                        <Label>Display Name</Label>
+                        <Label>{t.profile.displayName}</Label>
                         <Input defaultValue={user?.first_name} />
                       </div>
                       <div className="grid gap-2">
-                        <Label>Email</Label>
+                        <Label>{t.profile.email}</Label>
                         <Input defaultValue={user?.email} disabled />
                       </div>
                    </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <Button>Save Changes</Button>
-                  <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">Delete Account</Button>
+                  <Button>{t.profile.saveChanges}</Button>
+                  <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">{t.profile.deleteAccount}</Button>
                 </div>
               </CardContent>
             </Card>

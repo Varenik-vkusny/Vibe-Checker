@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   
   const {
@@ -44,31 +46,31 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4 bg-secondary/30">
       <Card className="w-full max-w-md glass-card">
         <CardHeader>
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Enter your credentials to continue</CardDescription>
+          <CardTitle className="text-2xl">{t.login.welcome}</CardTitle>
+          <CardDescription>{t.login.subtitle}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {error && <div className="text-destructive text-sm font-medium">{error}</div>}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.login.email}</Label>
               <Input id="email" type="email" placeholder="m@example.com" {...register('email')} />
               {errors.email && <span className="text-destructive text-xs">{errors.email.message}</span>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.login.password}</Label>
               <Input id="password" type="password" {...register('password')} />
               {errors.password && <span className="text-destructive text-xs">{errors.password.message}</span>}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? t.login.signingIn : t.login.signIn}
             </Button>
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              {t.login.noAccount}{' '}
               <Link href="/register" className="underline underline-offset-4 hover:text-primary">
-                Sign up
+                {t.login.signUp}
               </Link>
             </div>
           </CardFooter>

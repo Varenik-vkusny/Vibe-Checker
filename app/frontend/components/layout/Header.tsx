@@ -6,6 +6,8 @@ import { useTheme } from 'next-themes';
 import { Map, GitCompare, Sparkles, User, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,7 @@ export function Header() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { user, logout, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   const isActive = (path: string) => pathname === path ? 'text-primary' : 'text-muted-foreground';
 
@@ -30,26 +33,27 @@ export function Header() {
       <nav className="hidden md:flex items-center gap-8">
         <Link href="/map" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/map')}`}>
           <Map className="w-4 h-4" />
-          <span>Places</span>
+          <span>{t.header.places}</span>
         </Link>
         <Link href="/compare" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/compare')}`}>
           <GitCompare className="w-4 h-4" />
-          <span>Compare</span>
+          <span>{t.header.compare}</span>
         </Link>
         <Link href="/analysis" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/analysis')}`}>
           <Sparkles className="w-4 h-4" />
-          <span>AI Analysis</span>
+          <span>{t.header.analysis}</span>
         </Link>
         {isAuthenticated && (
           <Link href="/profile" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/profile')}`}>
             <User className="w-4 h-4" />
-            <span>Profile</span>
+            <span>{t.header.profile}</span>
           </Link>
         )}
       </nav>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle Theme">
+        <LanguageSwitcher />
+        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={t.header.toggleTheme}>
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
@@ -67,13 +71,13 @@ export function Header() {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t.header.logout}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <Link href="/login">
-            <Button variant="outline">Sign In</Button>
+            <Button variant="outline">{t.header.signIn}</Button>
           </Link>
         )}
       </div>
