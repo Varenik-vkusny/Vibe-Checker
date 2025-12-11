@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Map, GitCompare, Sparkles, User, Sun, Moon, LogOut } from 'lucide-react';
+import { Map, GitCompare, Sparkles, User, Sun, Moon, LogOut, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -69,6 +69,14 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
+              {user?.role === 'ADMIN' && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="cursor-pointer text-purple-600 focus:text-purple-600 focus:bg-purple-100 dark:focus:bg-purple-900/50">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <span>Admin Panel</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>{t.header.logout}</span>

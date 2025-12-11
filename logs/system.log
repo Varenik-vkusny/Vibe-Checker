@@ -1,0 +1,30 @@
+2025-12-11 15:58:58 | INFO | [uvicorn.error] Started server process [1]
+2025-12-11 15:58:58 | INFO | [uvicorn.error] Waiting for application startup.
+2025-12-11 15:58:58 | INFO | [root] Запускаю приложение...
+2025-12-11 15:58:58 | INFO | [uvicorn.error] Application startup complete.
+2025-12-11 15:58:58 | INFO | [uvicorn.error] Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-12-11 15:59:47 | INFO | [uvicorn.access] 172.23.0.1:57300 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 15:59:47 | INFO | [uvicorn.access] 172.23.0.1:57308 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 15:59:59 | INFO | [uvicorn.access] 172.23.0.1:56766 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 15:59:59 | INFO | [uvicorn.access] 172.23.0.1:56768 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:00:01 | INFO | [uvicorn.access] 172.23.0.1:56772 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:00:02 | INFO | [uvicorn.access] 172.23.0.1:56778 - "GET /admin/users HTTP/1.1" 200
+2025-12-11 16:00:02 | INFO | [uvicorn.access] 172.23.0.1:56788 - "GET /admin/users HTTP/1.1" 200
+2025-12-11 16:00:41 | INFO | [uvicorn.access] 172.23.0.1:53610 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:00:41 | INFO | [uvicorn.access] 172.23.0.1:53612 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:01:47 | INFO | [uvicorn.access] 172.23.0.1:36926 - "POST /users/token HTTP/1.1" 200
+2025-12-11 16:01:47 | INFO | [uvicorn.access] 172.23.0.1:36938 - "GET /users/me HTTP/1.1" 200
+2025-12-11 16:01:47 | INFO | [uvicorn.access] 172.23.0.1:36942 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:01:47 | INFO | [uvicorn.access] 172.23.0.1:36948 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:01:57 | INFO | [uvicorn.access] 172.23.0.1:56790 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:01:57 | INFO | [uvicorn.access] 172.23.0.1:56798 - "GET /admin/stats HTTP/1.1" 200
+2025-12-11 16:02:40 | INFO | [uvicorn.access] 172.23.0.1:33474 - "GET /admin/users HTTP/1.1" 200
+2025-12-11 16:02:40 | INFO | [uvicorn.access] 172.23.0.1:33482 - "GET /admin/users HTTP/1.1" 200
+2025-12-11 16:02:51 | INFO | [uvicorn.access] 172.23.0.1:59398 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:02:51 | INFO | [uvicorn.access] 172.23.0.1:59400 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:02:57 | INFO | [uvicorn.access] 172.23.0.1:59414 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:03:00 | INFO | [uvicorn.access] 172.23.0.1:59416 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:03:03 | INFO | [uvicorn.access] 172.23.0.1:54710 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:03:06 | INFO | [uvicorn.access] 172.23.0.1:54726 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:03:08 | INFO | [uvicorn.access] 172.23.0.1:54732 - "GET /admin/logs?limit=100 HTTP/1.1" 200
+2025-12-11 16:03:11 | INFO | [uvicorn.access] 172.23.0.1:54744 - "GET /admin/logs?limit=100 HTTP/1.1" 200

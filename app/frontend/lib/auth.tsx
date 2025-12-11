@@ -6,6 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 import { login as loginService, register as registerService } from '@/services/auth';
 import { LoginCredentials, RegisterData, User } from '@/types/auth';
+import api from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
            setUser(JSON.parse(storedUser));
         } else {
            // Fallback if we have token but no stored info
-           setUser({ email: decoded.sub, id: 0, first_name: 'User' });
+           setUser({ email: decoded.sub, id: 0, first_name: 'User', role: 'USER' });
         }
       } catch (e) {
         console.error('Invalid token', e);
@@ -46,19 +47,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
+
     const data = await loginService(credentials);
     setCookie('access_token', data.access_token);
     
-    // Decode to get email
-    const decoded: any = jwtDecode(data.access_token);
-    const newUser = { email: decoded.sub, id: 0, first_name: 'User' };
-    
-    // Try to recover user info from cache if email matches?
-    // Or just set basic info.
-    setUser(newUser);
-    localStorage.setItem('user_info', JSON.stringify(newUser));
-    
-    router.push('/profile');
+    try {
+        const userResponse = await api.get<User>('/users/me');
+        const userData = userResponse.data;
+        
+        setUser(userData);
+        localStorage.setItem('user_info', JSON.stringify(userData));
+        
+        if (userData.role === 'ADMIN') { 
+            router.push('/admin');
+        } else {
+            router.push('/profile');
+        }
+    } catch (error) {
+        console.error("Failed to fetch user info", error);
+    }
   };
 
   const register = async (data: RegisterData) => {

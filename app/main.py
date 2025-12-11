@@ -1,5 +1,8 @@
 import logging
-from fastapi import FastAPI, status
+import os
+from logging.handlers import RotatingFileHandler
+from fastapi import FastAPI, status, Depends
+from .modules.admin.dependencies import get_current_admin_user
 from fastapi.middleware.cors import CORSMiddleware
 from .endpoints.users import router as user_router
 from .endpoints.place import router as place_router
@@ -7,9 +10,42 @@ from app.modules.place import models as place_models
 from app.modules.user import models as user_models
 from app.modules.favorites import models as favorites_models
 from app.modules.parsing import models as parsing_models
+from .endpoints.admin import router as admin_router
 
 
 logging.basicConfig(level=logging.INFO)
+
+LOG_DIR = "logs"
+LOG_FILE = os.path.join(LOG_DIR, "system.log")
+
+
+def setup_logging():
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+
+    # Настраиваем формат
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | [%(name)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    # Хендлер для файла (макс 10 МБ, храним 3 файла)
+    file_handler = RotatingFileHandler(
+        LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=3, encoding="utf-8"
+    )
+    file_handler.setFormatter(formatter)
+
+    # Добавляем хендлер к корневому логгеру и uvicorn
+    logging.getLogger().addHandler(file_handler)
+    logging.getLogger("uvicorn").addHandler(file_handler)
+    logging.getLogger("uvicorn.access").addHandler(file_handler)
+
+    # Чтобы видеть уровень INFO
+    logging.getLogger().setLevel(logging.INFO)
+
+
+# Запускаем настройку
+setup_logging()
 
 
 async def lifespan(app: FastAPI):
@@ -24,21 +60,25 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "*",  # Звездочка (*) разрешает все источники
+    "*",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,  # Установите True, если вам нужны куки/заголовки авторизации
-    # Но если True, то origins=["*"] работать не будет,
-    # и нужно перечислить все разрешенные источники явно.
-    allow_methods=["*"],  # Разрешить все HTTP методы (GET, POST, PUT, DELETE и т.д.)
-    allow_headers=["*"],  # Разрешить все заголовки
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(user_router, prefix="/users")
 app.include_router(place_router, prefix="/place")
+app.include_router(
+    admin_router,
+    prefix="/admin",
+    tags=["Admin Panel"],
+    dependencies=[Depends(get_current_admin_user)],
+)
 
 
 @app.get("/", status_code=status.HTTP_200_OK)

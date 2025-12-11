@@ -12,9 +12,9 @@ from ...database import Base
 
 
 class UserRole(str, enum.Enum):
-    ADMIN = "admin"
-    USER = "user"
-    SERVICE = "service"
+    ADMIN = "ADMIN"  # Было "admin"
+    USER = "USER"  # Было "user"
+    SERVICE = "SERVICE"  # Было "service"
 
 
 class User(Base):

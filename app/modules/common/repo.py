@@ -18,6 +18,11 @@ class BaseRepo:
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
+    async def find_all_by(self, **filter_by):
+        stmt = select(self.model).filter_by(**filter_by)
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
     async def add(self, **kwargs):
 
         new_model = self.model(**kwargs)
