@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Map, GitCompare, Sparkles, User, Sun, Moon, LogOut, ShieldCheck } from 'lucide-react';
+import { Map, GitCompare, Sparkles, User, Sun, Moon, LogOut, ShieldCheck, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -42,6 +42,10 @@ export function Header() {
         <Link href="/analysis" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/analysis')}`}>
           <Sparkles className="w-4 h-4" />
           <span>{t.header.analysis}</span>
+        </Link>
+        <Link href="/pro_mode" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/pro-mode')}`}>
+          <Search className="w-4 h-4" />
+          <span>{t.header.pro_mode}</span>
         </Link>
         {isAuthenticated && (
           <Link href="/profile" className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive('/profile')}`}>

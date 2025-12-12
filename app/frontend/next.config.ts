@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Fix for source map issues with Next.js 16 and Turbopack
+  // Disable source maps entirely to avoid parsing errors
+  // This is a temporary fix for the Turbopack source map issue
+  // Remove this when the issue is resolved in future Next.js versions
+  productionBrowserSourceMaps: false,
+  // Additional configuration to handle Turbopack issues
+  experimental: {
+    // Disable Turbopack for now to avoid source map issues
+    // turbopack: false,
+  },
 };
 
 export default nextConfig;

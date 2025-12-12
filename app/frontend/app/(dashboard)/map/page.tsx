@@ -1,12 +1,25 @@
-'use client';
+// app/(dashboard)/map/page.tsx
+import { Metadata } from 'next';
+import Map2GISClient from './Map2GISClient';
 
-import dynamic from 'next/dynamic';
+export const metadata: Metadata = {
+  title: 'Explore Map | Vibe Checker',
+  description: 'Interactive map powered by 2GIS MapGL API.',
+};
 
-const MapClient = dynamic(() => import('@/components/map/MapClient'), {
-  ssr: false,
-  loading: () => <div className="h-[calc(100vh-72px)] flex items-center justify-center">Loading Map...</div>
-});
+export default async function MapPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const mode = searchParams?.mode as string | undefined;
+  const query = typeof searchParams?.query === 'string' ? searchParams.query : undefined;
+  const userLat = typeof searchParams?.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
+  const userLon = typeof searchParams?.lon === 'string' ? parseFloat(searchParams.lon) : undefined;
 
-export default function MapPage() {
-  return <MapClient />;
+  return (
+    <div className="relative w-screen h-screen overflow-hidden bg-background">
+      <Map2GISClient mode={mode} query={query} userLat={userLat} userLon={userLon} />
+    </div>
+  );
 }

@@ -10,6 +10,7 @@ export const translations = {
       places: 'Places',
       compare: 'Compare',
       analysis: 'AI Analysis',
+      pro_mode: 'Pro Mode',
       profile: 'Profile',
       signIn: 'Sign In',
       logout: 'Log out',
