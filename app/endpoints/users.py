@@ -16,7 +16,7 @@ async def get_user_service(db: AsyncSession = Depends(get_db)):
     return UserService(repo)
 
 
-@router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def register_user(user: UserIn, service: UserService = Depends(get_user_service)):
 
     new_user = await service.register_user(user=user)
@@ -39,3 +39,15 @@ async def auth(
     auth_result = await service.auth_user(email=user.username, password=user.password)
 
     return auth_result
+
+
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
+
+    service = await get_user_service(db=db)
+
+    await service.delete_user(email=user.email)
+
+    return

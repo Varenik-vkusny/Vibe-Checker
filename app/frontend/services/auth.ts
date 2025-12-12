@@ -16,3 +16,13 @@ export const register = async (data: RegisterData) => {
   const response = await api.post<User>('/users/', data);
   return response.data;
 };
+
+export const deleteUser = async () => {
+  const token = localStorage.getItem('access_token');
+  return await api.delete('/users/', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+

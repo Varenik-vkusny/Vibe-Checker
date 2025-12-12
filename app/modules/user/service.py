@@ -62,3 +62,9 @@ class UserService:
             )
 
         return user_db
+
+    async def delete_user(self, email: str):
+
+        await self.user_repo.delete(email=email)
+
+        await self.user_repo.db.commit()

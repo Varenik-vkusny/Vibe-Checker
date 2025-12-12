@@ -6,13 +6,40 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Bookmark, Settings, Search, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { deleteUser } from '@/services/auth';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteUser();
+      logout(); // Clear local auth state
+      router.push('/login'); // Redirect to login page
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      // Optionally, show an error message to the user
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-6 max-w-[1440px] mx-auto min-h-[calc(100vh-72px)]">
@@ -87,7 +114,29 @@ export default function ProfilePage() {
 
                 <div className="flex gap-4">
                   <Button>{t.profile.saveChanges}</Button>
-                  <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">{t.profile.deleteAccount}</Button>
+                  <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
+                        {t.profile.deleteAccount}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t.profile.deleteAccount}</DialogTitle>
+                        <DialogDescription>
+                          {t.profile.confirmDeleteAccount}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                          {t.common.cancel}
+                        </Button>
+                        <Button variant="destructive" onClick={handleDeleteAccount}>
+                          {t.common.delete}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>

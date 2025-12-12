@@ -2,6 +2,10 @@ export type Language = 'en' | 'ru' | 'kz';
 
 export const translations = {
   en: {
+    common: {
+      cancel: 'Cancel',
+      delete: 'Delete',
+    },
     header: {
       places: 'Places',
       compare: 'Compare',
@@ -46,6 +50,7 @@ export const translations = {
       email: 'Email',
       saveChanges: 'Save Changes',
       deleteAccount: 'Delete Account',
+      confirmDeleteAccount: 'Are you sure you want to delete your account? This action cannot be undone.',
     },
     login: {
       welcome: 'Welcome Back',
@@ -84,6 +89,10 @@ export const translations = {
     },
   },
   ru: {
+    common: {
+      cancel: 'Отмена',
+      delete: 'Удалить',
+    },
     header: {
       places: 'Места',
       compare: 'Сравнить',
@@ -128,6 +137,7 @@ export const translations = {
       email: 'Email',
       saveChanges: 'Сохранить',
       deleteAccount: 'Удалить Аккаунт',
+      confirmDeleteAccount: 'Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.',
     },
     login: {
       welcome: 'С Возвращением',
@@ -166,6 +176,10 @@ export const translations = {
     },
   },
   kz: {
+    common: {
+      cancel: 'Бас тарту',
+      delete: 'Жою',
+    },
     header: {
       places: 'Орындар',
       compare: 'Салыстыру',
@@ -210,6 +224,7 @@ export const translations = {
       email: 'Email',
       saveChanges: 'Сақтау',
       deleteAccount: 'Аккаунтты Өшіру',
+      confirmDeleteAccount: 'Аккаунтыңызды жойғыңыз келетініне сенімдісіз бе? Бұл әрекетті болдырмау мүмкін емес.',
     },
     login: {
       welcome: 'Қайта Қош Келдіңіз',
