@@ -4,12 +4,18 @@ from logging.handlers import RotatingFileHandler
 from fastapi import FastAPI, status, Depends
 from .modules.admin.dependencies import get_current_admin_user
 from fastapi.middleware.cors import CORSMiddleware
-from .endpoints.users import router as user_router
-from .endpoints.place import router as place_router
-from app.modules.place import models as place_models
-from app.modules.user import models as user_models
+
+# Import all models here to prevent circular import errors with SQLAlchemy
+from app.modules.analysis_result import models as analysis_result_models
 from app.modules.favorites import models as favorites_models
 from app.modules.parsing import models as parsing_models
+from app.modules.place import models as place_models
+from app.modules.place_tag import models as place_tag_models
+from app.modules.tag import models as tag_models
+from app.modules.user import models as user_models
+
+from .endpoints.users import router as user_router
+from .endpoints.place import router as place_router
 from .endpoints.admin import router as admin_router
 
 

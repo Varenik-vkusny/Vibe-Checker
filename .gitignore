@@ -48,3 +48,5 @@ repomix-output.xml
 repomix.config.json
 
 backups/
+
+logs/

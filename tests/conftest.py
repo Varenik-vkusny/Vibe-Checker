@@ -102,7 +102,7 @@ async def test_user(db_session: AsyncSession) -> User:
         first_name="Test",
         last_name="User",
         hashed_password=hash_password("test_password"),
-        role="user",
+        role="USER",
     )
     db_session.add(user)
     await db_session.commit()

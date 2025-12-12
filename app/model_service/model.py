@@ -123,7 +123,7 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
             "pros": ["List of pros in Russian"],
             "cons": ["List of cons in Russian"]
         }},
-        "scores": {{ "food": int(1-10), "service": int, "atmosphere": int, "value": int }},
+        "scores": {{ "food": int(1-100), "service": int, "atmosphere": int, "value": int }},
         "vibe_score": int(0-100),
         "tags": ["List from allowed tags"],
         "price_level": "$, $$, or $$$",

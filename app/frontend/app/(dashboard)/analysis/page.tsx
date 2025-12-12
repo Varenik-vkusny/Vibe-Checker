@@ -100,7 +100,22 @@ export default function AnalysisPage() {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} hide />
                   <YAxis dataKey="name" type="category" width={100} />
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px' }} />
+                  <Tooltip 
+                    cursor={{fill: 'transparent'}} 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-popover border rounded-lg p-2 shadow-sm text-sm">
+                            <div className="font-medium mb-1">{payload[0].payload.name}</div>
+                            <div className="text-muted-foreground">
+                              Score: {payload[0].value} / 100
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                   <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>

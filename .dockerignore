@@ -5,3 +5,4 @@ venv
 .env
 repomix-output.xml
 repomix.config.json
+logs/
