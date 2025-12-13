@@ -26,6 +26,15 @@ class PlaceRepo(BaseRepo):
     async def get_by_google_id(self, google_id: str) -> Place | None:
         return await self.find_one(google_place_id=google_id)
 
+    async def get_by_google_id_with_reviews(self, google_id: str) -> Place | None:
+        query = (
+            select(self.model)
+            .options(selectinload(self.model.reviews))
+            .where(self.model.google_place_id == google_id)
+        )
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
 
 class ReviewRepo(BaseRepo):
     model = PlaceReview

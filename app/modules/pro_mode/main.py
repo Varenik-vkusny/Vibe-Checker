@@ -34,6 +34,7 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
         query=search_params.google_search_query,
         lat=user_query.lat,
         lon=user_query.lon,
+        place_repo=place_repo,
         limit_places=15,
     )
     logger.info(f"[3/6] Parsing (Google + Reviews): {time.time() - t_start:.2f}s")

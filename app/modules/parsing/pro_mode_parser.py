@@ -5,6 +5,7 @@ import asyncio
 from typing import List
 from ...config import get_settings
 from ..place.schemas import PlaceInfoDTO, Location, ReviewDTO
+from ..place.repo import PlaceRepo
 
 settings = get_settings()
 SERPAPI_API_KEY = settings.serpapi_key  # Используем тот же ключ
@@ -166,34 +167,99 @@ async def enrich_place_with_reviews(
 
 
 async def search_and_parse_places(
-    query: str, lat: float, lon: float, limit_places: int = 5
+    query: str,
+    lat: float,
+    lon: float,
+    place_repo: PlaceRepo,  # <--- ДОБАВИЛИ АРГУМЕНТ
+    limit_places: int = 5,
 ) -> List[PlaceInfoDTO]:
     """
-    Главная функция: ищет места, потом обогащает их отзывами.
-    Без изменений логики, только вызовы внутри поменялись.
+    Главная функция:
+    1. Ищет места (API).
+    2. Проверяет БД: если место есть и есть отзывы -> берет из БД.
+    3. Если нет -> тянет отзывы из API.
     """
     t0 = time.time()
 
-    # 1. Ищем места (теперь через google_maps engine)
+    # 1. Ищем кандидатов через Google Maps (поиск по локации)
+    # Это дешевый запрос, его оставляем
     candidates = await find_places_nearby(query, lat, lon, limit=limit_places)
 
     if not candidates:
         return []
 
-    # 2. Обогащаем каждое место отзывами параллельно
-    tasks = []
-    for place in candidates:
-        if place.place_id:
-            tasks.append(enrich_place_with_reviews(place.place_id, max_reviews=3))
+    # Списки для разделения задач
+    tasks_api = []
+    indices_for_api = (
+        []
+    )  # Чтобы потом знать, к какому кандидату привязать результат API
+
+    print(f"[SEARCH_AND_PARSE] Checking DB for {len(candidates)} candidates...")
+
+    for i, place_dto in enumerate(candidates):
+        if not place_dto.place_id:
+            continue
+
+        # 2. Проверяем наличие в базе данных
+        # Используем новый метод с подгрузкой отзывов
+        cached_place = await place_repo.get_by_google_id_with_reviews(
+            place_dto.place_id
+        )
+
+        # Логика кеширования: Если место есть и у него есть отзывы (например > 0)
+        # Можно добавить проверку по дате обновления (cached_place.updated_at), если нужно
+        if cached_place and cached_place.reviews and len(cached_place.reviews) > 0:
+            print(
+                f"   [CACHE HIT] Found '{place_dto.name}' in DB with {len(cached_place.reviews)} reviews."
+            )
+
+            # Маппим отзывы из БД (SQLAlchemy models) в Pydantic DTO
+            db_reviews_dto = [
+                ReviewDTO(
+                    author=rev.author_name or "Guest",
+                    rating=float(rev.rating or 0.0),
+                    date=rev.published_time or "",
+                    text=rev.text or "",
+                )
+                for rev in cached_place.reviews
+            ]
+
+            # Обновляем кандидата данными из БД
+            place_dto.reviews = db_reviews_dto
+
+            # Опционально: если в БД есть более подробное описание или фото, можно тоже подтянуть
+            if cached_place.description:
+                place_dto.description = cached_place.description
+            if cached_place.photos:
+                # cached_place.photos у тебя JSON, убедись что там список строк
+                if isinstance(cached_place.photos, list):
+                    place_dto.photos = cached_place.photos
+
         else:
-            tasks.append(asyncio.sleep(0, result=[]))
+            # Если в базе нет или нет отзывов — ставим в очередь на API запрос
+            print(f"   [CACHE MISS] '{place_dto.name}' needs API fetch.")
+            tasks_api.append(
+                enrich_place_with_reviews(place_dto.place_id, max_reviews=3)
+            )
+            indices_for_api.append(i)
 
-    reviews_results = await asyncio.gather(*tasks)
+    # 3. Выполняем запросы к API только для тех, кого не нашли в БД
+    if tasks_api:
+        print(
+            f"[SEARCH_AND_PARSE] Fetching reviews from API for {len(tasks_api)} places..."
+        )
+        reviews_results = await asyncio.gather(*tasks_api)
 
-    for place, reviews in zip(candidates, reviews_results):
-        if reviews:
-            place.reviews = reviews
-            print(f"   -> Added {len(reviews)} reviews to '{place.name}'")
+        # Привязываем результаты обратно к кандидатам
+        for idx_in_candidates, reviews in zip(indices_for_api, reviews_results):
+            candidate = candidates[idx_in_candidates]
+            if reviews:
+                candidate.reviews = reviews
+                print(
+                    f"   -> Added {len(reviews)} reviews to '{candidate.name}' (from API)"
+                )
+    else:
+        print("[SEARCH_AND_PARSE] All reviews fetched from DB! No API calls needed.")
 
     print(f"[SEARCH_AND_PARSE] Total took {time.time() - t0:.2f}s")
     return candidates

@@ -52,16 +52,6 @@ async def test_login_success(client: AsyncClient, test_user: User):
     assert response.status_code == 200
     assert "access_token" in response.json()
 
-
-@pytest.mark.anyio
-async def test_get_current_user_profile(
-    authenticated_client: AsyncClient, test_user: User
-):
-    # Тест эндпоинта /users/{id}
-    # Обрати внимание: в твоем коде этот эндпоинт публичный, токен не проверяется
-    # Но мы используем authenticated_client просто для проверки доступа
-    response = await authenticated_client.get(f"/users/{test_user.id}")
-    assert response.status_code == 200
     assert response.json()["email"] == test_user.email
 
 

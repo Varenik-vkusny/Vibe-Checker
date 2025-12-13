@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from httpx import AsyncClient
+from unittest.mock import AsyncMock
 
 # Импортируем модели БД
 from app.modules.place.models import Place
@@ -77,9 +78,10 @@ async def test_analyze_place_new_entry(
 ):
     """Тест создания нового анализа (вызов парсера)."""
 
-    mocker.patch(
+        mocker.patch(
         "app.services.service_analyzator.get_ai_analysis",
         return_value=(MOCK_PLACE_DTO, MOCK_AI_ANALYSIS),
+        new_callable=AsyncMock,
     )
 
     payload = {"url": "https://maps.google.com/?q=new_place", "limit": 5}
@@ -164,14 +166,16 @@ async def test_compare_places(authenticated_client: AsyncClient, mocker):
         place_info=MOCK_PLACE_INFO_SCHEMA, ai_analysis=MOCK_AI_ANALYSIS
     )
 
-    mocker.patch(
+        mocker.patch(
         "app.services.service_comparator.get_or_create_place_analysis",
         return_value=mock_analysis_response,
+        new_callable=AsyncMock,
     )
 
     mocker.patch(
         "app.services.service_comparator.compare_places_with_gemini",
         return_value=MOCK_COMPARISON,
+        new_callable=AsyncMock,
     )
 
     payload = {
@@ -204,7 +208,7 @@ async def test_pro_analyze_vector_search(authenticated_client: AsyncClient, mock
         ]
     }
 
-    mocker.patch("app.endpoints.place.get_places_by_vibe", return_value=mock_response)
+    mocker.patch("app.endpoints.place.get_places_by_vibe", return_value=mock_response, new_callable=AsyncMock)
 
     payload = {
         "query": "quiet bar",

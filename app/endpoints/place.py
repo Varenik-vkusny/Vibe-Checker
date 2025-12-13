@@ -12,6 +12,8 @@ from ..services.service_analyzator import get_or_create_place_analysis
 from ..services.service_comparator import compare_places_service
 from ..modules.pro_mode.schemas import FinalResponse, UserRequest
 from ..modules.pro_mode.main import get_places_by_vibe
+from app.modules.user.activity_service import log_user_action
+from app.modules.user.models import ActionType
 
 router = APIRouter()
 
@@ -52,5 +54,7 @@ async def pro_place_analyze(
 ):
 
     result = await get_places_by_vibe(user_query=user, db=db)
+
+    await log_user_action(db, user_auth.id, ActionType.SEARCH, {"query": user.query})
 
     return result
