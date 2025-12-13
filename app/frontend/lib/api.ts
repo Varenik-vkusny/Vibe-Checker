@@ -2,10 +2,11 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'ax
 import { getCookie } from 'cookies-next';
 import { handleMockRequest } from './mockApi';
 
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === 'false';
+// FIX: Correct logic. If ENV is 'true', USE_MOCK_API is true.
+const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: '/api', // When mock is false, this hits next.config.ts rewrites -> Django
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,6 +23,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 // Mock API Interceptor
 if (USE_MOCK_API) {
+  console.log('--- MOCK API ENABLED ---');
   api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     // Skip if it's an external URL (like OpenStreetMap)
     if (config.url?.startsWith('http')) {
@@ -31,7 +33,6 @@ if (USE_MOCK_API) {
     const [status, data] = await handleMockRequest(config);
     
     // Throw an error to bypass the actual network request
-    // We attach the mock response to the error object to be caught by the response interceptor
     const error: any = new Error('Mock Request');
     error.mockResponse = {
         data,

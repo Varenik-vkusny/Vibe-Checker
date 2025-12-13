@@ -1,25 +1,32 @@
-// app/(dashboard)/map/page.tsx
 import { Metadata } from 'next';
-import Map2GISClient from './Map2GISClient';
+import MapClient from './MapClient'; // Убедись, что импорт правильный (MapClient.tsx в той же папке)
 
 export const metadata: Metadata = {
-  title: 'Explore Map | Vibe Checker',
+  title: 'Map | Vibe Checker',
   description: 'Interactive map powered by 2GIS MapGL API.',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0', // Важно для мобилок
 };
 
-export default async function MapPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const mode = searchParams?.mode as string | undefined;
-  const query = typeof searchParams?.query === 'string' ? searchParams.query : undefined;
-  const userLat = typeof searchParams?.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
-  const userLon = typeof searchParams?.lon === 'string' ? parseFloat(searchParams.lon) : undefined;
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function MapPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const mode = typeof resolvedParams.mode === 'string' ? resolvedParams.mode : undefined;
+  const query = typeof resolvedParams.query === 'string' ? resolvedParams.query : undefined;
+  const userLat = typeof resolvedParams.lat === 'string' ? parseFloat(resolvedParams.lat) : undefined;
+  const userLon = typeof resolvedParams.lon === 'string' ? parseFloat(resolvedParams.lon) : undefined;
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-background">
-      <Map2GISClient mode={mode} query={query} userLat={userLat} userLon={userLon} />
-    </div>
+    // fixed inset-0 и overflow-hidden убивают любой скролл
+    <main className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-background overscroll-none touch-none">
+      <MapClient 
+        mode={mode} 
+        query={query} 
+        userLat={userLat} 
+        userLon={userLon} 
+      />
+    </main>
   );
 }

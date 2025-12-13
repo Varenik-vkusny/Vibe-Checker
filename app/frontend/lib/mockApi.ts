@@ -18,97 +18,123 @@ const MOCK_TOKEN = {
   token_type: 'bearer',
 };
 
-const MOCK_PLACES = [
+// Richer Place Data for UI
+const MOCK_PLACES_DETAILED = [
   {
-    name: 'The Cozy Corner',
-    address: '123 High St, London',
-    match_score: 95,
-    reason: 'Perfect match for "cozy cafe with wifi". Great atmosphere and quiet corners.',
+    id: '1',
+    name: 'Burger King Center',
+    address: 'Fast Food • 1.2km away',
+    match_score: 98,
+    rating: 4.8,
+    reviewCount: 262,
+    category: 'Fast Food',
+    priceLevel: '$$',
+    openStatus: 'Open Now',
+    tags: ['Fast', 'Cheap', 'Student Friendly'],
+    reason: 'High energy, fast service, popular with students.',
     lat: 51.505,
     lon: -0.09,
+    description: 'High energy, fast service, popular with students.',
+    subRatings: { food: 85, service: 90 },
+    vibeSignature: { noise: 'High', light: 'Bright', wifi: 'Fast' },
+    crowdMakeup: { students: 60, families: 30, remote: 10 }
   },
   {
-    name: 'Brew & Bean',
-    address: '456 Oxford St, London',
-    match_score: 88,
-    reason: 'Good coffee and wifi, but can be a bit busy.',
+    id: '2',
+    name: 'KFC Downtown',
+    address: 'Chicken • 0.5km away',
+    match_score: 85,
+    rating: 4.5,
+    reviewCount: 180,
+    category: 'Chicken',
+    priceLevel: '$',
+    openStatus: 'Closed',
+    tags: ['Crispy', 'Casual'],
+    reason: 'Classic spot, good for quick bites.',
     lat: 51.51,
     lon: -0.1,
+    description: 'A reliable spot for late night cravings.',
+    subRatings: { food: 80, service: 70 },
+    vibeSignature: { noise: 'Medium', light: 'Neon', wifi: 'No' },
+    crowdMakeup: { students: 80, families: 10, remote: 10 }
   },
   {
-    name: 'Library Lounge',
-    address: '789 King Rd, London',
+    id: '3',
+    name: "McDonald's",
+    address: 'Burgers • 2.0km away',
     match_score: 92,
-    reason: 'Very quiet, excellent for working.',
+    rating: 4.7,
+    reviewCount: 500,
+    category: 'Burgers',
+    priceLevel: '$',
+    openStatus: 'Open Now',
+    tags: ['Classic', '24/7'],
+    reason: 'Reliable wifi and consistent coffee.',
     lat: 51.515,
     lon: -0.095,
+    description: 'Standard McD experience, surprisingly quiet in the mornings.',
+    subRatings: { food: 75, service: 95 },
+    vibeSignature: { noise: 'Medium', light: 'Bright', wifi: 'Fast' },
+    crowdMakeup: { students: 20, families: 60, remote: 20 }
   },
 ];
 
-const MOCK_COMPARISON = {
-  comparison: {
-    verdict: 'The Cozy Corner',
-    place_a_unique_pros: ['Quieter atmosphere', 'Better coffee', 'More comfortable seating'],
-    place_b_unique_pros: ['Cheaper options', 'Open later'],
-    winner_category: {
-      food: 'The Cozy Corner',
-      service: 'The Cozy Corner',
-      atmosphere: 'The Cozy Corner',
-      value: 'Brew & Bean',
-    },
-  },
-  place_a: { name: 'The Cozy Corner' },
-  place_b: { name: 'Brew & Bean' },
-};
+// ... (Comparison and Analysis mocks remain similar) ...
 
-const MOCK_ANALYSIS = {
-  place_info: { name: 'The Cozy Corner' },
-  ai_analysis: {
-    summary: { verdict: 'A delightful spot for remote work and relaxation.' },
-    tags: ['Cozy', 'Quiet', 'Good Coffee', 'WiFi'],
-    scores: {
-      food: 85,
-      service: 90,
-      atmosphere: 95,
-      value: 80,
-    },
-    detailed_attributes: {
-      noise_level: 'Low',
-      service_speed: 'Fast',
-      cleanliness: 'Immaculate',
-    },
-    price_level: '$$',
-  },
-};
-
-// Mock Handler
 export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any> => {
   const { url, method } = config;
   
-  console.log(`[Mock API] ${method?.toUpperCase()} ${url}`);
+  // Normalize URL to handle potential /api prefix if the interceptor doesn't strip it
+  const cleanUrl = url?.replace(/^\/api/, '') || '';
 
-  await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+  console.log(`[Mock API] ${method?.toUpperCase()} ${cleanUrl}`);
 
-  if (url === '/users/token' && method === 'post') {
+  await new Promise(resolve => setTimeout(resolve, 600)); 
+
+  if (cleanUrl === '/users/token' && method === 'post') {
     return [200, MOCK_TOKEN];
   }
 
-  if (url === '/users/' && method === 'post') {
+  if (cleanUrl === '/users/' && method === 'post') {
     return [200, MOCK_USER];
   }
-
-  if (url === '/place/pro_analyze' && method === 'post') {
-    return [200, { recommendations: MOCK_PLACES }];
+  
+  if (cleanUrl === '/users/me' && method === 'get') {
+    return [200, { ...MOCK_USER, role: 'USER' }];
   }
 
-  if (url === '/place/compare' && method === 'post') {
-    return [200, MOCK_COMPARISON];
+  // Updated to return the detailed structure
+  if (cleanUrl === '/place/pro_analyze' && method === 'post') {
+    return [200, { recommendations: MOCK_PLACES_DETAILED }];
   }
 
-  if (url === '/place/analyze' && method === 'post') {
-    return [200, MOCK_ANALYSIS];
+  // Fallback for analysis
+  if (cleanUrl === '/place/analyze' && method === 'post') {
+    return [200, { 
+      place_info: { name: 'Mock Place' }, 
+      ai_analysis: { 
+        summary: { verdict: 'Great place!' }, 
+        tags: ['Cozy'], 
+        scores: { food: 80, service: 80, atmosphere: 80, value: 80 },
+        detailed_attributes: { noise_level: 'Low' },
+        price_level: '$$'
+      } 
+    }];
   }
 
-  // Default 404
+  if (cleanUrl === '/place/compare' && method === 'post') {
+      // Return simple mock for compare
+      return [200, { 
+          comparison: { 
+              verdict: 'Place A wins', 
+              place_a_unique_pros: ['Good'], 
+              place_b_unique_pros: ['Okay'],
+              winner_category: { food: 'Place A', service: 'Place A', atmosphere: 'Place B', value: 'Place A' }
+          },
+          place_a: { name: 'Place A' },
+          place_b: { name: 'Place B' }
+      }];
+  }
+
   return [404, { message: 'Mock endpoint not found' }];
 };

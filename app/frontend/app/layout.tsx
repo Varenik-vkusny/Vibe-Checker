@@ -1,34 +1,36 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/lib/auth";
-import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import './globals.css';
+import { NavProvider } from '@/context/NavContext';
+import { GlobalNav } from '@/components/GlobalNav';
+import { ThemeProvider } from '@/components/theme-provider'; 
+import { LanguageProvider } from '@/lib/i18n/LanguageContext'; 
+// !!! НОВЫЙ ИМПОРТ !!!
+import { AuthProvider } from '@/lib/auth'; // <--- Замените на реальный путь
 
-export const metadata: Metadata = {
-  title: "Vibe Checker",
-  description: "Find your perfect spot",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <LanguageProvider>
-              {children}
-            </LanguageProvider>
-          </AuthProvider>
-        </ThemeProvider>
+      <body>
+        
+        {/*
+          ПОРЯДОК: Auth часто является самым внешним, так как 
+          другие компоненты (Тема, Язык) могут зависеть от состояния пользователя.
+        */}
+        <AuthProvider> 
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <NavProvider>
+              <LanguageProvider>
+                
+                <GlobalNav />
+                
+                <div className="md:pt-16 min-h-screen">
+                  {children}
+                </div>
+
+              </LanguageProvider>
+            </NavProvider>
+          </ThemeProvider>
+        </AuthProvider>
+        
       </body>
     </html>
   );

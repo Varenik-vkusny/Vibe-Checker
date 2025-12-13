@@ -161,3 +161,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+html, body {
+  overflow-x: hidden; /* Убираем горизонтальный скролл */
+}
+.fixed.inset-0 {
+  /* Для контейнера карты */
+  overflow: hidden !important; 
+}
