@@ -14,10 +14,11 @@ from app.modules.place_tag import models as place_tag_models
 from app.modules.tag import models as tag_models
 from app.modules.user import models as user_models
 
+
 from .endpoints.users import router as user_router
 from .endpoints.place import router as place_router
 from .endpoints.admin import router as admin_router
-
+from .endpoints.recommendation import router as recommendation_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -77,8 +78,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 app.include_router(user_router, prefix="/users")
 app.include_router(place_router, prefix="/place")
+app.include_router(
+    recommendation_router,
+    prefix="/rec",
+    tags=["Recommendations"],
+)
 app.include_router(
     admin_router,
     prefix="/admin",
