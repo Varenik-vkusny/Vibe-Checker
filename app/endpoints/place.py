@@ -27,6 +27,16 @@ async def get_place_analysis(
 
     result = await get_or_create_place_analysis(url=place.url, db=db, limit=place.limit)
 
+    try:
+        payload = {
+            "place_name": result.place_info.name,
+            "url": place.url,
+            "tags": result.ai_analysis.tags[:5] if result.ai_analysis.tags else [],
+        }
+        await log_user_action(db, user_auth.id, ActionType.ANALYZE, payload)
+    except Exception as e:
+        print(f"Log error: {e}")
+
     return result
 
 
@@ -40,6 +50,16 @@ async def compare_places(
     compare_result = await compare_places_service(
         urla=places.url_a, urlb=places.url_b, limit=places.limit, db=db
     )
+
+    try:
+        payload = {
+            "place_a": compare_result.place_a.name,
+            "place_b": compare_result.place_b.name,
+            "winner": compare_result.comparison.verdict,
+        }
+        await log_user_action(db, user_auth.id, ActionType.COMPARE, payload)
+    except Exception as e:
+        print(f"Log error: {e}")
 
     return compare_result
 

@@ -14,8 +14,9 @@ class UserRole(str, enum.Enum):
 class ActionType(str, enum.Enum):
     SEARCH = "SEARCH"
     VIEW_PLACE = "VIEW_PLACE"
-    ADD_FAVORITE = "ADD_FAVORITE"
     INSPIRE_REQUEST = "INSPIRE_REQUEST"
+    ANALYZE = "ANALYZE"
+    COMPARE = "COMPARE"
 
 
 class UserLog(Base):

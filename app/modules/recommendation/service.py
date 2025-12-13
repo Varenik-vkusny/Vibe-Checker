@@ -66,22 +66,36 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
     # Добавляем историю поиска
     recent_searches = []
     for log in logs:
-        # Пропускаем, если payload пустой или битый
-        if not log.payload:
-            continue
-
         try:
-            # Если payload это dict (JSONB), используем сразу. Если строка - парсим.
             data = (
                 log.payload
                 if isinstance(log.payload, dict)
                 else json.loads(log.payload)
             )
 
+            # 1. Если искал (SEARCH)
             if log.action_type == ActionType.SEARCH:
-                query = data.get("query")
-                if query:
-                    recent_searches.append(query)
+                q = data.get("query")
+                if q:
+                    recent_searches.append(q)
+
+            # 2. Если детально АНАЛИЗИРОВАЛ (ANALYZE) - Сильный сигнал
+            elif log.action_type == ActionType.ANALYZE:
+                p_name = data.get("place_name")
+                tags = data.get("tags", [])
+                if p_name:
+                    # Добавляем в контекст: "Интересовался местом X (Теги: ...)"
+                    context_parts.append(
+                        f"Interested in: {p_name} ({', '.join(tags)})."
+                    )
+
+            # 3. Если СРАВНИВАЛ (COMPARE)
+            elif log.action_type == ActionType.COMPARE:
+                pa = data.get("place_a")
+                pb = data.get("place_b")
+                if pa and pb:
+                    context_parts.append(f"Compared {pa} vs {pb}.")
+
         except Exception:
             continue
 
