@@ -42,3 +42,4 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     favorites = relationship("Favorite", back_populates="user")
     logs = relationship("UserLog", back_populates="user")
+    interactions = relationship("UserInteraction", back_populates="user")

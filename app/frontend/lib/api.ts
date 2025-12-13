@@ -3,7 +3,7 @@ import { getCookie } from 'cookies-next';
 import { handleMockRequest } from './mockApi';
 
 // FIX: Correct logic. If ENV is 'true', USE_MOCK_API is true.
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
+const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === 'false';
 
 const api = axios.create({
   baseURL: '/api', // When mock is false, this hits next.config.ts rewrites -> Django

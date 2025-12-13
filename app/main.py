@@ -13,12 +13,14 @@ from app.modules.place import models as place_models
 from app.modules.place_tag import models as place_tag_models
 from app.modules.tag import models as tag_models
 from app.modules.user import models as user_models
+from app.modules.interactions import models as inter_models
 
 
 from .endpoints.users import router as user_router
 from .endpoints.place import router as place_router
 from .endpoints.admin import router as admin_router
 from .endpoints.recommendation import router as recommendation_router
+from .endpoints.interaction import router as interaction_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -92,6 +94,7 @@ app.include_router(
     tags=["Admin Panel"],
     dependencies=[Depends(get_current_admin_user)],
 )
+app.include_router(interaction_router, prefix="/interactions", tags=["Interactions"])
 
 
 @app.get("/", status_code=status.HTTP_200_OK)

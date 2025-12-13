@@ -1,5 +1,6 @@
 export interface LocationData {
-  id: string;
+  id: string; 
+  place_id?: number;
   name: string;
   address: string;
   coordinates: [number, number]; 
@@ -30,4 +31,9 @@ export interface LocationData {
     remote: number;
   };
   imageUrl?: string;
+  userInteraction?: {
+    isLiked: boolean;
+    isDisliked: boolean;
+    isVisited: boolean;
+  };
 }

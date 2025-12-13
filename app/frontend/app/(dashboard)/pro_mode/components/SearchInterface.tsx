@@ -1,4 +1,5 @@
 import { Search, SendHorizonal } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface Props {
   inputValue: string;
@@ -53,6 +54,22 @@ export const SearchInterface = ({ inputValue, setInputValue, onSubmit, onSuggest
           </button>
         </div>
       </form>
+
+      <div className="flex items-center gap-4 w-full justify-center">
+        <div className="h-px bg-white/10 flex-1"></div>
+        <span className="text-xs text-neutral-500 font-mono">OR</span>
+        <div className="h-px bg-white/10 flex-1"></div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onSuggestion("INSPIRE_ME_ACTION")} 
+        className="group relative flex items-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 hover:border-pink-500/50 hover:from-pink-500/20 hover:to-purple-500/20 transition-all duration-300"
+      >
+        <Sparkles className="w-4 h-4 text-pink-400 animate-pulse" />
+        <span className="text-sm font-medium text-pink-200">Surprise me (AI Recommendation)</span>
+        <div className="absolute inset-0 rounded-xl bg-pink-500/20 blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
+      </button>
 
       {/* Suggestions */}
       <div className="flex flex-wrap justify-center gap-3">

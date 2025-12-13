@@ -3,9 +3,12 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Volume2, Sun, Wifi, Sparkles, ChevronRight, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Volume2, Sun, Wifi, Sparkles, ChevronRight, MapPin, Star, ThumbsUp, ThumbsDown, CheckCircle } from 'lucide-react';
 import { LocationData } from '@/types/location';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+// Убедись, что путь к сервису правильный (interaction.ts или interactions.ts)
+import { interactWithPlace, markVisited } from '@/services/interaction'; 
 
 interface ResultsSidebarProps {
   locations: LocationData[];
@@ -28,7 +31,7 @@ export const ResultsSidebar = ({
   
   if (!isVisible) return null;
 
-  // Helper for crowd bar visualization and legend
+  // Helper for crowd bar visualization
   const renderCrowdBar = (makeup: LocationData['crowdMakeup']) => {
     const data = makeup || { students: 33, families: 33, remote: 34 };
     return (
@@ -53,7 +56,7 @@ export const ResultsSidebar = ({
       {/* === HEADER AREA (Sticky) === */}
       <div className="shrink-0 border-b border-[#222] bg-[#0F0F0F] z-10">
         {selectedLocation ? (
-          // DETAIL HEADER: Explicit Back Button
+          // DETAIL HEADER: Back Button
           <div className="p-4 flex items-center gap-2">
             <Button 
               variant="ghost" 
@@ -81,7 +84,7 @@ export const ResultsSidebar = ({
 
       <ScrollArea className="flex-1">
         {selectedLocation ? (
-          /* === DETAIL CONTENT (Image 4 Style) === */
+          /* === DETAIL CONTENT === */
           <div className="p-6 space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             
             {/* Hero Info */}
@@ -104,8 +107,13 @@ export const ResultsSidebar = ({
                   {selectedLocation.priceLevel || '$$'}
                 </span>
               </div>
+              
+              {/* INTERACTION BUTTONS (Like/Visit) */}
+              <div className="flex gap-2 mt-6">
+                 <InteractionButtons place={selectedLocation} />
+              </div>
             </div>
-
+            
             {/* Rating Card */}
             <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-5 flex gap-5 items-center">
               <div className="text-center shrink-0">
@@ -114,8 +122,6 @@ export const ResultsSidebar = ({
               </div>
               <div className="flex-1 space-y-2">
                 <div className="text-xs text-neutral-400 mb-1">Based on sub-ratings:</div>
-                
-                {/* Progress Bars */}
                 <div className="grid grid-cols-[50px_1fr] items-center gap-2 text-xs">
                   <span className="text-neutral-400">Food</span>
                   <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
@@ -168,7 +174,7 @@ export const ResultsSidebar = ({
             <div className="h-8"/>
           </div>
         ) : (
-          /* === LIST CONTENT (Image 3 Style) === */
+          /* === LIST CONTENT === */
           <div className="px-4 pb-4 space-y-3">
             {locations.map((loc) => (
               <div 
@@ -176,7 +182,6 @@ export const ResultsSidebar = ({
                 onClick={() => onSelect(loc)}
                 className="group p-4 bg-[#151515] border border-[#222] hover:border-neutral-600 hover:bg-[#1A1A1A] rounded-xl cursor-pointer transition-all duration-200 flex gap-4"
               >
-                {/* Score Badge */}
                 <div className="w-12 h-12 rounded-lg bg-[#222] flex flex-col items-center justify-center shrink-0 border border-[#333]">
                   <span className="text-lg font-bold text-white">{loc.rating?.toFixed(1)}</span>
                   <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
@@ -214,7 +219,7 @@ export const ResultsSidebar = ({
   );
 };
 
-// Helper Component for Vibe Metrics
+// Helper Components
 const VibeMetric = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) => (
   <div className="bg-[#1A1A1A] border border-[#2A2A2A] p-3 rounded-xl flex flex-col items-center justify-center text-center gap-1">
     <Icon className={`w-5 h-5 ${color} mb-1`} />
@@ -222,3 +227,59 @@ const VibeMetric = ({ icon: Icon, label, value, color }: { icon: any, label: str
     <span className="text-sm font-semibold text-white">{value}</span>
   </div>
 );
+
+const InteractionButtons = ({ place }: { place: LocationData }) => {
+  const [liked, setLiked] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
+  const [visited, setVisited] = useState(false);
+
+  const handleRate = async (type: 'LIKE' | 'DISLIKE') => {
+      const newVal = liked === type ? 'NONE' : type;
+      setLiked(newVal);
+      // Проверка на наличие ID из базы данных (важно для бэкенда)
+      if (place.place_id) {
+          try {
+              await interactWithPlace(place.place_id, newVal);
+          } catch(e) { console.error(e); }
+      }
+  };
+
+  const handleVisit = async () => {
+      const newVal = !visited;
+      setVisited(newVal);
+      if (place.place_id) {
+          try {
+              await markVisited(place.place_id, newVal);
+          } catch(e) { console.error(e); }
+      }
+  };
+
+  return (
+    <div className="flex gap-2 w-full">
+        <Button 
+            variant="outline" size="sm" 
+            className={`flex-1 h-9 gap-1.5 ${liked === 'LIKE' ? 'bg-green-500/20 text-green-500 border-green-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
+            onClick={(e) => { e.stopPropagation(); handleRate('LIKE'); }}
+        >
+            <ThumbsUp className="w-3.5 h-3.5" />
+            <span className="text-xs">Like</span>
+        </Button>
+
+        <Button 
+            variant="outline" size="sm" 
+            className={`flex-1 h-9 gap-1.5 ${liked === 'DISLIKE' ? 'bg-red-500/20 text-red-500 border-red-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
+            onClick={(e) => { e.stopPropagation(); handleRate('DISLIKE'); }}
+        >
+            <ThumbsDown className="w-3.5 h-3.5" />
+        </Button>
+
+        <Button 
+            variant="outline" size="sm" 
+            className={`flex-1 h-9 gap-1.5 ${visited ? 'bg-blue-500/20 text-blue-500 border-blue-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
+            onClick={(e) => { e.stopPropagation(); handleVisit(); }}
+        >
+            <CheckCircle className="w-3.5 h-3.5" />
+            <span className="text-xs">Visited</span>
+        </Button>
+    </div>
+  );
+};
