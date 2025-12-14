@@ -119,7 +119,13 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
         scores: { food: 80, service: 80, atmosphere: 80, value: 80 },
         detailed_attributes: { noise_level: 'Low' },
         price_level: '$$'
-      }
+      },
+      photos: [
+        "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800",
+        "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800",
+        "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=800",
+        "https://images.unsplash.com/photo-1493857671505-72967e2e2760?q=80&w=800"
+      ]
     }];
   }
 

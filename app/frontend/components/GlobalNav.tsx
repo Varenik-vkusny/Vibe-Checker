@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useNav } from '@/context/NavContext';
-import { GitCompare, Map, Search, User, Sun, Moon, LogOut, ShieldCheck, Command } from 'lucide-react';
+import { GitCompare, Map as MapIcon, Search, User, Sun, Moon, LogOut, ShieldCheck, Command, Sparkles, Bookmark, BarChart2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
@@ -27,6 +27,11 @@ export const GlobalNav = () => {
 
   const isActive = (path: string) => pathname === path;
 
+  // Hybrid Navigation Logic
+  // Map & Pro Mode -> Floating Island (Exploration Mode)
+  // Analysis, Profile, Compare -> Fixed Bottom Bar (Data Mode)
+  const isExplorationMode = pathname === '/map' || pathname === '/pro_mode' || pathname === '/';
+
   // Helper to get Page Name for Breadcrumb
   const getPageTitle = (path: string) => {
     if (path === '/') return 'Home';
@@ -42,6 +47,7 @@ export const GlobalNav = () => {
     { name: t.header.places, href: '/map' },
     { name: t.header.compare, href: '/compare' },
     { name: t.header.analysis, href: '/analysis' },
+    { name: 'Bookmarks', href: '/bookmarks' },
     { name: t.header.pro_mode, href: '/pro_mode' },
   ];
 
@@ -59,7 +65,7 @@ export const GlobalNav = () => {
             </Link>
           </div>
 
-          {/* --- ZONE 2: NAV ISLAND (CENTER) - Hidden on Mobile --- */}
+          {/* --- ZONE 2: NAV ISLAND (CENTER) - Hidden on Mobile, Visible on Desktop --- */}
           <nav className="hidden md:flex items-center justify-center gap-1">
             {navItems.map((item) => {
               const active = isActive(item.href);
@@ -88,13 +94,6 @@ export const GlobalNav = () => {
             <div className="hidden md:flex items-center gap-3">
               <LanguageSwitcher />
 
-              {/* Command Hint */}
-              <div className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 border border-zinc-200 dark:border-zinc-800 rounded bg-zinc-50 dark:bg-zinc-900/50">
-                <span className="text-xs text-zinc-400 font-medium font-mono flex items-center gap-0.5">
-                  <Command className="w-3 h-3" />K
-                </span>
-              </div>
-
               <div className="h-4 w-[1px] bg-zinc-200 dark:bg-zinc-800 mx-1"></div>
 
               {/* Segmented Theme Toggle */}
@@ -114,7 +113,7 @@ export const GlobalNav = () => {
               </div>
             </div>
 
-            {/* Mobile Actions: Theme + Language + Profile */}
+            {/* Mobile Actions: Theme + Language */}
             <div className="flex md:hidden items-center gap-1">
               <LanguageSwitcher />
               <Button
@@ -176,46 +175,56 @@ export const GlobalNav = () => {
         </div>
       </header>
 
-      {/* Mobile Fixed Bottom Nav - Floating Island */}
-      <nav
-        className={`
-          md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50
-          h-16 px-8
-          bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg
-          border border-zinc-200 dark:border-zinc-800
-          shadow-xl shadow-zinc-200/50 dark:shadow-black/50
-          rounded-full
-          flex items-center gap-10
-          transition-transform duration-300 cubic-bezier(0.32, 0.72, 0, 1)
-          ${isNavHidden ? 'translate-y-[200%]' : 'translate-y-0'}
-        `}
-      >
-        {[
-          { name: 'Map', href: '/map', icon: Map },
-          { name: 'Search', href: '/pro_mode', icon: Search },
-          { name: 'Profile', href: '/profile', icon: User },
-        ].map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`
-                  relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300
-                  ${active
-                  ? 'bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 scale-110 shadow-md'
-                  : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                }
-                `}
-            >
-              <item.icon className="w-5 h-5" strokeWidth={2.5} />
-              {active && (
-                <span className="absolute -bottom-2 w-1 h-1 bg-zinc-900 dark:bg-zinc-50 rounded-full opacity-0"></span>
-              )}
-            </Link>
-          );
-        })}
+      {/* --- MOBILE NAVIGATION --- */}
+
+      {/* 1. FLOATING ISLAND (Exploration Mode: Map, Pro Mode) */}
+      {/* 1. FLOATING ISLAND (Exploration Mode: Map, Pro Mode) */}
+      {/* --- MOBILE FIXED NAV (5 Pillars) --- */}
+      <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 z-50 pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-5 h-full items-center px-1">
+
+          {/* 1. Analysis */}
+          <Link href="/analysis" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/analysis') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
+            <BarChart2 className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Analysis</span>
+          </Link>
+
+          {/* 2. Compare */}
+          <Link href="/compare" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/compare') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
+            <GitCompare className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Compare</span>
+          </Link>
+
+          {/* 3. SEARCH (Center Focus) */}
+          <Link href="/pro_mode" className="flex flex-col items-center justify-center -mt-6">
+            <div className={`
+                 w-14 h-14 rounded-full 
+                 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 
+                 shadow-lg shadow-zinc-900/20 dark:shadow-zinc-50/20
+                 ring-4 ring-white dark:ring-zinc-950
+                 flex items-center justify-center
+                 transition-transform active:scale-95
+              `}>
+              <Sparkles className="w-6 h-6" strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-bold mt-1 text-zinc-900 dark:text-zinc-50">Search</span>
+          </Link>
+
+          {/* 4. Bookmarks */}
+          <Link href="/bookmarks" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/bookmarks') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
+            <Bookmark className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Saved</span>
+          </Link>
+
+          {/* 5. Profile */}
+          <Link href="/profile" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/profile/settings') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Profile</span>
+          </Link>
+
+        </div>
       </nav>
+
     </>
   );
 };

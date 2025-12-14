@@ -1,10 +1,16 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import MapClient from './MapClient'; // Убедись, что импорт правильный (MapClient.tsx в той же папке)
 
 export const metadata: Metadata = {
   title: 'Map | Vibe Checker',
   description: 'Interactive map powered by 2GIS MapGL API.',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0', // Важно для мобилок
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 interface PageProps {

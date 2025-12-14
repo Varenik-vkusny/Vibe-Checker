@@ -1,37 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Search, ChevronUp, MapPin, Star, ArrowLeft, Navigation, Sparkles, Wifi, Sun, Volume2 } from 'lucide-react';
-import { LocationData } from '@/types/location'; // Или интерфейс локально
+import { Sparkles, Wifi, Sun, Volume2, Coffee, Armchair, Laptop, ChevronLeft, ArrowRight, GitCompare } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { LocationData } from '@/types/location';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { DirectionsButton } from '@/components/map/DirectionsButton';
 
 interface MobileBottomSheetProps {
   locations: LocationData[];
   selectedLocation: LocationData | null;
   onSelect: (loc: LocationData) => void;
   onClose: () => void;
-  // В interface MobileBottomSheetProps добавь:
   onExpandChange?: (isExpanded: boolean) => void;
+  onClearSelection?: () => void;
 }
 
-export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClose, onExpandChange }: MobileBottomSheetProps) => {
+export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClose, onExpandChange, onClearSelection }: MobileBottomSheetProps) => {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Auto-expand on selection, collapse on deselect (or distinct logic)
+  // Auto-collapse on new selection to show "Peek" view
   useEffect(() => {
     if (selectedLocation) {
-      // Start collapsed mostly? Or expanded? User said "Collapsed State: Shows only Top Result... Expanded State: Slides up"
-      // Assuming initial state is collapsed if user just searched, but if they clicked a pin, maybe collapsed first?
-      // Let's go with Collapsed by default when selecting a pin, user taps to expand.
-      // Or 40% height.
-      // "Collapsed State: Shows only 'Top Result' name + 'Vibe Score'".
-      setIsExpanded(false);
-      onExpandChange?.(false);
+      setIsExpanded(true);
+      onExpandChange?.(true);
     }
   }, [selectedLocation]);
 
@@ -41,14 +37,24 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
     onExpandChange?.(newState);
   };
 
+  const MOCK_PHOTOS = [
+    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=400",
+    "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=400",
+    "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=400",
+    "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
+  ];
+
   return (
-    <div
+    <motion.div
+      initial={false}
+      animate={{
+        height: isExpanded ? 'auto' : selectedLocation ? 95 : 160
+      }}
+      transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
       className={`
-        md:hidden fixed bottom-0 left-0 w-full z-40
+        md:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40
         bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]
-        transition-all duration-500 cubic-bezier(0.32, 0.72, 0, 1)
-        rounded-t-[32px] overflow-hidden flex flex-col
-        ${isExpanded ? 'h-[85vh]' : 'h-[160px]'}
+        rounded-t-[32px] overflow-hidden flex flex-col max-h-[80vh]
       `}
     >
       {/* --- HANDLE & HEADER (Always Visible) --- */}
@@ -56,14 +62,24 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
         onClick={toggleSheet}
         className="w-full shrink-0 pt-3 pb-4 px-6 bg-white dark:bg-zinc-900 cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors"
       >
-        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6" />
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-4" />
 
-        {/* Collapsed Content Preview */}
+        {/* Header Content */}
         {selectedLocation ? (
-          <div className="flex justify-between items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex justify-between items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
-              <h2 className="text-xl font-bold truncate max-w-[250px]">{selectedLocation.name}</h2>
-              <p className="text-sm text-zinc-500">{selectedLocation.category} • {selectedLocation.distance || '1.2km'}</p>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => { e.stopPropagation(); onClearSelection?.(); }}
+                  className="p-1 -ml-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  <ChevronLeft className="w-5 h-5 text-zinc-500" />
+                </motion.button>
+                <h2 className="text-xl font-bold truncate max-w-[200px]">{selectedLocation.name}</h2>
+              </div>
+              <p className="text-sm text-zinc-500 pl-6">{selectedLocation.category} • {selectedLocation.distance || '1.2km'}</p>
             </div>
             <div className="flex flex-col items-end">
               <Badge className="bg-black text-white dark:bg-white dark:text-black h-8 px-3 text-sm font-mono">
@@ -72,30 +88,51 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
             </div>
           </div>
         ) : (
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-bold">Pro Mode Results</h2>
-              <p className="text-sm text-zinc-500">{locations.length} places found</p>
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold">Pro Mode Results</h2>
+                <p className="text-sm text-zinc-500">{locations.length} places found</p>
+              </div>
+              <Button size="sm" variant="secondary" className="rounded-full h-8">{isExpanded ? 'View Map' : 'View List'}</Button>
             </div>
-            <Button size="sm" variant="secondary" className="rounded-full h-8">View List</Button>
+
+            {/* Quick Filters (Visible on Collapse Empty State) */}
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+              <Badge variant="outline" className="px-3 py-1.5 gap-1.5 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 font-medium">
+                <Coffee className="w-3.5 h-3.5" /> Coffee
+              </Badge>
+              <Badge variant="outline" className="px-3 py-1.5 gap-1.5 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 font-medium">
+                <Laptop className="w-3.5 h-3.5" /> Work
+              </Badge>
+              <Badge variant="outline" className="px-3 py-1.5 gap-1.5 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 font-medium">
+                <Armchair className="w-3.5 h-3.5" /> Cozy
+              </Badge>
+            </div>
           </div>
         )}
       </div>
 
       {/* --- SCROLLABLE CONTENT (Visible on Expand) --- */}
-      <div className="flex-1 overflow-y-auto px-6 pb-32">
+      <div className="flex-1 overflow-y-auto px-6 pb-6">
         {selectedLocation ? (
-          <div className="space-y-6 pt-2">
-            {/* Actions */}
-            <div className="flex gap-3">
-              <Button className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20">
-                <Navigation className="w-4 h-4 mr-2" />
-                Directions
-              </Button>
-              <Button variant="outline" className="h-12 w-12 rounded-xl border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-indigo-500" />
-              </Button>
+          <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+            {/* Horizontal Photos */}
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
+              {MOCK_PHOTOS.map((url, i) => (
+                <div key={i} className="shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-zinc-100 snap-center">
+                  <img src={url} alt="Location" className="w-full h-full object-cover" />
+                </div>
+              ))}
             </div>
+
+            {/* Actions: Directions Button Component */}
+            <DirectionsButton
+              lat={selectedLocation.coordinates?.[1] || 0}
+              lng={selectedLocation.coordinates?.[0] || 0}
+              address={selectedLocation.name} // Mock address for now
+            />
 
             {/* AI Insight */}
             <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-700 rounded-2xl">
@@ -141,33 +178,48 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
                 </div>
               </div>
             </div>
+            {/* Extra Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <Link href={`/analysis?url=https://goo.gl/maps/mock`} className="w-full">
+                <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
+                  Full Analysis <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
+                </Button>
+              </Link>
+              <Link href={`/compare?url_a=https://goo.gl/maps/mock`} className="w-full">
+                <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
+                  Compare <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
+                </Button>
+              </Link>
+            </div>
           </div>
         ) : (
           /* LIST VIEW */
-          <div className="space-y-2 pt-2">
-            {locations.map(loc => (
-              <div
-                key={loc.id}
-                onClick={() => onSelect(loc)}
-                className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl active:scale-[0.98] transition-transform"
-              >
-                <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center font-bold text-sm">
-                  {loc.rating}
+          isExpanded && (
+            <div className="space-y-2 pt-2">
+              {locations.map(loc => (
+                <div
+                  key={loc.id}
+                  onClick={() => onSelect(loc)}
+                  className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center font-bold text-sm">
+                    {loc.rating}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm truncate">{loc.name}</h3>
+                    <p className="text-xs text-zinc-500">{loc.category} • {loc.distance || '1.2km'}</p>
+                  </div>
+                  {loc.vibeScore && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      {loc.vibeScore}%
+                    </Badge>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm truncate">{loc.name}</h3>
-                  <p className="text-xs text-zinc-500">{loc.category} • {loc.distance || '1.2km'}</p>
-                </div>
-                {loc.vibeScore && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    {loc.vibeScore}%
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };

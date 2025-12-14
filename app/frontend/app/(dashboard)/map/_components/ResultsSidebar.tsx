@@ -11,8 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   ArrowLeft, Volume2, Sun, Wifi, Sparkles, ChevronRight,
   MapPin, Star, ThumbsUp, ThumbsDown, CheckCircle,
-  GitCompare, ArrowUpRight
+  GitCompare, ArrowUpRight, ArrowRight, ChevronLeft
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { LocationData } from '@/types/location';
 import { interactWithPlace, markVisited } from '@/services/interaction';
 
@@ -36,6 +38,14 @@ export const ResultsSidebar = ({
   const router = useRouter();
   const { t } = useLanguage();
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+  const MOCK_PHOTOS = [
+    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=400",
+    "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=400",
+    "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=400",
+    "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
+  ];
 
   if (!isVisible) return null;
 
@@ -70,20 +80,36 @@ export const ResultsSidebar = ({
 
   return (
     <>
-      <div className="h-full flex flex-col bg-white dark:bg-zinc-950">
+      <div className="h-full w-full flex flex-col bg-white dark:bg-zinc-950 overflow-hidden">
 
         {/* Header - Sticky */}
         <div className="shrink-0 p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur z-10 sticky top-0">
           {selectedLocation ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="pl-0 hover:bg-transparent hover:text-primary transition-colors -ml-2 mb-2 font-medium"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Results
-            </Button>
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={onBack}
+                      className="p-1 -ml-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-zinc-500" />
+                    </motion.button>
+                    <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 truncate max-w-[280px]">{selectedLocation.name}</h1>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-zinc-500 pl-7 font-mono">
+                    <span>{selectedLocation.category}</span>
+                    <span>•</span>
+                    <span>{selectedLocation.distance || '1.2km'}</span>
+                  </div>
+                </div>
+                <Badge className="bg-zinc-900 text-white dark:bg-white dark:text-black font-mono text-xs h-7 px-2">
+                  {selectedLocation.vibeScore}%
+                </Badge>
+              </div>
+            </div>
           ) : (
             <div className="flex justify-between items-center">
               <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-500">{t.map.proModeResults}</h2>
@@ -97,61 +123,90 @@ export const ResultsSidebar = ({
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 w-full min-w-0">
           {selectedLocation ? (
             /* --- DETAIL VIEW (Vibe Sheet) --- */
-            <div className="p-6">
+            <div className="p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full">
 
-              {/* Title Section */}
-              <div className="mb-6">
-                <div className="flex justify-between items-start">
-                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{selectedLocation.name}</h1>
-                  <Badge className="bg-zinc-900 text-white dark:bg-white dark:text-black font-mono text-xs">
-                    {selectedLocation.vibeScore}%
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-500 mt-2 font-mono">
-                  <span>{selectedLocation.category}</span>
-                  <span>•</span>
-                  <span>{selectedLocation.priceLevel || '$$'}</span>
-                  <span>•</span>
-                  <span>{selectedLocation.distance || '1.2km'}</span>
-                </div>
+              {/* Photos - Grid + Overflow Pattern */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                {MOCK_PHOTOS.slice(0, 3).map((url, i) => {
+                  const isLastSlot = i === 2;
+                  const overflowCount = MOCK_PHOTOS.length - 3;
+                  const showOverlay = isLastSlot && overflowCount > 0;
+
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => setIsGalleryOpen(true)}
+                      className="relative aspect-square rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:opacity-90 transition-opacity"
+                    >
+                      <img src={url} alt="Location" className="w-full h-full object-cover" />
+                      {showOverlay && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                          <span className="text-white font-bold text-lg">+{overflowCount + 1}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* AI Insight Box - Warning Style */}
-              <div className="mb-6 bg-zinc-50 dark:bg-zinc-900/50 p-4 border-l-2 border-blue-500 rounded-r-lg text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                <span className="font-bold text-blue-500 block mb-1 text-xs uppercase tracking-wide">AI Insight</span>
+              {/* AI Insight Box */}
+              <div className="mb-6 bg-zinc-50 dark:bg-zinc-900/50 p-4 border border-zinc-100 dark:border-zinc-700 rounded-2xl text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <h3 className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" /> AI Insight
+                </h3>
                 {selectedLocation.description || t.map.defaultAiInsight}
               </div>
 
-              {/* Vibe Signature - Data Grid Row */}
-              <div className="grid grid-cols-3 border-y border-zinc-100 dark:border-zinc-800 py-4 mb-6">
-                <div className="flex flex-col items-center gap-1 border-r border-zinc-100 dark:border-zinc-800 last:border-0">
-                  <Volume2 className="w-4 h-4 text-zinc-400" />
-                  <span className="text-[10px] uppercase text-zinc-400 font-medium">{t.map.noise}</span>
-                  <span className="text-sm font-semibold">{selectedLocation.vibeSignature?.noise || 'Med'}</span>
+              {/* Vibe Grid (3 Cards) */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-2 lg:p-3 rounded-xl text-center min-w-0">
+                  <Volume2 className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
+                  <div className="text-[10px] text-zinc-400 uppercase truncate">{t.map.noise}</div>
+                  <div className="font-semibold text-sm truncate">{selectedLocation.vibeSignature?.noise || 'Low'}</div>
                 </div>
-                <div className="flex flex-col items-center gap-1 border-r border-zinc-100 dark:border-zinc-800 last:border-0">
-                  <Sun className="w-4 h-4 text-zinc-400" />
-                  <span className="text-[10px] uppercase text-zinc-400 font-medium">{t.map.light}</span>
-                  <span className="text-sm font-semibold">{selectedLocation.vibeSignature?.light || 'Dim'}</span>
+                <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-2 lg:p-3 rounded-xl text-center min-w-0">
+                  <Sun className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
+                  <div className="text-[10px] text-zinc-400 uppercase truncate">{t.map.light}</div>
+                  <div className="font-semibold text-sm truncate">{selectedLocation.vibeSignature?.light || 'Dim'}</div>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <Wifi className="w-4 h-4 text-zinc-400" />
-                  <span className="text-[10px] uppercase text-zinc-400 font-medium">{t.map.wifi}</span>
-                  <span className="text-sm font-semibold">{selectedLocation.vibeSignature?.wifi || 'Fast'}</span>
+                <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-2 lg:p-3 rounded-xl text-center min-w-0">
+                  <Wifi className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
+                  <div className="text-[10px] text-zinc-400 uppercase truncate">{t.map.wifi}</div>
+                  <div className="font-semibold text-sm truncate">{selectedLocation.vibeSignature?.wifi || 'Fast'}</div>
+                </div>
+              </div>
+
+              {/* Reviews Breakdown */}
+              <div className="space-y-3 mb-6">
+                <h4 className="font-bold text-sm">Rating Breakdown</h4>
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-bold tracking-tighter">{selectedLocation.rating}</div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-black dark:bg-white w-[85%]" />
+                    </div>
+                    <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-zinc-400 dark:bg-zinc-600 w-[65%]" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="space-y-3">
-                <Button onClick={handleAnalyze} className="w-full h-12 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-black font-medium text-sm">
-                  {t.map.fullReport}
-                </Button>
-                <Button onClick={() => setIsCompareOpen(true)} variant="outline" className="w-full h-12 rounded-lg border-zinc-200 dark:border-zinc-800 font-medium text-sm">
-                  {t.map.comparePlace}
-                </Button>
+              <div className="flex flex-wrap gap-3 pt-4">
+                <Link href={`/analysis?url=${encodeURIComponent(constructUrl(selectedLocation))}`} className="flex-1 min-w-[140px]">
+                  <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
+                    Full Analysis <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
+                  </Button>
+                </Link>
+                <Link href={`/compare?url_a=${encodeURIComponent(constructUrl(selectedLocation))}`} className="flex-1 min-w-[140px]">
+                  <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
+                    Compare <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
+                  </Button>
+                </Link>
               </div>
 
             </div>
@@ -224,6 +279,31 @@ export const ResultsSidebar = ({
                 ))}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gallery Dialog */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden bg-background border-none sm:rounded-2xl shadow-2xl">
+          <div className="p-4 border-b border-border bg-background z-10 sticky top-0 flex justify-between items-center">
+            <div>
+              <DialogTitle className="text-lg font-bold">{selectedLocation?.name}</DialogTitle>
+              <DialogDescription className="text-xs">Gallery • {MOCK_PHOTOS.length} photos</DialogDescription>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setIsGalleryOpen(false)}>
+              <div className="sr-only">Close</div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x w-4 h-4"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+            </Button>
+          </div>
+          <ScrollArea className="h-full max-h-[calc(90vh-65px)] w-full p-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pb-4">
+              {MOCK_PHOTOS.map((url, i) => (
+                <div key={i} className="aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                  <img src={url} alt={`Location photo ${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>

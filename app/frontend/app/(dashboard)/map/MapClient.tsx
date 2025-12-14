@@ -111,7 +111,14 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
     setSelectedLocation(loc);
     setIsSheetExpanded(true);
     if (mapRef.current) {
-      mapRef.current.setCenter(loc.coordinates, { animate: true, duration: 800 });
+      // Dynamic Padding: 45% of window height to center pin in top area
+      const bottomPadding = typeof window !== 'undefined' ? window.innerHeight * 0.45 : 300;
+
+      mapRef.current.setCenter(loc.coordinates, {
+        animate: true,
+        duration: 800,
+        padding: { bottom: bottomPadding }
+      });
       mapRef.current.setZoom(16, { animate: true, duration: 800 });
     }
   };
@@ -130,21 +137,20 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
   useEffect(() => { return () => setNavHidden(false); }, [setNavHidden]);
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] flex overflow-hidden bg-background relative group">
+    <div className="w-full h-[calc(100vh-4rem)] flex flex-col md:flex-row overflow-hidden bg-background">
 
-      {/* --- DESKTOP SIDEBAR (Floating) --- */}
-      {/* Positioned absolutely within the map container */}
-      {/* --- DESKTOP SIDEBAR (Fixed Toolbelt) --- */}
-      <div className="hidden md:block w-[450px] shrink-0 h-full border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 relative z-20">
-        <ResultsSidebar
-          locations={locations}
-          selectedLocation={selectedLocation}
-          query={query}
-          onSelect={handleSelect}
-          onBack={handleBack}
-          isVisible={mode === 'analysis' && locations.length > 0}
-        />
-      </div>
+      {mode === 'analysis' && locations.length > 0 && (
+        <aside className="hidden md:flex w-[420px] shrink-0 h-full flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 z-30 relative shadow-xl overflow-hidden">
+          <ResultsSidebar
+            locations={locations}
+            selectedLocation={selectedLocation}
+            query={query}
+            onSelect={handleSelect}
+            onBack={handleBack}
+            isVisible={true} // Always visible if rendered
+          />
+        </aside>
+      )}
 
       {/* --- MOBILE BOTTOM SHEET --- */}
       {mode === 'analysis' && locations.length > 0 && (
@@ -154,14 +160,16 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
           onSelect={handleSelect}
           onClose={handleBack}
           onExpandChange={handleSheetStateChange}
+          onClearSelection={handleBack}
         />
       )}
 
       {/* --- MAP AREA --- */}
-      <div className="flex-1 w-full h-full relative z-0">
+      <main className="flex-1 h-full relative min-w-0 z-0 bg-zinc-100 dark:bg-zinc-900">
         <MapWrapper
           initialCenter={defaultCenter}
           onMapInit={handleMapInit}
+          className="w-full h-full"
         >
           {/* Controls - Moved to Bottom Right */}
           <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
@@ -186,7 +194,7 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
           ))}
 
         </MapWrapper>
-      </div>
+      </main>
     </div>
   );
 };
