@@ -5,6 +5,15 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 // !!! НОВЫЙ ИМПОРТ !!!
 import { AuthProvider } from '@/lib/auth'; // <--- Замените на реальный путь
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Vibe-Checker',
+  description: 'Pro-level place analysis',
+  icons: {
+    icon: '/logo.svg',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

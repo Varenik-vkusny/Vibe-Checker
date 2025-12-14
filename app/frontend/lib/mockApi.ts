@@ -124,16 +124,20 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
   }
 
   if (cleanUrl === '/place/compare' && method === 'post') {
-    // Return simple mock for compare
     return [200, {
       comparison: {
-        verdict: 'Place A wins',
-        place_a_unique_pros: ['Good'],
-        place_b_unique_pros: ['Okay'],
-        winner_category: { food: 'Place A', service: 'Place A', atmosphere: 'Place B', value: 'Place A' }
+        verdict: 'Burger King Center',
+        verdict_text: 'Choose Burger King for speed and value, but choose KFC if you prioritize flavor profile.',
+        scores: {
+          place_a: { food: 85, service: 92, atmosphere: 70, value: 95 },
+          place_b: { food: 88, service: 75, atmosphere: 78, value: 82 }
+        },
+        place_a_unique_pros: ['Open 24/7', 'Drive-thru', 'Refillable Drinks', 'Faster Wifi'],
+        place_b_unique_pros: ['Original Recipe', 'Better Sides', 'Spicier Options', 'Less Crowded'],
+        winner_category: { food: 'Place B', service: 'Place A', atmosphere: 'Place B', value: 'Place A' }
       },
-      place_a: { name: 'Place A' },
-      place_b: { name: 'Place B' }
+      place_a: { name: 'Burger King Center', price_level: '$$' },
+      place_b: { name: 'KFC Downtown', price_level: '$$$' }
     }];
   }
 

@@ -1,11 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { Search, SendHorizonal, Sparkles, Eye, ArrowRight, Github, Twitter } from 'lucide-react';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { Search, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Map as MapIcon, Wifi, Coffee, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
+// --- ANIMATION VARIANTS ---
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
 
 export default function Home() {
   const { t } = useLanguage();
@@ -20,145 +37,228 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-indigo-500/20 flex flex-col">
+    // MAIN CONTAINER: Scroll Snap
+    <div className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-indigo-500/20">
 
-      {/* --- SECTION 1: HERO (Entry Point) --- */}
-      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center px-6 pt-20 pb-12 text-center overflow-hidden">
+      {/* --- SLIDE 1: THE INPUT --- */}
+      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+          className="max-w-4xl w-full flex flex-col items-center text-center z-10"
+        >
+          <motion.div variants={fadeInUp}>
+            <Badge variant="outline" className="mb-6 px-3 py-1 text-xs uppercase tracking-widest text-zinc-500 border-zinc-300 dark:border-zinc-700">
+              Vibe-Checker v2.0
+            </Badge>
+          </motion.div>
 
-        {/* Abstract Background Elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none brightness-100 contrast-150" />
+          <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-6 text-balance">
+            Contextual Search <br className="hidden md:block" /> for Places.
+          </motion.h1>
 
-        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <Badge variant="outline" className="mb-8 px-4 py-1.5 text-sm rounded-full border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-black/20 backdrop-blur-md text-zinc-600 dark:text-zinc-400 font-medium">
-            Running Vibe-Checker v2.0
-          </Badge>
+          <motion.p variants={fadeInUp} className="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl mb-12 text-balance leading-relaxed">
+            Don't search for "coffee". Search for "quiet cafe with good wifi for a 2-hour call".
+          </motion.p>
 
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-8 max-w-3xl leading-[1.05]">
-            {t.landing.titlePrefix} <span className="text-zinc-400 dark:text-zinc-600">{t.landing.titleSuffix}</span>
-          </h1>
-
-          <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl font-normal leading-relaxed text-balance mb-12">
-            {t.landing.subtitle}
-          </p>
-
-          {/* Search Bar - Main CTA */}
-          <div className="w-full max-w-2xl relative group">
-            <form onSubmit={handleSearch} className="relative">
-              {/* Glow Effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-20 group-hover:opacity-40 transition duration-500 blur-lg" />
-
-              <div className="relative flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full h-16 pl-6 pr-2 shadow-xl shadow-zinc-200/50 dark:shadow-black/50 transition-transform transform group-hover:scale-[1.01]">
+          <motion.div variants={fadeInUp} className="w-full max-w-2xl relative group">
+            <form onSubmit={handleSearch} className="relative w-full">
+              <div className="relative flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full h-14 pl-6 pr-2 shadow-sm transition-all duration-300 focus-within:ring-2 focus-within:ring-zinc-900/10 dark:focus-within:ring-white/10 group-hover:border-zinc-300 dark:group-hover:border-zinc-700">
                 <Search className="w-5 h-5 text-zinc-400 shrink-0 mr-4" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Ask nicely... e.g. 'Quiet cafe for reading'"
-                  className="flex-1 bg-transparent border-none text-lg focus:outline-none placeholder:text-zinc-400 text-foreground h-full"
+                  placeholder="Describe your perfect spot..."
+                  className="flex-1 bg-transparent border-none text-base md:text-lg focus:outline-none placeholder:text-zinc-400 text-foreground h-full"
                 />
-                <Button type="submit" size="icon" className="rounded-full w-12 h-12 shrink-0 bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm transition-colors">
-                  <ArrowRight className="w-5 h-5" />
+                <Button type="submit" size="sm" className="rounded-full w-10 h-10 shrink-0 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
             </form>
-          </div>
+          </motion.div>
+        </motion.div>
 
-          {/* Quick Tags */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {['☕ Focus Work', '🍸 Date Night', '🥗 Healthy Lunch', '📚 Study Spot'].map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setQuery(tag)}
-                className="px-4 py-2 rounded-full text-sm font-medium bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:-translate-y-0.5"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Subtle background grid */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-zinc-50 dark:from-zinc-950 to-transparent pointer-events-none" />
       </section>
 
+      {/* --- SLIDE 2: THE OUTPUT (Vibe Analysis) --- */}
+      <section className="h-screen w-full snap-start relative flex items-center justify-center px-6 bg-white dark:bg-zinc-950">
+        <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
 
-      {/* --- SECTION 2: FEATURES (Simplified Bento) --- */}
-      <section className="w-full py-24 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-900">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left: Text */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.5 }}
+            variants={staggerContainer}
+            className="text-center md:text-left order-1 md:order-1"
+          >
+            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-6">
+              {t.landing.starRatingsAre} <br /><span className="text-red-500 dark:text-red-400 decoration-red-500/50 line-through decoration-4">{t.landing.obsolete}</span>
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-lg text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-md mx-auto md:mx-0">
+              You don't care that 500 people gave it 4 stars. You care about the 3 reviews that mentioned the wifi is spotty and the music is too loud.
+              <br /><br />
+              <strong className="text-zinc-900 dark:text-zinc-200 font-semibold">Vibe-Checker reads the reviews so you don't have to.</strong>
+            </motion.p>
+          </motion.div>
 
-            {/* Feature 1: AI Analysis */}
-            <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-10 flex flex-col justify-between h-[400px]">
-              <div className="space-y-6 relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white dark:bg-zinc-800 shadow-sm border border-zinc-100 dark:border-zinc-700">
-                  <Sparkles className="w-7 h-7 text-indigo-500" />
+          {/* Right: Mockup Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: false }}
+            className="order-2 md:order-2 flex justify-center md:justify-end"
+          >
+            {/* The "Vibe Card" */}
+            <div className="w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl shadow-zinc-200/50 dark:shadow-black/50 overflow-hidden transform md:rotate-3 transition-transform hover:rotate-0 duration-500">
+              <div className="h-40 bg-zinc-100 dark:bg-zinc-800 relative">
+                <div className="absolute inset-0 flex items-center justify-center text-zinc-300 dark:text-zinc-600">
+                  <MapIcon className="w-12 h-12 opacity-50" />
                 </div>
-                <div>
-                  <h3 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">AI Verdicts</h3>
-                  <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-sm">
-                    We aggregate thousands of reviews into a single, honest "Vibe Score". No more reading 5-star bots.
-                  </p>
+                <div className="absolute top-4 right-4 bg-white dark:bg-zinc-950 px-3 py-1 rounded-full text-xs font-bold border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-indigo-500" />
+                  <span>8.9/10 Match</span>
                 </div>
               </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Brew & Byte</h3>
+                <p className="text-sm text-zinc-500 mb-4">Downtown • Coffee Shop</p>
 
-              {/* Visual Element */}
-              <div className="absolute right-0 bottom-0 opacity-10 dark:opacity-5">
-                <Sparkles className="w-64 h-64 -mb-12 -mr-12" />
-              </div>
-            </div>
-
-            {/* Feature 2: Pro Mode (Theme-Aware) */}
-            <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-900 dark:bg-zinc-950 p-10 flex flex-col justify-between h-[400px] text-white">
-              {/* Background Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
-
-              <div className="space-y-6 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-800/80 backdrop-blur-md border border-zinc-700">
-                    <Eye className="w-7 h-7 text-white" />
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Verdict</p>
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-snug">
+                      Excellent for deep work. The wifi is enterprise-grade, but seating can be limited after 2pm.
+                    </p>
                   </div>
-                  <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/20 pointer-events-none">
-                    Recommended
-                  </Badge>
-                </div>
-                <div>
-                  <h3 className="text-3xl font-bold text-white mb-3">Pro Mode</h3>
-                  <p className="text-lg text-zinc-400 leading-relaxed max-w-sm">
-                    Semantic search engine for power users. Find places based on specific vibes, amenities, or crowd type.
-                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Quiet</span>
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Fast Wifi</span>
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Outlet Heavy</span>
+                  </div>
                 </div>
               </div>
-
-              <Button
-                onClick={() => router.push('/pro_mode')}
-                className="mt-6 self-start bg-white text-black hover:bg-zinc-200 border-none rounded-full px-8 h-12 text-base font-medium"
-              >
-                Try Pro Mode
-              </Button>
             </div>
-
-          </div>
+          </motion.div>
         </div>
       </section>
 
+      {/* --- SLIDE 3: THE DECISION (Comparison) --- */}
+      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 bg-zinc-50 dark:bg-zinc-950">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-4">
+            Settling the debate.
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="text-lg text-zinc-500 dark:text-zinc-400">
+            Stop guessing. Start knowing.
+          </motion.p>
+        </motion.div>
 
-      {/* --- SECTION 3: FOOTER --- */}
-      <footer className="w-full py-12 px-6 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-900 mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-zinc-500 dark:text-zinc-500">
-          <p>© 2025 Vibe-Checker Inc. All visuals handcrafted.</p>
+        <div className="relative w-full max-w-3xl flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
 
-          <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors">Terms</a>
-            <div className="flex items-center gap-4 ml-4">
-              <a href="#" className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-              <a href="#" className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
-                <Twitter className="w-4 h-4" />
-              </a>
+          {/* Card A: Loser */}
+          <motion.div
+            initial={{ opacity: 0, x: -50, rotate: -4 }}
+            whileInView={{ opacity: 1, x: 0, rotate: -2 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            viewport={{ once: false }}
+            className="w-72 bg-white dark:bg-zinc-900/50 border border-red-200 dark:border-red-900/30 rounded-xl p-6 opacity-80 blur-[1px] grayscale-[0.5] hover:grayscale-0 hover:blur-0 hover:opacity-100 transition-all duration-300"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              </div>
+              <span className="text-xs font-mono text-zinc-400">PLACE A</span>
             </div>
+            <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-200 mb-2">The Loud Spot</h4>
+            <ul className="space-y-2 text-sm text-zinc-500">
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> 85dB Noise Level</li>
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> Expensive ($8 latte)</li>
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> Uncomfortable chairs</li>
+            </ul>
+          </motion.div>
+
+          {/* VS Badge */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-black text-sm border-4 border-zinc-50 dark:border-zinc-950">
+            VS
           </div>
+
+          {/* Card B: Winner */}
+          <motion.div
+            initial={{ opacity: 0, x: 50, rotate: 4 }}
+            whileInView={{ opacity: 1, x: 0, rotate: 2 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            viewport={{ once: false }}
+            className="w-80 bg-white dark:bg-zinc-900 border border-green-200 dark:border-green-800 rounded-xl p-8 shadow-2xl shadow-green-900/5 dark:shadow-green-500/5 scale-105 z-10 relative"
+          >
+            <div className="absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+              WINNER 🏆
+            </div>
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500" />
+              </div>
+              <span className="text-xs font-mono text-zinc-400">PLACE B</span>
+            </div>
+            <h4 className="font-bold text-xl text-zinc-900 dark:text-zinc-50 mb-2">Cozy Corner</h4>
+            <ul className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Perfect for calls</li>
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Great Value</li>
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Ergonomic Seating</li>
+            </ul>
+          </motion.div>
         </div>
-      </footer>
+      </section>
+
+      {/* --- SLIDE 4: THE ACTION (Map & CTA) --- */}
+      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 overflow-hidden bg-white dark:bg-zinc-950 text-center">
+
+        {/* Background Map Grid Pattern (Faint) */}
+        <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-zinc-950 z-0 pointer-events-none" />
+
+        <div className="relative z-10 max-w-2xl">
+          <motion.h2
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-8"
+          >
+            See the whole <br /> picture.
+          </motion.h2>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <Button
+              onClick={() => router.push('/pro_mode')}
+              className="h-14 px-10 rounded-full text-lg font-medium bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-xl"
+            >
+              Find your place
+            </Button>
+          </motion.div>
+        </div>
+      </section>
 
     </div>
   );

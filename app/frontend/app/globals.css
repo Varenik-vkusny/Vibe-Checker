@@ -34,43 +34,43 @@
 :root {
   /* The $1,000 Polish - Light Mode */
   /* 60% Neutral: gray-50 */
-  --background: 210 40% 98%;
+  --background: hsl(210 40% 98%);
   /* gray-50 #f9fafb (approx) */
-  --foreground: 240 10% 3.9%;
+  --foreground: hsl(240 10% 3.9%);
   /* zinc-900 */
 
   /* 30% Surface: white */
-  --card: 0 0% 100%;
+  --card: hsl(0 0% 100%);
   /* white */
-  --card-foreground: 240 10% 3.9%;
+  --card-foreground: hsl(240 10% 3.9%);
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(240 10% 3.9%);
 
   /* 10% Accent: Indigo/Violet */
-  --primary: 262.1 83.3% 57.8%;
+  --primary: hsl(262.1 83.3% 57.8%);
   /* violet-600 */
-  --primary-foreground: 210 40% 98%;
+  --primary-foreground: hsl(210 40% 98%);
 
-  --secondary: 240 4.8% 95.9%;
+  --secondary: hsl(240 4.8% 95.9%);
   /* zinc-100 */
-  --secondary-foreground: 240 5.9% 10%;
+  --secondary-foreground: hsl(240 5.9% 10%);
 
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
   /* zinc-600 */
 
-  --accent: 262.1 83.3% 57.8%;
+  --accent: hsl(262.1 83.3% 57.8%);
   /* violet-600 (Action color) */
-  --accent-foreground: 210 40% 98%;
+  --accent-foreground: hsl(210 40% 98%);
 
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
 
-  --border: 240 5.9% 90%;
+  --border: hsl(240 5.9% 90%);
   /* zinc-200 */
-  --input: 240 5.9% 90%;
-  --ring: 262.1 83.3% 57.8%;
+  --input: hsl(240 5.9% 90%);
+  --ring: hsl(262.1 83.3% 57.8%);
   /* violet-600 */
 
   --radius: 0.5rem;
@@ -85,43 +85,43 @@
 .dark {
   /* The $1,000 Polish - Dark Mode */
   /* 60% Neutral: zinc-950 */
-  --background: 240 10% 3.9%;
+  --background: hsl(240 10% 3.9%);
   /* zinc-950 #09090b */
-  --foreground: 0 0% 98%;
+  --foreground: hsl(0 0% 98%);
   /* zinc-50 */
 
   /* 30% Surface: zinc-900 */
-  --card: 240 3.7% 15.9%;
+  --card: hsl(240 3.7% 15.9%);
   /* zinc-900 */
-  --card-foreground: 0 0% 98%;
+  --card-foreground: hsl(0 0% 98%);
 
-  --popover: 240 3.7% 15.9%;
-  --popover-foreground: 0 0% 98%;
+  --popover: hsl(240 3.7% 15.9%);
+  --popover-foreground: hsl(0 0% 98%);
 
   /* 10% Accent: Indigo/Violet */
-  --primary: 263.4 70% 50.4%;
+  --primary: hsl(263.4 70% 50.4%);
   /* violet-500 */
-  --primary-foreground: 210 40% 98%;
+  --primary-foreground: hsl(210 40% 98%);
 
-  --secondary: 240 3.7% 15.9%;
+  --secondary: hsl(240 3.7% 15.9%);
   /* zinc-800 */
-  --secondary-foreground: 0 0% 98%;
+  --secondary-foreground: hsl(0 0% 98%);
 
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
+  --muted: hsl(240 3.7% 15.9%);
+  --muted-foreground: hsl(240 5% 64.9%);
   /* zinc-400 */
 
-  --accent: 263.4 70% 50.4%;
+  --accent: hsl(263.4 70% 50.4%);
   /* violet-500 */
-  --accent-foreground: 210 40% 98%;
+  --accent-foreground: hsl(210 40% 98%);
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
 
-  --border: 240 3.7% 15.9%;
+  --border: hsl(240 3.7% 15.9%);
   /* zinc-800 */
-  --input: 240 3.7% 15.9%;
-  --ring: 263.4 70% 50.4%;
+  --input: hsl(240 3.7% 15.9%);
+  --ring: hsl(263.4 70% 50.4%);
 
   --chart-1: #f4f4f5;
   --chart-2: #a1a1aa;

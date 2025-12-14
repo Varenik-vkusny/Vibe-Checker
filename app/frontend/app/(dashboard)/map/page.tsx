@@ -20,12 +20,12 @@ export default async function MapPage({ searchParams }: PageProps) {
 
   return (
     // fixed inset-0 и overflow-hidden убивают любой скролл
-    <main className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-background overscroll-none touch-none">
-      <MapClient 
-        mode={mode} 
-        query={query} 
-        userLat={userLat} 
-        userLon={userLon} 
+    <main className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-background overscroll-none touch-none pt-16">
+      <MapClient
+        mode={mode}
+        query={query}
+        userLat={userLat}
+        userLon={userLon}
       />
     </main>
   );

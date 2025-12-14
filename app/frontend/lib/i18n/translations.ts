@@ -22,6 +22,8 @@ export const translations = {
       subtitle: 'Discover places that match your mood. Powered by AI and real reviews.',
       exploreMap: 'Explore Map',
       analyzeLink: 'Analyze Link',
+      starRatingsAre: 'Star ratings are',
+      obsolete: 'obsolete.',
     },
     analysis: {
       title: 'AI Analysis',
@@ -153,6 +155,8 @@ export const translations = {
       subtitle: 'Открывайте места, которые соответствуют вашему настроению. На базе ИИ и реальных отзывов.',
       exploreMap: 'Карта',
       analyzeLink: 'Анализ Ссылки',
+      starRatingsAre: 'Звездные рейтинги',
+      obsolete: 'устарели.',
     },
     analysis: {
       title: 'AI Анализ',
@@ -284,6 +288,8 @@ export const translations = {
       subtitle: 'Көңіл-күйіңізге сай орындарды табыңыз. Жасанды интеллект және шынайы пікірлер негізінде.',
       exploreMap: 'Картаны Шолу',
       analyzeLink: 'Сілтемені Талдау',
+      starRatingsAre: 'Жұлдызды рейтингтер',
+      obsolete: 'ескірді.',
     },
     analysis: {
       title: 'AI Талдау',
