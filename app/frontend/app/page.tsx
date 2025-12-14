@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { Search, SendHorizonal, ChevronDown, Fingerprint, Sparkles } from 'lucide-react';
+import { Search, SendHorizonal, Sparkles, Eye, ArrowRight, Github, Twitter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -19,152 +19,146 @@ export default function Home() {
     }
   };
 
-  const scrollToNext = () => {
-    const nextSection = document.getElementById('slide-2');
-    nextSection?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
-    <div className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-background text-foreground">
-      
-      {/* --- HERO SECTION --- */}
-      <section id="slide-1" className="h-screen w-full snap-start flex flex-col items-center justify-center relative px-6 overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] -z-10 animate-pulse" />
-        
-        <div className="relative z-10 max-w-4xl text-center flex flex-col items-center gap-8">
-          <Badge variant="outline" className="px-4 py-1.5 text-sm rounded-full border-primary/20 bg-primary/5 text-primary">
-            v2.0 Now Available
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-indigo-500/20 flex flex-col">
+
+      {/* --- SECTION 1: HERO (Entry Point) --- */}
+      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center px-6 pt-20 pb-12 text-center overflow-hidden">
+
+        {/* Abstract Background Elements */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none brightness-100 contrast-150" />
+
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <Badge variant="outline" className="mb-8 px-4 py-1.5 text-sm rounded-full border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-black/20 backdrop-blur-md text-zinc-600 dark:text-zinc-400 font-medium">
+            Running Vibe-Checker v2.0
           </Badge>
-          
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[1.1]">
-            {t.landing.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-400">{t.landing.titleSuffix}</span>
+
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-8 max-w-3xl leading-[1.05]">
+            {t.landing.titlePrefix} <span className="text-zinc-400 dark:text-zinc-600">{t.landing.titleSuffix}</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl font-light leading-relaxed text-balance">
+
+          <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl font-normal leading-relaxed text-balance mb-12">
             {t.landing.subtitle}
           </p>
 
-          {/* Search Component */}
-          <div className="w-full max-w-lg mt-8">
-            <form onSubmit={handleSearch} className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-              <div className="relative flex items-center bg-background border border-border/50 rounded-full p-2 shadow-xl">
-                <Search className="ml-4 w-5 h-5 text-muted-foreground shrink-0" />
-                <input 
+          {/* Search Bar - Main CTA */}
+          <div className="w-full max-w-2xl relative group">
+            <form onSubmit={handleSearch} className="relative">
+              {/* Glow Effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-20 group-hover:opacity-40 transition duration-500 blur-lg" />
+
+              <div className="relative flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full h-16 pl-6 pr-2 shadow-xl shadow-zinc-200/50 dark:shadow-black/50 transition-transform transform group-hover:scale-[1.01]">
+                <Search className="w-5 h-5 text-zinc-400 shrink-0 mr-4" />
+                <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Describe your vibe (e.g. 'Cozy jazz bar')"
-                  className="flex-1 bg-transparent border-none px-4 py-3 text-lg focus:outline-none placeholder:text-muted-foreground/60 text-foreground w-full"
+                  placeholder="Ask nicely... e.g. 'Quiet cafe for reading'"
+                  className="flex-1 bg-transparent border-none text-lg focus:outline-none placeholder:text-zinc-400 text-foreground h-full"
                 />
-                <Button type="submit" size="icon" className="rounded-full w-11 h-11 shrink-0">
-                  <SendHorizonal className="w-5 h-5" />
+                <Button type="submit" size="icon" className="rounded-full w-12 h-12 shrink-0 bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm transition-colors">
+                  <ArrowRight className="w-5 h-5" />
                 </Button>
               </div>
             </form>
-            
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {['☕ Cozy Cafe', '💻 Workspace', '🍸 Rooftop Bar'].map((tag) => (
-                <button 
-                  key={tag}
-                  onClick={() => setQuery(tag)}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-muted/50 hover:bg-muted border border-border transition-all text-muted-foreground hover:text-foreground"
-                >
-                  {tag}
-                </button>
-              ))}
+          </div>
+
+          {/* Quick Tags */}
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {['☕ Focus Work', '🍸 Date Night', '🥗 Healthy Lunch', '📚 Study Spot'].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setQuery(tag)}
+                className="px-4 py-2 rounded-full text-sm font-medium bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:-translate-y-0.5"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* --- SECTION 2: FEATURES (Simplified Bento) --- */}
+      <section className="w-full py-24 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-900">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            {/* Feature 1: AI Analysis */}
+            <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-10 flex flex-col justify-between h-[400px]">
+              <div className="space-y-6 relative z-10">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white dark:bg-zinc-800 shadow-sm border border-zinc-100 dark:border-zinc-700">
+                  <Sparkles className="w-7 h-7 text-indigo-500" />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">AI Verdicts</h3>
+                  <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-sm">
+                    We aggregate thousands of reviews into a single, honest "Vibe Score". No more reading 5-star bots.
+                  </p>
+                </div>
+              </div>
+
+              {/* Visual Element */}
+              <div className="absolute right-0 bottom-0 opacity-10 dark:opacity-5">
+                <Sparkles className="w-64 h-64 -mb-12 -mr-12" />
+              </div>
+            </div>
+
+            {/* Feature 2: Pro Mode (Theme-Aware) */}
+            <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-900 dark:bg-zinc-950 p-10 flex flex-col justify-between h-[400px] text-white">
+              {/* Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+
+              <div className="space-y-6 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-800/80 backdrop-blur-md border border-zinc-700">
+                    <Eye className="w-7 h-7 text-white" />
+                  </div>
+                  <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/20 pointer-events-none">
+                    Recommended
+                  </Badge>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold text-white mb-3">Pro Mode</h3>
+                  <p className="text-lg text-zinc-400 leading-relaxed max-w-sm">
+                    Semantic search engine for power users. Find places based on specific vibes, amenities, or crowd type.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => router.push('/pro_mode')}
+                className="mt-6 self-start bg-white text-black hover:bg-zinc-200 border-none rounded-full px-8 h-12 text-base font-medium"
+              >
+                Try Pro Mode
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
+      {/* --- SECTION 3: FOOTER --- */}
+      <footer className="w-full py-12 px-6 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-900 mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-zinc-500 dark:text-zinc-500">
+          <p>© 2025 Vibe-Checker Inc. All visuals handcrafted.</p>
+
+          <div className="flex items-center gap-6">
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300 transition-colors">Terms</a>
+            <div className="flex items-center gap-4 ml-4">
+              <a href="#" className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                <Github className="w-4 h-4" />
+              </a>
+              <a href="#" className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                <Twitter className="w-4 h-4" />
+              </a>
             </div>
           </div>
         </div>
-
-        <div className="absolute bottom-10 animate-bounce cursor-pointer text-muted-foreground hover:text-foreground transition-colors" onClick={scrollToNext}>
-          <ChevronDown className="w-6 h-6" />
-        </div>
-      </section>
-
-      {/* --- FEATURE: VIBE SIGNATURE --- */}
-      <section id="slide-2" className="h-screen w-full snap-start flex flex-col md:flex-row items-center justify-center p-6 md:p-24 bg-muted/30 border-t border-border/50 relative">
-        <div className="flex-1 space-y-6 z-10 max-w-xl md:pr-12">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-            <Fingerprint className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Vibe Signatures</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            We don't just tell you if it's open. We translate thousands of data points into a simple signature. Know if it's <span className="text-foreground font-medium">loud</span>, <span className="text-foreground font-medium">bright</span>, or <span className="text-foreground font-medium">fast-paced</span> before you go.
-          </p>
-        </div>
-        
-        <div className="flex-1 h-full flex items-center justify-center">
-           <div className="relative w-[320px] bg-background rounded-3xl border border-border shadow-2xl p-8 space-y-6 rotate-3 hover:rotate-0 transition-transform duration-500">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-lg">Signature</span>
-                <Badge variant="outline">98% Match</Badge>
-              </div>
-              {['Noise Level', 'Lighting', 'Service Speed'].map((label, i) => (
-                  <div key={label} className="space-y-2">
-                    <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                        <span>{label}</span>
-                        <span className={i === 0 ? 'text-red-500' : i === 1 ? 'text-yellow-500' : 'text-green-500'}>
-                            {i === 0 ? 'High' : i === 1 ? 'Dim' : 'Fast'}
-                        </span>
-                    </div>
-                    <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${i === 0 ? 'bg-red-500 w-[85%]' : i === 1 ? 'bg-yellow-500 w-[30%]' : 'bg-green-500 w-[90%]'}`} />
-                    </div>
-                  </div>
-              ))}
-           </div>
-        </div>
-      </section>
-
-      {/* --- FEATURE: AI --- */}
-      <section id="slide-3" className="h-screen w-full snap-start flex flex-col-reverse md:flex-row items-center justify-center p-6 md:p-24 bg-background border-t border-border/50">
-        <div className="flex-1 h-full flex items-center justify-center">
-           <div className="w-full max-w-md bg-gradient-to-br from-purple-500/10 to-transparent p-1 rounded-3xl border border-purple-500/20">
-             <div className="bg-card/80 backdrop-blur-sm rounded-[22px] p-8 space-y-4 shadow-sm">
-               <div className="flex items-center gap-3 mb-2">
-                 <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                 </div>
-                 <div className="text-sm font-bold text-purple-600 dark:text-purple-400">AI Summary</div>
-               </div>
-               <p className="text-lg font-medium leading-relaxed">
-                 "A hidden gem for digital nomads. The coffee is strong, outlets are everywhere, but it gets crowded with students after 3 PM."
-               </p>
-             </div>
-           </div>
-        </div>
-        
-        <div className="flex-1 space-y-6 z-10 max-w-xl md:pl-12">
-          <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-            <Sparkles className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Read Less.<br/>Know More.</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Our neural networks analyze thousands of comments across the web to extract the <span className="text-foreground font-medium">hidden truths</span> about a place.
-          </p>
-        </div>
-      </section>
-
-      {/* --- CTA --- */}
-      <section id="slide-4" className="h-screen w-full snap-start flex flex-col items-center justify-center p-6 text-center bg-grid-black/[0.02] dark:bg-grid-white/[0.02] relative border-t border-border/50">
-        <div className="max-w-2xl space-y-8 relative z-10">
-          <h2 className="text-5xl md:text-7xl font-bold tracking-tighter">Ready to check the vibe?</h2>
-          <Button 
-            size="lg" 
-            className="h-14 px-10 text-lg rounded-full shadow-xl hover:scale-105 transition-transform"
-            onClick={() => router.push('/map')}
-          >
-            Launch Map
-          </Button>
-        </div>
-        
-        <footer className="absolute bottom-8 text-muted-foreground text-sm font-medium">
-          &copy; {new Date().getFullYear()} VibeCheck.
-        </footer>
-      </section>
+      </footer>
 
     </div>
   );

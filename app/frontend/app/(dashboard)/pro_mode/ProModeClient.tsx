@@ -1,13 +1,12 @@
 'use client';
 
 
-import { useState, useEffect, useRef } from 'react'; 
-import { useRouter, useSearchParams } from 'next/navigation'; 
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeolocation } from './components/useGeolocation';
-import { ParticleBackground } from './components/ParticleBackground';
 import { SearchInterface } from './components/SearchInterface';
 import { LoadingHUD } from './components/LoadingHUD';
-import { getInspiration, searchProMode } from '@/services/interaction'; 
+import { getInspiration, searchProMode } from '@/services/interaction';
 import { LocationData } from '@/types/location';
 
 // Helper for mapping Backend Data -> Frontend Data
@@ -16,7 +15,7 @@ const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
     console.error("Expected array results, got:", results);
     return [];
   }
-  
+
   return results.map((item: any) => {
     // ЗАЩИТА: Получаем координаты. Бэк может вернуть их в item.lat или item.location.lat
     // 2GIS ТРЕБУЕТ ПОРЯДОК [LON, LAT] !!!
@@ -30,28 +29,28 @@ const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
     return {
       id: item.place_id ? String(item.place_id) : crypto.randomUUID(),
       // ВАЖНО: Сохраняем реальный ID для лайков
-      place_id: item.place_id, 
+      place_id: item.place_id,
       name: item.name || 'Unknown Place',
       address: item.address || '',
       // ВАЖНО: Порядок [dolgota, shirota]
-      coordinates: [lon, lat] as [number, number], 
+      coordinates: [lon, lat] as [number, number],
       rating: displayRating,
       reviewCount: item.num_reviews || item.user_ratings_total || 120, // Фейк кол-во, если нет
       vibeScore: item.match_score || 95, // Если AI не посчитал, ставим высокий
       description: item.reason || item.description || '',
-      category: item.category || 'Place', 
+      category: item.category || 'Place',
       priceLevel: item.price_level || '$$',
       openStatus: 'Open Now',
       tags: item.tags || [],
-      imageUrl: item.image_url || null, 
+      imageUrl: item.image_url || null,
       subRatings: {
         food: Math.floor(Math.random() * 15 + 80), // Моковые саб-рейтинги для красоты
         service: Math.floor(Math.random() * 15 + 75),
       },
-      vibeSignature: { 
-          noise: 'Medium', 
-          light: 'Dim',  
-          wifi: 'Fast'   
+      vibeSignature: {
+        noise: 'Medium',
+        light: 'Dim',
+        wifi: 'Fast'
       },
       crowdMakeup: { students: 30, families: 30, remote: 40 }
     };
@@ -59,13 +58,12 @@ const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
 };
 
 type ProcessState = 'idle' | 'scanning' | 'filtering' | 'analysis';
-type ShapeType = 'idle' | 'mapPin' | 'balls' | 'analysis';
 
 const ProModeClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { location, error: geoError, getLocation } = useGeolocation();
-  
+
   const [inputValue, setInputValue] = useState('');
   const [processState, setProcessState] = useState<ProcessState>('idle');
   const [hudText, setHudText] = useState({ title: '', sub: '' });
@@ -74,20 +72,11 @@ const ProModeClient = () => {
   // Используем ref для отслеживания таймера, чтобы очищать его корректно
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
 
-  const getShapeForState = (state: ProcessState): ShapeType => {
-    switch (state) {
-        case 'scanning': return 'mapPin';
-        case 'filtering': return 'balls';
-        case 'analysis': return 'analysis';
-        default: return 'idle';
-    }
-  };
-
   // Тексты для разных стадий, чтобы было не скучно ждать
   const loadingStages = [
-      { state: 'scanning' as ProcessState, title: 'AI DISCOVERY', sub: 'Scanning geospatial context...' },
-      { state: 'filtering' as ProcessState, title: 'SEARCHING', sub: 'Reading reviews & analyzing vibe...' },
-      { state: 'analysis' as ProcessState, title: 'NEURAL SYNC', sub: 'Comparing semantic vectors...' },
+    { state: 'scanning' as ProcessState, title: 'AI DISCOVERY', sub: 'Scanning geospatial context...' },
+    { state: 'filtering' as ProcessState, title: 'SEARCHING', sub: 'Reading reviews & analyzing vibe...' },
+    { state: 'analysis' as ProcessState, title: 'NEURAL SYNC', sub: 'Comparing semantic vectors...' },
   ];
 
   useEffect(() => {
@@ -96,96 +85,96 @@ const ProModeClient = () => {
       setInputValue(query);
       handleStartProcess(query);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // --- НОВАЯ ЛОГИКА АНИМАЦИИ ---
   useEffect(() => {
     if (isLoading) {
-        let stepIndex = 0;
+      let stepIndex = 0;
 
-        // Функция обновления состояния
-        const nextStep = () => {
-            const stage = loadingStages[stepIndex];
-            setProcessState(stage.state);
-            setHudText({ title: stage.title, sub: stage.sub });
-            
-            // Переход к следующему шагу (зацикливание: 0 -> 1 -> 2 -> 0 ...)
-            stepIndex = (stepIndex + 1) % loadingStages.length;
-        };
+      // Функция обновления состояния
+      const nextStep = () => {
+        const stage = loadingStages[stepIndex];
+        setProcessState(stage.state);
+        setHudText({ title: stage.title, sub: stage.sub });
 
-        // Запускаем сразу первый шаг
-        nextStep();
+        // Переход к следующему шагу (зацикливание: 0 -> 1 -> 2 -> 0 ...)
+        stepIndex = (stepIndex + 1) % loadingStages.length;
+      };
 
-        // Меняем состояние каждые 3 секунды
-        animationInterval.current = setInterval(nextStep, 3000);
+      // Запускаем сразу первый шаг
+      nextStep();
+
+      // Меняем состояние каждые 3 секунды
+      animationInterval.current = setInterval(nextStep, 3000);
     } else {
-        // Если загрузка закончилась - чистим интервал
-        if (animationInterval.current) {
-            clearInterval(animationInterval.current);
-            animationInterval.current = null;
-        }
+      // Если загрузка закончилась - чистим интервал
+      if (animationInterval.current) {
+        clearInterval(animationInterval.current);
+        animationInterval.current = null;
+      }
     }
 
     return () => {
-        if (animationInterval.current) clearInterval(animationInterval.current);
+      if (animationInterval.current) clearInterval(animationInterval.current);
     };
   }, [isLoading]);
 
   const handleStartProcess = async (query: string) => {
     if (isLoading) return;
     setIsLoading(true); // Запускает анимацию через useEffect
-    
+
     const isInspire = query === "INSPIRE_ME_ACTION";
 
     try {
-        const currentLoc = await getLocation();
-        const lat = currentLoc.lat;
-        const lon = currentLoc.lon;
+      const currentLoc = await getLocation();
+      const lat = currentLoc.lat;
+      const lon = currentLoc.lon;
 
-        console.log("Starting API call...", { query, lat, lon });
+      console.log("Starting API call...", { query, lat, lon });
 
-        // УБРАЛИ minWait Promise.all
-        // Теперь мы просто ждем реальный ответ от API
-        let rawResults;
-        if (isInspire) {
-             rawResults = await getInspiration(lat, lon);
-        } else {
-             rawResults = await searchProMode(query, lat, lon);
-        }
+      // УБРАЛИ minWait Promise.all
+      // Теперь мы просто ждем реальный ответ от API
+      let rawResults;
+      if (isInspire) {
+        rawResults = await getInspiration(lat, lon);
+      } else {
+        rawResults = await searchProMode(query, lat, lon);
+      }
 
-        console.log("API Results received:", rawResults);
+      console.log("API Results received:", rawResults);
 
-        const finalResults = mapBackendResultsToLocationData(rawResults);
+      const finalResults = mapBackendResultsToLocationData(rawResults);
 
-        // API ответил -> останавливаем анимацию
-        setIsLoading(false);
-        setProcessState('idle'); // Или можно оставить последний стейт перед редиректом
+      // API ответил -> останавливаем анимацию
+      setIsLoading(false);
+      setProcessState('idle'); // Или можно оставить последний стейт перед редиректом
 
-        if (finalResults.length > 0) {
-            localStorage.setItem('proModeResults', JSON.stringify(finalResults));
-            
-            // Короткая пауза, чтобы юзер увидел "COMPLETE" (опционально)
-            // Но лучше сразу редиректить, раз ждали долго
-            const params = new URLSearchParams({
-              mode: 'analysis',
-              query: isInspire ? 'For You' : query,
-              lat: lat.toString(),
-              lon: lon.toString()
-            });
-            
-            router.push(`/map?${params.toString()}`);
-        } else {
-            alert("No places found for this vibe. Try a broader search!");
-        }
+      if (finalResults.length > 0) {
+        localStorage.setItem('proModeResults', JSON.stringify(finalResults));
+
+        // Короткая пауза, чтобы юзер увидел "COMPLETE" (опционально)
+        // Но лучше сразу редиректить, раз ждали долго
+        const params = new URLSearchParams({
+          mode: 'analysis',
+          query: isInspire ? 'For You' : query,
+          lat: lat.toString(),
+          lon: lon.toString()
+        });
+
+        router.push(`/map?${params.toString()}`);
+      } else {
+        alert("No places found for this vibe. Try a broader search!");
+      }
 
     } catch (e: any) {
-        console.error("Pro Mode Error:", e);
-        setIsLoading(false); // Останавливаем анимацию при ошибке
-        setProcessState('idle');
-        
-        // ... (обработка ошибок остается той же) ...
-        alert("Something went wrong. Please try again.");
+      console.error("Pro Mode Error:", e);
+      setIsLoading(false); // Останавливаем анимацию при ошибке
+      setProcessState('idle');
+
+      // ... (обработка ошибок остается той же) ...
+      alert("Something went wrong. Please try again.");
     }
   };
 
@@ -195,33 +184,39 @@ const ProModeClient = () => {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-background text-foreground selection:bg-primary/30">
-      
-      <ParticleBackground shape={getShapeForState(processState)} />
+    <div className="relative w-full h-[calc(100vh-4rem)] overflow-hidden bg-background text-foreground selection:bg-primary/30 flex flex-col items-center justify-center">
+
+      {/* Industrial Grid Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.07]"
+        style={{
+          backgroundImage: 'linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px)',
+          backgroundSize: '4rem 4rem'
+        }}>
+      </div>
 
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
-        <div className="pointer-events-auto">
-            {processState === 'idle' && !isLoading ? (
-            <SearchInterface 
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                onSubmit={handleSubmit}
-                onSuggestion={(text) => {
-                  if (text === "INSPIRE_ME_ACTION") {
-                      handleStartProcess("INSPIRE_ME_ACTION");
-                  } else {
-                      setInputValue(text);
-                      handleStartProcess(text);
-                  }
-                }}
-                error={geoError}
+        <div className="pointer-events-auto w-full flex justify-center">
+          {processState === 'idle' && !isLoading ? (
+            <SearchInterface
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              onSubmit={handleSubmit}
+              onSuggestion={(text) => {
+                if (text === "INSPIRE_ME_ACTION") {
+                  handleStartProcess("INSPIRE_ME_ACTION");
+                } else {
+                  setInputValue(text);
+                  handleStartProcess(text);
+                }
+              }}
+              error={geoError}
             />
-            ) : (
-            <LoadingHUD 
-                title={hudText.title}
-                subtitle={hudText.sub}
+          ) : (
+            <LoadingHUD
+              title={hudText.title}
+              subtitle={hudText.sub}
             />
-            )}
+          )}
         </div>
       </div>
     </div>

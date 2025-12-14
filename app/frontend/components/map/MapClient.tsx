@@ -48,7 +48,7 @@ export default function MapClient() {
       });
 
       const recommendations = response.data.recommendations || [];
-      
+
       // Geocode results
       const geocodedPlaces = await Promise.all(recommendations.map(async (place: any) => {
         if (!place.address) return { ...place, lat: center[0], lon: center[1] }; // Fallback
@@ -57,9 +57,9 @@ export default function MapClient() {
       }));
 
       setPlaces(geocodedPlaces.filter((p: any) => p.lat && p.lon));
-      
+
       if (geocodedPlaces.length > 0 && geocodedPlaces[0].lat) {
-          setCenter([geocodedPlaces[0].lat, geocodedPlaces[0].lon]);
+        setCenter([geocodedPlaces[0].lat, geocodedPlaces[0].lon]);
       }
 
     } catch (error) {
@@ -70,30 +70,30 @@ export default function MapClient() {
   };
 
   return (
-    <div className="relative h-[calc(100vh-72px)] w-full">
+    <div className="relative h-[calc(100vh-4rem)] w-full bg-background">
       <div className="absolute top-4 left-4 z-[1000] w-full max-w-sm">
-        <Card className="p-2 glass-card">
+        <Card className="p-2 bg-background/95 border border-border shadow-none rounded-lg">
           <form onSubmit={handleSearch} className="flex gap-2">
-            <Input 
-              placeholder="Describe your vibe (e.g. 'Cozy cafe with wifi')" 
+            <Input
+              placeholder="Describe your vibe (e.g. 'Cozy cafe with wifi')"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="bg-background/50 border-0"
+              className="bg-transparent border-0 border-b border-border rounded-none focus-visible:ring-0 focus-visible:border-primary px-0"
             />
-            <Button type="submit" size="icon" disabled={loading}>
+            <Button type="submit" size="icon" disabled={loading} className="rounded-md">
               <Search className="h-4 w-4" />
             </Button>
           </form>
         </Card>
       </div>
 
-      <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+      <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false} className="outline-none">
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
         <MapUpdater center={center} />
-        
+
         {places.map((place, i) => (
           <Marker key={i} position={[place.lat || center[0], place.lon || center[1]]}>
             <Popup>
@@ -101,7 +101,7 @@ export default function MapClient() {
                 <h3 className="font-bold">{place.name}</h3>
                 <p className="text-sm text-muted-foreground">{place.address}</p>
                 <div className="mt-2 text-xs bg-primary/10 p-1 rounded text-primary font-medium">
-                    Match: {place.match_score}%
+                  Match: {place.match_score}%
                 </div>
                 <p className="text-xs mt-1">{place.reason}</p>
               </div>

@@ -83,13 +83,14 @@ const MOCK_PLACES_DETAILED = [
 
 export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any> => {
   const { url, method } = config;
-  
-  // Normalize URL to handle potential /api prefix if the interceptor doesn't strip it
-  const cleanUrl = url?.replace(/^\/api/, '') || '';
+
+  // Normalize URL: remove protocol, domain, and optional /api prefix
+  // Transforms "http://127.0.0.1:8000/place/pro_analyze" -> "/place/pro_analyze"
+  const cleanUrl = url?.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/api/, '') || '';
 
   console.log(`[Mock API] ${method?.toUpperCase()} ${cleanUrl}`);
 
-  await new Promise(resolve => setTimeout(resolve, 600)); 
+  await new Promise(resolve => setTimeout(resolve, 600));
 
   if (cleanUrl === '/users/token' && method === 'post') {
     return [200, MOCK_TOKEN];
@@ -98,7 +99,7 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
   if (cleanUrl === '/users/' && method === 'post') {
     return [200, MOCK_USER];
   }
-  
+
   if (cleanUrl === '/users/me' && method === 'get') {
     return [200, { ...MOCK_USER, role: 'USER' }];
   }
@@ -110,30 +111,30 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
 
   // Fallback for analysis
   if (cleanUrl === '/place/analyze' && method === 'post') {
-    return [200, { 
-      place_info: { name: 'Mock Place' }, 
-      ai_analysis: { 
-        summary: { verdict: 'Great place!' }, 
-        tags: ['Cozy'], 
+    return [200, {
+      place_info: { name: 'Mock Place' },
+      ai_analysis: {
+        summary: { verdict: 'Great place!' },
+        tags: ['Cozy'],
         scores: { food: 80, service: 80, atmosphere: 80, value: 80 },
         detailed_attributes: { noise_level: 'Low' },
         price_level: '$$'
-      } 
+      }
     }];
   }
 
   if (cleanUrl === '/place/compare' && method === 'post') {
-      // Return simple mock for compare
-      return [200, { 
-          comparison: { 
-              verdict: 'Place A wins', 
-              place_a_unique_pros: ['Good'], 
-              place_b_unique_pros: ['Okay'],
-              winner_category: { food: 'Place A', service: 'Place A', atmosphere: 'Place B', value: 'Place A' }
-          },
-          place_a: { name: 'Place A' },
-          place_b: { name: 'Place B' }
-      }];
+    // Return simple mock for compare
+    return [200, {
+      comparison: {
+        verdict: 'Place A wins',
+        place_a_unique_pros: ['Good'],
+        place_b_unique_pros: ['Okay'],
+        winner_category: { food: 'Place A', service: 'Place A', atmosphere: 'Place B', value: 'Place A' }
+      },
+      place_a: { name: 'Place A' },
+      place_b: { name: 'Place B' }
+    }];
   }
 
   return [404, { message: 'Mock endpoint not found' }];

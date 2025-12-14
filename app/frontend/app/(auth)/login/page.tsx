@@ -23,7 +23,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -43,8 +43,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-secondary/30">
-      <Card className="w-full max-w-md glass-card">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 bg-secondary/30">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">{t.login.welcome}</CardTitle>
           <CardDescription>{t.login.subtitle}</CardDescription>

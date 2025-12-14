@@ -18,58 +18,56 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
   useEffect(() => {
     // 1. Проверки на существование карты и координат
     if (!map || !mapglAPI) return;
-    
-    if (!coordinates || coordinates.length !== 2 || 
-        typeof coordinates[0] !== 'number' || typeof coordinates[1] !== 'number') {
-        console.warn('Invalid coordinates for marker:', label);
-        return;
+
+    if (!coordinates || coordinates.length !== 2 ||
+      typeof coordinates[0] !== 'number' || typeof coordinates[1] !== 'number') {
+      console.warn('Invalid coordinates for marker:', label);
+      return;
     }
 
-    // 2. Логика иконки
-    const emoji = getIconForCategory(category || '');
-    const color = isSelected ? '#ef4444' : '#ffffff';
-    const scale = isSelected ? 1.2 : 1;
-    const zIndex = isSelected ? 9999 : 10;
+    // 2. Logic for minimized industrial marker
+    const active = !!isSelected;
+    const color = active ? '#7c3aed' : '#52525b'; // Violet (Primary) vs Zinc-600
+    const scale = active ? 1.5 : 1;
+    const zIndex = active ? 9999 : 10;
 
-    // SVG иконка (Пин)
+    // Simple Circular Dot with White Stroke (Industrial Look)
+    // Viewbox 24x24, Circle centered at 12,12
     const svgIcon = `
-      <svg width="46" height="54" viewBox="0 0 46 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g transform="scale(${scale}) translate(${23 * (1-scale)}, ${54 * (1-scale)})">
-          <path d="M23 46C35.1503 46 45 36.1503 45 24C45 11.8497 35.1503 2 23 2C10.8497 2 1 11.8497 1 24C1 36.1503 10.8497 46 23 46Z" fill="${color}" stroke="${isSelected ? '#fff' : '#00000033'}" stroke-width="1"/>
-          <path d="M23 52L17 44H29L23 52Z" fill="${color}" stroke="${isSelected ? '#fff' : '#00000033'}" stroke-width="1"/>
-          <text x="50%" y="28" font-family="Arial" font-size="20" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
-        </g>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+         <circle cx="12" cy="12" r="8" fill="${color}" stroke="white" stroke-width="2"/>
+         ${isSelected ? `<circle cx="12" cy="12" r="11" stroke="${color}" stroke-opacity="0.3" stroke-width="2"/>` : ''}
       </svg>
     `;
 
     const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgIcon)));
 
-    // 3. Удаляем старый перед созданием нового
+    // 3. Destroy old marker
     if (markerRef.current) markerRef.current.destroy();
 
     try {
-        markerRef.current = new mapglAPI.Marker(map, {
-            coordinates,
-            icon: iconUrl,
-            size: [46 * scale, 54 * scale],
-            anchor: [23 * scale, 54 * scale],
-            zIndex: zIndex,
-            label: isSelected && label ? { 
-                text: label, 
-                offset: [0, -60], 
-                relativeAnchor: [0.5, 1],
-                fontSize: 14,
-                color: '#ffffff',
-                haloColor: '#000000',
-                haloRadius: 2
-            } : undefined,
-        });
+      markerRef.current = new mapglAPI.Marker(map, {
+        coordinates,
+        icon: iconUrl,
+        size: [24 * scale, 24 * scale],
+        anchor: [12 * scale, 12 * scale], // Center
+        zIndex: zIndex,
+        label: isSelected && label ? {
+          text: label,
+          offset: [0, -22],
+          relativeAnchor: [0.5, 1],
+          fontSize: 13,
+          color: '#ffffff',
+          haloColor: '#000000',
+          haloRadius: 1,
+        } : undefined,
+      });
 
-        if (onClick) {
-            markerRef.current.on('click', onClick);
-        }
+      if (onClick) {
+        markerRef.current.on('click', onClick);
+      }
     } catch (e) {
-        console.error('Error creating marker:', e);
+      console.error('Error creating marker:', e);
     }
 
     return () => {
@@ -79,14 +77,4 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
 
   return null;
 };
-
-function getIconForCategory(cat: string): string {
-  const c = cat.toLowerCase();
-  if (c.includes('burger') || c.includes('fast')) return '🍔';
-  if (c.includes('chicken')) return '🍗';
-  if (c.includes('pizza')) return '🍕';
-  if (c.includes('coffee') || c.includes('cafe')) return '☕';
-  if (c.includes('bar') || c.includes('pub') || c.includes('club')) return '🍸';
-  if (c.includes('sushi') || c.includes('asian')) return '🍣';
-  return '📍';
-}
+// Removed getIconForCategory as it is no longer used
