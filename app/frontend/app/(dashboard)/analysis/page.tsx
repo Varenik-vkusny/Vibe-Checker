@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react'; // useRef
 import { useForm } from 'react-hook-form';
+import { useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge'; // Добавил Badge
 
 const analysisSchema = z.object({
   url: z.string().url('Please enter a valid URL'),
@@ -22,16 +25,18 @@ export default function AnalysisPage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const initialized = useRef(false); // Защита от двойного вызова
 
-  const { register, handleSubmit, formState: { errors } } = useForm<AnalysisValues>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<AnalysisValues>({
     resolver: zodResolver(analysisSchema),
   });
 
-  const onSubmit = async (data: AnalysisValues) => {
+  const performAnalysis = async (url: string) => {
     setLoading(true);
     try {
       const response = await api.post('/place/analyze', {
-        url: data.url,
+        url: url,
         limit: 10
       });
       setResult(response.data);
@@ -41,6 +46,19 @@ export default function AnalysisPage() {
       setLoading(false);
     }
   };
+
+  const onSubmit = async (data: AnalysisValues) => {
+    await performAnalysis(data.url);
+  };
+
+  useEffect(() => {
+    const urlParam = searchParams.get('url');
+    if (urlParam && !initialized.current) {
+      initialized.current = true; 
+      setValue('url', urlParam);
+      performAnalysis(urlParam);
+    }
+  }, [searchParams, setValue]);
 
   const scores = result ? [
     { name: t.analysis.food, score: result.ai_analysis.scores.food, fill: 'var(--chart-1)' },
@@ -68,23 +86,36 @@ export default function AnalysisPage() {
               {errors.url && <span className="text-destructive text-xs">{errors.url.message}</span>}
             </div>
             <Button type="submit" disabled={loading}>
-              {loading ? t.analysis.analyzingButton : t.analysis.analyzeButton}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t.analysis.analyzingButton}
+                </>
+              ) : t.analysis.analyzeButton}
             </Button>
           </form>
         </CardContent>
       </Card>
 
+      {/* ЛОАДЕР (Показываем, пока грузится) */}
+      {loading && !result && (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <p className="text-muted-foreground text-lg animate-pulse">Scanning reviews & vibe...</p>
+          </div>
+      )}
+
       {result && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="md:col-span-2">
+        <div className="grid gap-6 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card className="md:col-span-2 border-primary/20 bg-primary/5">
             <CardHeader>
-              <CardTitle>{result.place_info.name}</CardTitle>
+              <CardTitle className="text-2xl text-primary">{result.place_info.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-xl font-medium">{result.ai_analysis.summary.verdict}</div>
+              <div className="text-lg font-medium leading-relaxed">{result.ai_analysis.summary.verdict}</div>
               <div className="flex gap-2 flex-wrap">
                 {result.ai_analysis.tags.map((tag: string, i: number) => (
-                  <span key={i} className="px-2 py-1 bg-secondary rounded text-xs font-mono">{tag}</span>
+                  <Badge key={i} variant="secondary" className="px-3 py-1 text-sm">#{tag}</Badge>
                 ))}
               </div>
             </CardContent>
@@ -96,27 +127,15 @@ export default function AnalysisPage() {
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={scores} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <BarChart data={scores} layout="vertical" margin={{ left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} strokeOpacity={0.2} />
                   <XAxis type="number" domain={[0, 100]} hide />
-                  <YAxis dataKey="name" type="category" width={100} />
+                  <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12}} />
                   <Tooltip 
                     cursor={{fill: 'transparent'}} 
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-popover border rounded-lg p-2 shadow-sm text-sm">
-                            <div className="font-medium mb-1">{payload[0].payload.name}</div>
-                            <div className="text-muted-foreground">
-                              Score: {payload[0].value} / 100
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={32} />
+                  <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -127,22 +146,22 @@ export default function AnalysisPage() {
               <CardTitle>{t.analysis.detailsTitle}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                  <div>
-                   <span className="text-muted-foreground text-sm">{t.analysis.noiseLevel}</span>
-                   <div className="font-medium">{result.ai_analysis.detailed_attributes.noise_level || 'N/A'}</div>
+                   <span className="text-muted-foreground text-xs uppercase tracking-wider">{t.analysis.noiseLevel}</span>
+                   <div className="font-medium mt-1">{result.ai_analysis.detailed_attributes.noise_level || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">{t.analysis.serviceSpeed}</span>
-                   <div className="font-medium">{result.ai_analysis.detailed_attributes.service_speed || 'N/A'}</div>
+                   <span className="text-muted-foreground text-xs uppercase tracking-wider">{t.analysis.serviceSpeed}</span>
+                   <div className="font-medium mt-1">{result.ai_analysis.detailed_attributes.service_speed || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">{t.analysis.cleanliness}</span>
-                   <div className="font-medium">{result.ai_analysis.detailed_attributes.cleanliness || 'N/A'}</div>
+                   <span className="text-muted-foreground text-xs uppercase tracking-wider">{t.analysis.cleanliness}</span>
+                   <div className="font-medium mt-1">{result.ai_analysis.detailed_attributes.cleanliness || 'N/A'}</div>
                  </div>
                  <div>
-                   <span className="text-muted-foreground text-sm">{t.analysis.price}</span>
-                   <div className="font-medium">{result.ai_analysis.price_level}</div>
+                   <span className="text-muted-foreground text-xs uppercase tracking-wider">{t.analysis.price}</span>
+                   <div className="font-medium mt-1 text-green-600">{result.ai_analysis.price_level}</div>
                  </div>
                </div>
             </CardContent>

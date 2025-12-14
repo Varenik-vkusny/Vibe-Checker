@@ -3,7 +3,7 @@ from .models import LikeState
 
 
 class InteractionUpdate(BaseModel):
-    place_id: int
+    place_id: str
     rating: LikeState | None = None
     is_visited: bool | None = None
 

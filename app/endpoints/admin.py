@@ -60,22 +60,16 @@ async def change_user_role(
 
 @router.get("/stats", response_model=DashboardData)
 async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
-    """
-    Собирает статистику для главной страницы админки
-    """
-    # 1. Проверка базы (DB Status)
+
     try:
         await db.execute(text("SELECT 1"))
         db_healthy = True
-    except:
+    except Exception:
         db_healthy = False
 
-    # 2. Количество юзеров
     users_result = await db.execute(select(func.count(User.id)))
     total_users = users_result.scalar() or 0
 
-    # 3. Активные задачи (пример, если есть ParsingRequest)
-    # Если модели ParsingRequest нет в контексте, можно убрать или заменить на 0
     try:
         tasks_result = await db.execute(
             select(func.count(ParsingRequest.id)).where(
@@ -83,11 +77,9 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
             )
         )
         active_tasks = tasks_result.scalar() or 0
-    except:
+    except Exception:
         active_tasks = 0
 
-    # 4. Моковые данные для графика (пока не накопится реальная статистика)
-    # В будущем тут будет агрегация по месяцам
     chart_mock = [
         ChartPoint(name="Jan", value=2000),
         ChartPoint(name="Feb", value=2100),
@@ -106,7 +98,7 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
     return DashboardData(
         stats=DashboardStats(
             db_status=db_healthy,
-            last_backup=datetime.now().strftime("%H:%M Today"),  # Заглушка
+            last_backup=datetime.now().strftime("%H:%M Today"),
             total_users=total_users,
             active_tasks=active_tasks,
         ),

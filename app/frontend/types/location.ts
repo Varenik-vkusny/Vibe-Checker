@@ -12,6 +12,7 @@ export interface LocationData {
   // New fields for detailed UI
   priceLevel?: string; // e.g. "$$"
   openStatus?: 'Open Now' | 'Closed';
+  reason?: string; 
   distance?: string; // e.g. "1.2km away"
   tags?: string[]; // e.g. ["Fast", "Cheap", "Student Friendly"]
   subRatings?: {

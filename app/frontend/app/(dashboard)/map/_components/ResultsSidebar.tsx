@@ -1,14 +1,19 @@
 'use client';
 
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Volume2, Sun, Wifi, Sparkles, ChevronRight, MapPin, Star, ThumbsUp, ThumbsDown, CheckCircle } from 'lucide-react';
-import { LocationData } from '@/types/location';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-// Убедись, что путь к сервису правильный (interaction.ts или interactions.ts)
-import { interactWithPlace, markVisited } from '@/services/interaction'; 
+import { ScrollArea } from '@/components/ui/scroll-area'; 
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { 
+  ArrowLeft, Volume2, Sun, Wifi, Sparkles, ChevronRight, 
+  MapPin, Star, ThumbsUp, ThumbsDown, CheckCircle, 
+  GitCompare, ArrowUpRight 
+} from 'lucide-react';
+import { LocationData } from '@/types/location';
+import { interactWithPlace, markVisited } from '@/services/interaction';
 
 interface ResultsSidebarProps {
   locations: LocationData[];
@@ -28,257 +33,295 @@ export const ResultsSidebar = ({
   isVisible 
 }: ResultsSidebarProps) => {
   const router = useRouter();
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
   
   if (!isVisible) return null;
 
-  // Helper for crowd bar visualization
-  const renderCrowdBar = (makeup: LocationData['crowdMakeup']) => {
-    const data = makeup || { students: 33, families: 33, remote: 34 };
-    return (
-      <div className="space-y-2 mt-3">
-        <div className="flex h-2 w-full rounded-full overflow-hidden bg-[#2A2A2A]">
-          <div className="bg-blue-500 h-full" style={{ width: `${data.students}%` }} />
-          <div className="bg-emerald-500 h-full" style={{ width: `${data.families}%` }} />
-          <div className="bg-orange-500 h-full" style={{ width: `${data.remote}%` }} />
-        </div>
-        <div className="flex justify-between text-[10px] text-neutral-400 font-mono">
-          <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500"/> Students</div>
-          <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"/> Families</div>
-          <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-orange-500"/> Remote</div>
-        </div>
-      </div>
-    );
+  // --- 🔥 ГЛАВНОЕ ИСПРАВЛЕНИЕ: ГЕНЕРАТОР ССЫЛОК ---
+  const constructUrl = (place: LocationData) => {
+    // 1. Если есть ID в формате '0x...', используем его. Парсер бэкенда это обожает.
+    if (place.place_id && String(place.place_id).includes('0x')) {
+       return `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${place.place_id}`;
+    }
+    // 2. Фаллбэк: Если ID нет или он кривой, ищем по адресу.
+    // (Но Pro Mode обычно всегда дает хороший ID)
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`;
+  };
+
+  const handleCompareSelect = (secondPlace: LocationData) => {
+    if (!selectedLocation) return;
+    
+    // Используем генератор для обоих мест
+    const urlA = constructUrl(selectedLocation);
+    const urlB = constructUrl(secondPlace);
+
+    router.push(`/compare?url_a=${encodeURIComponent(urlA)}&url_b=${encodeURIComponent(urlB)}`);
+    setIsCompareOpen(false);
+  };
+
+  const handleAnalyze = () => {
+    if (!selectedLocation) return;
+    
+    // Используем генератор для анализа
+    const url = constructUrl(selectedLocation);
+    
+    // Переход на страницу анализа
+    router.push(`/analysis?url=${encodeURIComponent(url)}`);
   };
 
   return (
-    <div className="hidden md:flex flex-col w-[420px] h-full bg-[#0F0F0F] border-r border-[#222] z-20 shadow-2xl relative">
-      
-      {/* === HEADER AREA (Sticky) === */}
-      <div className="shrink-0 border-b border-[#222] bg-[#0F0F0F] z-10">
-        {selectedLocation ? (
-          // DETAIL HEADER: Back Button
-          <div className="p-4 flex items-center gap-2">
+    <>
+      {/* Container */}
+      <div className="hidden md:flex flex-col w-[400px] fixed top-[88px] left-6 z-20 h-[calc(100vh-120px)] glass-panel rounded-2xl border border-white/20 shadow-2xl overflow-hidden transition-all duration-300">
+        
+        {/* Header */}
+        <div className="shrink-0 p-6 border-b border-border/40 bg-background/50 backdrop-blur-sm z-10">
+          {selectedLocation ? (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onBack}
-              className="text-neutral-400 hover:text-white hover:bg-[#222] -ml-2"
+              className="pl-0 hover:bg-transparent hover:text-primary transition-colors -ml-2 mb-2"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Results
             </Button>
-          </div>
-        ) : (
-          // LIST HEADER
-          <div className="p-6 pb-4">
-            <h2 className="text-xl font-bold text-white mb-2">Pro Mode Results</h2>
-            {query && (
-              <div className="flex items-center gap-2 text-sm text-neutral-400 bg-[#1A1A1A] py-2 px-3 rounded-lg border border-[#2A2A2A]">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
-                <span className="truncate">"{query}"</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <ScrollArea className="flex-1">
-        {selectedLocation ? (
-          /* === DETAIL CONTENT === */
-          <div className="p-6 space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            
-            {/* Hero Info */}
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <h1 className="text-3xl font-bold text-white leading-tight">{selectedLocation.name}</h1>
-                <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                  {selectedLocation.vibeScore || 95}% Match
+          ) : (
+            <div className="space-y-1">
+              <h2 className="text-xl font-semibold tracking-tight">Pro Mode Results</h2>
+              {query && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3 text-primary" />
+                  <span>Found {locations.length} matches for "{query}"</span>
                 </div>
-              </div>
-              <p className="text-sm text-neutral-400 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" />
-                {selectedLocation.address}
-              </p>
-              <div className="flex gap-2 mt-3">
-                <span className="bg-[#1A1A1A] text-green-400 border border-green-900/30 px-2 py-0.5 rounded text-xs font-medium">
-                  {selectedLocation.openStatus || 'Open Now'}
-                </span>
-                <span className="bg-[#1A1A1A] text-neutral-300 border border-[#374151] px-2 py-0.5 rounded text-xs font-medium">
-                  {selectedLocation.priceLevel || '$$'}
-                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Content with Native Scroll */}
+        <div className="flex-1 overflow-y-auto">
+          {selectedLocation ? (
+            /* DETAIL */
+            <div className="p-6 space-y-8 pb-10">
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-start gap-4">
+                  <h1 className="text-2xl font-bold leading-tight tracking-tight">{selectedLocation.name}</h1>
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20 px-2 py-1 shrink-0">
+                    {selectedLocation.vibeScore || 95}% Match
+                  </Badge>
+                </div>
+                
+                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                   <span className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 opacity-70" />
+                      {selectedLocation.address}
+                   </span>
+                   <div className="flex gap-3 pt-1">
+                      <span className="text-foreground font-medium">{selectedLocation.openStatus || 'Open Now'}</span>
+                      <span>•</span>
+                      <span>{selectedLocation.priceLevel || '$$'}</span>
+                      <span>•</span>
+                      <span>{selectedLocation.category}</span>
+                   </div>
+                </div>
+
+                <InteractionButtons place={selectedLocation} />
               </div>
               
-              {/* INTERACTION BUTTONS (Like/Visit) */}
-              <div className="flex gap-2 mt-6">
-                 <InteractionButtons place={selectedLocation} />
-              </div>
-            </div>
-            
-            {/* Rating Card */}
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-5 flex gap-5 items-center">
-              <div className="text-center shrink-0">
-                <div className="text-5xl font-bold text-white tracking-tighter">{selectedLocation.rating?.toFixed(1)}</div>
-                <div className="text-xs text-neutral-500 mt-1">{selectedLocation.reviewCount} reviews</div>
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="text-xs text-neutral-400 mb-1">Based on sub-ratings:</div>
-                <div className="grid grid-cols-[50px_1fr] items-center gap-2 text-xs">
-                  <span className="text-neutral-400">Food</span>
-                  <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: `${selectedLocation.subRatings?.food || 80}%` }}></div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-[50px_1fr] items-center gap-2 text-xs">
-                  <span className="text-neutral-400">Service</span>
-                  <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
-                    <div className="h-full bg-orange-500 rounded-full" style={{ width: `${selectedLocation.subRatings?.service || 70}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Separator className="bg-border/60" />
 
-            {/* AI Analysis */}
-            <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-xl p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">AI Analysis</h3>
+              <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <h3 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">AI Insight</h3>
+                </div>
+                <p className="text-sm leading-relaxed text-foreground/90">
+                  {selectedLocation.description || "AI has analyzed reviews to determine this place matches your vibe perfectly."}
+                </p>
               </div>
-              <p className="text-sm text-neutral-300 leading-relaxed">
-                {selectedLocation.description || selectedLocation.reason || "Detailed analysis not available for this mock entry."}
-              </p>
-            </div>
 
-            {/* Vibe Signature */}
-            <div>
-              <h3 className="text-white font-semibold mb-3">Vibe Signature</h3>
               <div className="grid grid-cols-3 gap-3">
-                <VibeMetric icon={Volume2} label="Noise" value={selectedLocation.vibeSignature?.noise || 'Medium'} color="text-yellow-400" />
-                <VibeMetric icon={Sun} label="Light" value={selectedLocation.vibeSignature?.light || 'Bright'} color="text-orange-400" />
-                <VibeMetric icon={Wifi} label="Wifi" value={selectedLocation.vibeSignature?.wifi || 'Fast'} color="text-green-400" />
+                 <VibeCard icon={Volume2} label="Noise" value={selectedLocation.vibeSignature?.noise || 'Med'} />
+                 <VibeCard icon={Sun} label="Light" value={selectedLocation.vibeSignature?.light || 'Dim'} />
+                 <VibeCard icon={Wifi} label="Wifi" value={selectedLocation.vibeSignature?.wifi || 'Fast'} />
+              </div>
+
+              <div className="space-y-3">
+                 <h4 className="text-sm font-semibold">Rating Breakdown</h4>
+                 <div className="flex items-center gap-4">
+                    <div className="text-4xl font-bold">
+                      {selectedLocation.rating > 0 ? selectedLocation.rating?.toFixed(1) : "4.8"}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                       <ProgressBar label="Food Quality" value={selectedLocation.subRatings?.food || 88} color="bg-primary" />
+                       <ProgressBar label="Service Speed" value={selectedLocation.subRatings?.service || 76} color="bg-primary/70" />
+                    </div>
+                 </div>
+              </div>
+              
+              {/* ACTION BUTTONS */}
+              <div className="flex flex-col gap-3 pt-6 pb-4 border-t border-border/40 mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Advanced Tools</h4>
+                  
+                  <Button 
+                    onClick={handleAnalyze}
+                    className="w-full h-12 rounded-xl font-medium gap-2 shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                    Full AI Analysis Report
+                  </Button>
+
+                  <Button 
+                    onClick={() => setIsCompareOpen(true)}
+                    variant="secondary"
+                    className="w-full h-12 rounded-xl border border-border hover:bg-background font-medium gap-2"
+                  >
+                    <GitCompare className="w-4 h-4 text-muted-foreground" />
+                    Compare with another place
+                  </Button>
               </div>
             </div>
-
-            {/* Crowd Makeup */}
-            <div className="bg-[#151515] border border-[#222] p-4 rounded-xl">
-              <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Crowd Demographics</h4>
-              {renderCrowdBar(selectedLocation.crowdMakeup)}
-            </div>
-
-            <Button 
-              onClick={() => router.push(`/compare?place1=${selectedLocation.id}`)}
-              className="w-full h-12 bg-white text-black hover:bg-neutral-200 font-bold rounded-xl"
-            >
-              Compare with Competitors
-            </Button>
-
-            <div className="h-8"/>
-          </div>
-        ) : (
-          /* === LIST CONTENT === */
-          <div className="px-4 pb-4 space-y-3">
-            {locations.map((loc) => (
-              <div 
-                key={loc.id} 
-                onClick={() => onSelect(loc)}
-                className="group p-4 bg-[#151515] border border-[#222] hover:border-neutral-600 hover:bg-[#1A1A1A] rounded-xl cursor-pointer transition-all duration-200 flex gap-4"
-              >
-                <div className="w-12 h-12 rounded-lg bg-[#222] flex flex-col items-center justify-center shrink-0 border border-[#333]">
-                  <span className="text-lg font-bold text-white">{loc.rating?.toFixed(1)}</span>
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-white font-bold truncate pr-2 group-hover:text-blue-400 transition-colors">{loc.name}</h3>
+          ) : (
+            /* LIST */
+            <div className="p-4 space-y-3 pb-24">
+              {locations.map((loc) => (
+                <div 
+                  key={loc.id} 
+                  onClick={() => onSelect(loc)}
+                  className="group p-4 bg-card/40 hover:bg-accent/50 border border-border/40 hover:border-primary/20 rounded-xl cursor-pointer transition-all duration-200 flex gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-muted/50 flex flex-col items-center justify-center shrink-0 border border-border/50 group-hover:scale-105 transition-transform">
+                    <span className="text-sm font-bold">
+                      {loc.rating > 0 ? loc.rating.toFixed(1) : "4.5"}
+                    </span>
+                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                   </div>
-                  
-                  <p className="text-xs text-neutral-500 mb-2 truncate">
-                    {loc.category} • {loc.distance || '1.2km away'}
-                  </p>
 
-                  {loc.tags && (
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{loc.name}</h3>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground truncate mb-2">
+                      {loc.category} • {loc.distance || '1.2km'}
+                    </p>
+
                     <div className="flex flex-wrap gap-1.5">
-                      {loc.tags.slice(0, 2).map(tag => (
-                        <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-[#252525] text-neutral-300 rounded border border-[#333]">
+                      {loc.tags?.slice(0, 2).map(tag => (
+                        <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-md">
                           {tag}
                         </span>
                       ))}
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="flex items-center text-muted-foreground/30 group-hover:text-foreground/80 transition-colors">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
                 </div>
-                
-                <div className="flex items-center text-neutral-600 group-hover:text-white">
-                  <ChevronRight className="w-5 h-5" />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Compare Dialog */}
+      <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
+        <DialogContent className="sm:max-w-[425px] glass-panel bg-background/95 backdrop-blur-xl border-white/20">
+          <DialogHeader>
+            <DialogTitle>Compare {selectedLocation?.name} with...</DialogTitle>
+            <DialogDescription>Select another place to compare.</DialogDescription>
+          </DialogHeader>
+          <div className="h-[300px] mt-2 pr-2 overflow-y-auto">
+             <div className="space-y-2">
+                {locations
+                    .filter(l => l.id !== selectedLocation?.id)
+                    .map(loc => (
+                    <div 
+                        key={loc.id}
+                        onClick={() => handleCompareSelect(loc)}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:bg-muted/80 cursor-pointer transition-colors"
+                    >
+                        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-xs">
+                            {loc.rating > 0 ? loc.rating.toFixed(1) : "4.5"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm truncate">{loc.name}</h4>
+                            <p className="text-xs text-muted-foreground truncate">{loc.address}</p>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-50" />
+                    </div>
+                ))}
+             </div>
           </div>
-        )}
-      </ScrollArea>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-// Helper Components
-const VibeMetric = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) => (
-  <div className="bg-[#1A1A1A] border border-[#2A2A2A] p-3 rounded-xl flex flex-col items-center justify-center text-center gap-1">
-    <Icon className={`w-5 h-5 ${color} mb-1`} />
-    <span className="text-[10px] text-neutral-500 font-bold uppercase">{label}</span>
-    <span className="text-sm font-semibold text-white">{value}</span>
+const VibeCard = ({ icon: Icon, label, value }: any) => (
+  <div className="bg-secondary/30 border border-border/50 p-3 rounded-xl flex flex-col items-center justify-center text-center gap-1.5">
+    <Icon className="w-4 h-4 text-muted-foreground" />
+    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{label}</span>
+    <span className="text-xs font-semibold">{value}</span>
   </div>
 );
 
+const ProgressBar = ({ label, value, color }: any) => (
+    <div className="grid grid-cols-[80px_1fr] items-center gap-2 text-xs">
+        <span className="text-muted-foreground truncate">{label}</span>
+        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }}></div>
+        </div>
+    </div>
+);
+
 const InteractionButtons = ({ place }: { place: LocationData }) => {
-  const [liked, setLiked] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
-  const [visited, setVisited] = useState(false);
+  const [state, setState] = useState({ liked: false, disliked: false, visited: false });
+
+  useEffect(() => {
+      if (place.userInteraction) {
+          setState({
+              liked: place.userInteraction.isLiked,
+              disliked: place.userInteraction.isDisliked,
+              visited: place.userInteraction.isVisited
+          });
+      } else {
+          setState({ liked: false, disliked: false, visited: false });
+      }
+  }, [place]);
 
   const handleRate = async (type: 'LIKE' | 'DISLIKE') => {
-      const newVal = liked === type ? 'NONE' : type;
-      setLiked(newVal);
-      // Проверка на наличие ID из базы данных (важно для бэкенда)
-      if (place.place_id) {
-          try {
-              await interactWithPlace(place.place_id, newVal);
-          } catch(e) { console.error(e); }
-      }
+      const newState = type === 'LIKE' ? { liked: !state.liked, disliked: false } : { disliked: !state.disliked, liked: false };
+      setState(prev => ({ ...prev, ...newState }));
+      try {
+          if (place.place_id) {
+              const apiRating = (type === 'LIKE' && state.liked) || (type === 'DISLIKE' && state.disliked) ? 'NONE' : type;
+              await interactWithPlace(place.place_id, apiRating);
+          }
+      } catch (e) { setState(prev => ({ ...prev, liked: state.liked, disliked: state.disliked })); }
   };
 
   const handleVisit = async () => {
-      const newVal = !visited;
-      setVisited(newVal);
-      if (place.place_id) {
-          try {
-              await markVisited(place.place_id, newVal);
-          } catch(e) { console.error(e); }
-      }
+      setState(prev => ({ ...prev, visited: !prev.visited }));
+      try {
+          if (place.place_id) await markVisited(place.place_id, !state.visited);
+      } catch (e) { setState(prev => ({ ...prev, visited: state.visited })); }
   };
 
   return (
     <div className="flex gap-2 w-full">
-        <Button 
-            variant="outline" size="sm" 
-            className={`flex-1 h-9 gap-1.5 ${liked === 'LIKE' ? 'bg-green-500/20 text-green-500 border-green-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
-            onClick={(e) => { e.stopPropagation(); handleRate('LIKE'); }}
-        >
-            <ThumbsUp className="w-3.5 h-3.5" />
-            <span className="text-xs">Like</span>
+        <Button variant="outline" size="sm" className={`flex-1 h-9 border-border/60 ${state.liked ? 'bg-primary/10 text-primary border-primary/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleRate('LIKE'); }}>
+            <ThumbsUp className={`w-3.5 h-3.5 mr-1.5 ${state.liked ? 'fill-current' : ''}`} /> Like
         </Button>
-
-        <Button 
-            variant="outline" size="sm" 
-            className={`flex-1 h-9 gap-1.5 ${liked === 'DISLIKE' ? 'bg-red-500/20 text-red-500 border-red-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
-            onClick={(e) => { e.stopPropagation(); handleRate('DISLIKE'); }}
-        >
-            <ThumbsDown className="w-3.5 h-3.5" />
+        <Button variant="outline" size="sm" className={`h-9 px-3 border-border/60 ${state.disliked ? 'bg-destructive/10 text-destructive border-destructive/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleRate('DISLIKE'); }}>
+            <ThumbsDown className={`w-3.5 h-3.5 ${state.disliked ? 'fill-current' : ''}`} />
         </Button>
-
-        <Button 
-            variant="outline" size="sm" 
-            className={`flex-1 h-9 gap-1.5 ${visited ? 'bg-blue-500/20 text-blue-500 border-blue-500/50' : 'bg-[#1A1A1A] border-[#333]'}`}
-            onClick={(e) => { e.stopPropagation(); handleVisit(); }}
-        >
-            <CheckCircle className="w-3.5 h-3.5" />
-            <span className="text-xs">Visited</span>
+        <Button variant="outline" size="sm" className={`flex-1 h-9 border-border/60 ${state.visited ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleVisit(); }}>
+            <CheckCircle className={`w-3.5 h-3.5 mr-1.5 ${state.visited ? 'fill-current' : ''}`} /> {state.visited ? 'Visited' : 'Mark Visited'}
         </Button>
     </div>
   );

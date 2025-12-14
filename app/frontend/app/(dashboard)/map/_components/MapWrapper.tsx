@@ -10,73 +10,87 @@ interface MapWrapperProps {
   children: ReactNode;
   initialCenter: [number, number];
   className?: string;
-  // Новый проп для передачи инстанса наверх
-  onMapInit?: (map: any) => void;
+  onMapInit?: (map: any, mapgl: any) => void;
 }
 
 export const MapWrapper = ({ children, initialCenter, className, onMapInit }: MapWrapperProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [mapInstance, setMapInstance] = useState<any | null>(null);
-  const [mapglAPI, setMapglAPI] = useState<any | null>(null);
+  const mapInstanceRef = useRef<any>(null); // Храним инстанс карты в ref, чтобы он пережил ререндеры
+  
+  const [mapState, setMapState] = useState<{ map: any; mapglAPI: any } | null>(null);
   const [isReady, setIsReady] = useState(false);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    let map: any = null;
+    // ЗАЩИТА: Если карта уже есть, не создаем новую!
+    if (mapInstanceRef.current) return;
+
+    let isMounted = true;
 
     load().then((mapgl) => {
-      if (!mapContainerRef.current) return;
+      if (!isMounted || !mapContainerRef.current) return;
 
-      setMapglAPI(mapgl);
+      const initialStyle = resolvedTheme === 'dark' 
+           ? 'e05ac437-fcc2-4845-ad74-b1de9ce07555' 
+           : 'c080bb6a-8134-4993-93a1-5b4d8c36a59b';
 
-      map = new mapgl.Map(mapContainerRef.current, {
+      const map = new mapgl.Map(mapContainerRef.current, {
         center: initialCenter,
         zoom: 13,
-        key: '019cced9-f6a6-4f10-b7c3-b6d91a0d0e35',
+        key: '019cced9-f6a6-4f10-b7c3-b6d91a0d0e35', // Демо ключ, замени на свой если есть
         zoomControl: false,
-        style: resolvedTheme === 'dark' 
-           ? 'e05ac437-fcc2-4845-ad74-b1de9ce07555' 
-           : 'c080bb6a-8134-4993-93a1-5b4d8c36a59b',
+        style: initialStyle,
       });
+
+      mapInstanceRef.current = map;
 
       map.once('styleload', () => {
-        setIsReady(true);
+        if (isMounted) setIsReady(true);
       });
 
-      setMapInstance(map);
+      // Сохраняем состояние для контекста
+      setMapState({ map, mapglAPI: mapgl });
       
-      // Сообщаем родителю, что карта готова
+      // Вызываем коллбэк родителя
       if (onMapInit) {
-        onMapInit(map);
+        onMapInit(map, mapgl);
       }
     });
 
+    // CLEANUP: Удаляем карту только при размонтировании компонента
     return () => {
-      if (map) map.destroy();
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy();
+        mapInstanceRef.current = null;
+      }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Пустой массив зависимостей - запускаем ТОЛЬКО один раз
 
-  // Синхронизация темы
+  // Реактивная смена темы (без пересоздания карты)
   useEffect(() => {
-    if (mapInstance && isReady) {
+    if (mapInstanceRef.current && isReady) {
       const styleId = resolvedTheme === 'dark' 
         ? 'e05ac437-fcc2-4845-ad74-b1de9ce07555' 
         : 'c080bb6a-8134-4993-93a1-5b4d8c36a59b';
-      mapInstance.setStyleById(styleId);
+      if (mapInstanceRef.current.setStyleById) {
+          mapInstanceRef.current.setStyleById(styleId);
+      }
     }
-  }, [resolvedTheme, mapInstance, isReady]);
+  }, [resolvedTheme, isReady]);
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
-      <div ref={mapContainerRef} className="w-full h-full" />
+    <div className={`relative w-full h-full min-h-[500px] ${className}`}>
+      {/* Контейнер карты, который React не должен трогать */}
+      <div ref={mapContainerRef} className="absolute inset-0 w-full h-full bg-muted/20" />
 
       {/* Лоадер */}
       <div 
         className={`
           absolute inset-0 z-50 flex flex-col items-center justify-center 
-          bg-background transition-opacity duration-700 ease-in-out
-          ${isReady ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+          bg-background transition-opacity duration-700 ease-in-out pointer-events-none
+          ${isReady ? 'opacity-0' : 'opacity-100'}
         `}
       >
         <div className="flex flex-col items-center gap-4">
@@ -86,13 +100,13 @@ export const MapWrapper = ({ children, initialCenter, className, onMapInit }: Ma
            </div>
            <div className="flex items-center gap-2 text-muted-foreground font-mono text-sm">
              <Loader2 className="w-4 h-4 animate-spin" />
-             <span>LOADING TERRAIN...</span>
+             <span>INITIALIZING MAP...</span>
            </div>
         </div>
       </div>
 
-      <MapContext.Provider value={{ map: mapInstance, mapglAPI }}>
-        {mapglAPI && mapInstance && children}
+      <MapContext.Provider value={{ map: mapState?.map || null, mapglAPI: mapState?.mapglAPI || null }}>
+        {mapState && children}
       </MapContext.Provider>
     </div>
   );

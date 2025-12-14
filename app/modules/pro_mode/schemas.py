@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class UserRequest(BaseModel):
@@ -29,6 +29,13 @@ class VibeRecommendation(BaseModel):
     address: str = ""
     match_score: int = Field(..., description="0-100")
     reason: str = Field(..., description="Почему это место подходит под вайб")
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    rating: Optional[float] = 0.0
+    num_reviews: Optional[int] = 0
+    price_level: Optional[str] = "$$"
+    image_url: Optional[str] = None
+    tags: List[str] = []
 
 
 class FinalResponse(BaseModel):

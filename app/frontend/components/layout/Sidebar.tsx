@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { LogOut, Edit } from 'lucide-react';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -19,13 +19,14 @@ export function Sidebar() {
   ];
 
   return (
-    // Updated classes: w-full on mobile, fixed width on LG. Removed fixed heights causing cutoff.
     <aside className="w-full lg:w-80 flex flex-col gap-6 shrink-0">
-      <Card className="p-6 flex flex-col items-center text-center space-y-4 glass-card overflow-hidden">
+      <Card className="p-6 flex flex-col items-center text-center space-y-4 glass-card overflow-hidden bg-card border-border">
         <div className="relative">
           <Avatar className="h-24 w-24 border-4 border-background">
-            <AvatarImage src="/avatars/01.png" alt={user?.first_name} />
-            <AvatarFallback className="text-2xl">{user?.first_name?.charAt(0)}</AvatarFallback>
+            <AvatarImage src="" alt={user?.first_name} /> 
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {user?.first_name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full h-8 w-8 shadow-sm">
             <Edit className="h-4 w-4" />
@@ -33,39 +34,42 @@ export function Sidebar() {
         </div>
 
         <div className="w-full break-words">
-          <h1 className="text-2xl font-bold truncate">{user?.first_name} {user?.last_name}</h1>
+          <h1 className="text-2xl font-bold truncate text-foreground">{user?.first_name} {user?.last_name}</h1>
           <p className="text-muted-foreground text-sm truncate">{user?.email}</p>
         </div>
 
-        <div className="text-xs font-medium bg-secondary/50 px-3 py-1 rounded-full">
+        <div className="text-xs font-medium bg-secondary text-secondary-foreground px-3 py-1 rounded-full">
           Member since {new Date().getFullYear()}
         </div>
 
-        <div className="flex w-full justify-between py-4 border-y border-border/50">
+        <div className="flex w-full justify-between py-4 border-y border-border">
           <div className="flex flex-col w-1/3">
-            <span className="text-lg font-bold">12</span>
+            <span className="text-lg font-bold text-foreground">12</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Reviews</span>
           </div>
-          <div className="w-px bg-border/50 h-auto self-stretch"></div>
+          <div className="w-px bg-border h-auto self-stretch"></div>
            <div className="flex flex-col w-1/3">
-            <span className="text-lg font-bold">34</span>
+            <span className="text-lg font-bold text-foreground">34</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Saved</span>
           </div>
-          <div className="w-px bg-border/50 h-auto self-stretch"></div>
+          <div className="w-px bg-border h-auto self-stretch"></div>
            <div className="flex flex-col w-1/3">
-            <span className="text-lg font-bold">9.8</span>
+            <span className="text-lg font-bold text-foreground">9.8</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Level</span>
           </div>
         </div>
 
         <div className="w-full space-y-2">
-          <h3 className="text-sm font-semibold text-left">Your Vibe Signature</h3>
-          {/* Adjusted height for mobile to ensure chart fits */}
-          <div className="h-[180px] w-full -ml-2">
+          <h3 className="text-sm font-semibold text-left text-foreground">Your Vibe Signature</h3>
+          <div className="h-[200px] w-full min-h-[200px]"> 
             <ResponsiveContainer width="100%" height="100%">
+              {/* Используем CSS переменные для цветов графика */}
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                 <PolarGrid stroke="var(--border)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
+                <PolarAngleAxis 
+                  dataKey="subject" 
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} 
+                />
                 <Radar
                   name="Vibe"
                   dataKey="A"
@@ -76,10 +80,10 @@ export function Sidebar() {
               </RadarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-xs text-muted-foreground">You prefer <strong>Quiet</strong> & <strong>Productive</strong> spots.</p>
+          <p className="text-xs text-muted-foreground">You prefer <strong className="text-foreground">Quiet</strong> & <strong className="text-foreground">Productive</strong> spots.</p>
         </div>
 
-        <Button variant="outline" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 mb-2" onClick={() => logout()}>
+        <Button variant="outline" className="w-full text-destructive border-destructive/20 hover:text-destructive hover:bg-destructive/10 mb-2" onClick={() => logout()}>
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </Button>

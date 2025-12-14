@@ -4,7 +4,7 @@ from ..dependencies import get_current_user, get_db
 from ..modules.user.models import User
 from ..modules.interactions import service, schemas
 
-router = APIRouter(prefix="/interactions", tags=["User Interactions"])
+router = APIRouter()
 
 
 @router.post("/update", response_model=schemas.InteractionOut)

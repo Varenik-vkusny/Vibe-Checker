@@ -10,8 +10,8 @@ class DashboardStats(BaseModel):
 
 
 class ChartPoint(BaseModel):
-    name: str  # Название месяца (Jan, Feb...)
-    value: int  # Значение (Quality или Rating)
+    name: str
+    value: int
 
 
 class DashboardData(BaseModel):

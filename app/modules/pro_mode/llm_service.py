@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import google.generativeai as genai
 from sentence_transformers import CrossEncoder
 from .schemas import SearchParams, FinalResponse
@@ -37,6 +38,16 @@ def clean_json_string(text: str) -> str:
     return text.strip()
 
 
+def safe_float(val) -> float:
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return 0.0
+        return f
+    except (TypeError, ValueError):
+        return 0.0
+
+
 async def run_gemini_inference(prompt: str) -> str:
 
     try:
@@ -52,13 +63,15 @@ async def generate_search_params(user_text: str) -> SearchParams:
     prompt = f"""You are a query generator for Google Maps.
     User request: "{user_text}"
     Extract the main category and place type.
-    JSON format: {{"q": "Search Query", "type": "place_type"}}
+    JSON format: {{"google_search_query": "Search Query", "place_type": "place_type"}}
     """
     txt = await run_gemini_inference(prompt)
     try:
         data = json.loads(clean_json_string(txt))
+        if "q" in data and "google_search_query" not in data:
+            data["google_search_query"] = data["q"]
         return SearchParams(**data)
-    except:
+    except Exception:
         return SearchParams(
             google_search_query=user_text, place_type="point_of_interest"
         )
@@ -84,7 +97,6 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
 
         desc = summary if summary else "Нет описания"
 
-        # Добавляем адрес в контекст
         doc_text = f"Title: {name}. Address: {address}. Description: {desc}"
 
         pairs.append([user_query, doc_text])
@@ -95,7 +107,6 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
 
     scores = reranker.predict(pairs)
 
-    # Min-Max Scaling для нормализации скоров
     min_score = min(scores)
     max_score = max(scores)
 
@@ -110,7 +121,6 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
         else:
             norm_score = 0.9
 
-        # Сдвигаем диапазон к 50-100 для более читаемого рейтинга
         final_score = 0.5 + (0.49 * norm_score)
 
         candidate["ai_score"] = float(final_score)
@@ -178,18 +188,37 @@ async def explain_selection(user_query: str, top_places: list[dict]) -> FinalRes
     for idx, p in enumerate(top_places):
         reason = reasons_map.get(str(idx))
         if not reason:
-            reason = f"Хороший вариант: {p.get('name')}"
+            reason = f"Отличный вариант: {p.get('name')}"
 
         ai_score = p.get("ai_score", 0.5)
-        match_score = int(ai_score * 100)
+        match_score = int(safe_float(ai_score) * 100)
+
+        lat = safe_float(p.get("lat_float") or p.get("location", {}).get("lat"))
+        lon = safe_float(p.get("lon_float") or p.get("location", {}).get("lon"))
+        rating = safe_float(p.get("rating", 0.0))
+
+        try:
+            num_reviews = int(p.get("reviews_count", 0) or 0)
+        except Exception:
+            num_reviews = 0
+
+        photos = p.get("photos", [])
+        image_url = photos[0] if isinstance(photos, list) and photos else None
 
         final_output.append(
             {
-                "place_id": p.get("place_id", "unknown"),
+                "place_id": str(p.get("place_id", "unknown")),
                 "name": p["name"],
                 "address": p.get("address", ""),
                 "match_score": match_score,
                 "reason": reason,
+                "lat": lat,
+                "lon": lon,
+                "rating": rating,
+                "num_reviews": num_reviews,
+                "price_level": p.get("price_level", "$$"),
+                "image_url": image_url,
+                "tags": p.get("tags", []),
             }
         )
 

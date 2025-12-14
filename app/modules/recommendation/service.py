@@ -18,20 +18,17 @@ logger = logging.getLogger(__name__)
 
 
 async def get_user_context(user_id: int, db: AsyncSession) -> str:
-    """
-    Строит текстовое саммари активности юзера.
-    """
+
     interactions = await get_user_interactions_summary(db, user_id)
     stmt_logs = (
         select(UserLog)
         .where(UserLog.user_id == user_id)
         .order_by(UserLog.created_at.desc())
-        .limit(10)  # Берем последние 10 действий
+        .limit(10)
     )
     result_logs = await db.execute(stmt_logs)
     logs = result_logs.scalars().all()
 
-    # 2. Избранное
     stmt_favs = (
         select(Favorite)
         .options(selectinload(Favorite.place))
@@ -43,7 +40,6 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
 
     context_parts = []
 
-    # Добавляем избранное в контекст
     if favorites:
         fav_names = [f.place.name for f in favorites if f.place]
         context_parts.append(f"User likes: {', '.join(fav_names)}.")
@@ -51,19 +47,15 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
     if interactions["likes"]:
         context_parts.append(f"User LOVES: {', '.join(interactions['likes'])}.")
 
-    # Дизлайки (Критично важно для AI)
     if interactions["dislikes"]:
         context_parts.append(
             f"User DISLIKES (Avoid similar): {', '.join(interactions['dislikes'])}."
         )
 
-    # Посещенные (для новизны)
     if interactions["visited"]:
         context_parts.append(
             f"User already visited: {', '.join(interactions['visited'])}."
         )
-
-    # Добавляем историю поиска
     recent_searches = []
     for log in logs:
         try:
@@ -73,23 +65,19 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
                 else json.loads(log.payload)
             )
 
-            # 1. Если искал (SEARCH)
             if log.action_type == ActionType.SEARCH:
                 q = data.get("query")
                 if q:
                     recent_searches.append(q)
 
-            # 2. Если детально АНАЛИЗИРОВАЛ (ANALYZE) - Сильный сигнал
             elif log.action_type == ActionType.ANALYZE:
                 p_name = data.get("place_name")
                 tags = data.get("tags", [])
                 if p_name:
-                    # Добавляем в контекст: "Интересовался местом X (Теги: ...)"
                     context_parts.append(
                         f"Interested in: {p_name} ({', '.join(tags)})."
                     )
 
-            # 3. Если СРАВНИВАЛ (COMPARE)
             elif log.action_type == ActionType.COMPARE:
                 pa = data.get("place_a")
                 pb = data.get("place_b")
@@ -112,9 +100,7 @@ async def get_user_context(user_id: int, db: AsyncSession) -> str:
 async def generate_discovery_query(
     user_context: str, current_time: str, lat: float, lon: float
 ) -> str:
-    """
-    Просит Gemini придумать поисковый запрос.
-    """
+
     prompt = f"""
     You are a smart local guide.
     
@@ -138,7 +124,6 @@ async def generate_discovery_query(
 
     response_text = await run_gemini_inference(prompt)
 
-    # Чистим мусор, если Gemini решил поболтать
     clean_query = response_text.replace('"', "").replace("JSON", "").strip()
 
     if not clean_query or len(clean_query) < 3:
@@ -148,37 +133,28 @@ async def generate_discovery_query(
 
 
 async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
-    """
-    Оркестратор: Контекст -> Генерация запроса -> Вызов Pro Mode
-    """
-    # 1. Собираем контекст
+
     context = await get_user_context(user_id, db)
     current_time = datetime.now().strftime("%H:%M")
 
     logger.info(f"Inspire Me Context for user {user_id}: {context}")
 
-    # 2. Генерируем запрос через LLM
     generated_query = await generate_discovery_query(context, current_time, lat, lon)
     logger.info(f"Generated Inspire Query: {generated_query}")
 
-    # 3. Подготавливаем запрос для Pro Mode (используем Pydantic модель)
     request_dto = UserRequest(
         query=generated_query,
         lat=lat,
         lon=lon,
-        radius=2000,  # Радиус поиска для рекомендаций
+        radius=2000,
     )
 
-    # 4. Вызываем СУЩЕСТВУЮЩУЮ логику Pro Mode
-    # Она сама сходит в SerpApi, сохранит в Qdrant и вернет результат
     try:
         results = await get_places_by_vibe(request_dto, db)
     except Exception as e:
         logger.error(f"Pro Mode failed inside Inspire Me: {e}")
         raise e
 
-    # 5. Логируем, что мы сделали рекомендацию
-    # Чтобы потом учитывать, что мы уже предлагали
     await log_user_action(
         db,
         user_id,

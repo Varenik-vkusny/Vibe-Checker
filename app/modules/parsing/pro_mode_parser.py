@@ -8,7 +8,7 @@ from ..place.schemas import PlaceInfoDTO, Location, ReviewDTO
 from ..place.repo import PlaceRepo
 
 settings = get_settings()
-SERPAPI_API_KEY = settings.serpapi_key  # Используем тот же ключ
+SERPAPI_API_KEY = settings.serpapi_key
 
 
 def calculate_distance(lat1, lon1, lat2, lon2) -> float:
@@ -30,23 +30,18 @@ def calculate_distance(lat1, lon1, lat2, lon2) -> float:
 async def find_places_nearby(
     query: str, lat: float, lon: float, limit: int = 5
 ) -> List[PlaceInfoDTO]:
-    """
-    Ищет места через SerpApi (engine=google_maps).
-    Использует параметр 'll' (@lat,lon,zoom) для точного гео-поиска.
-    """
     print(f"[SEARCH] Searching via SerpApi Maps: '{query}' near ({lat},{lon})")
 
     candidates = []
     endpoint = "https://serpapi.com/search.json"
 
-    # Формируем параметр ll для Google Maps (@lat,lon,14z)
     ll_param = f"@{lat},{lon},14z"
 
     params = {
         "engine": "google_maps",
         "q": query,
         "ll": ll_param,
-        "type": "search",  # Важно для поиска мест
+        "type": "search",
         "hl": "ru",
         "api_key": SERPAPI_API_KEY,
     }
@@ -59,31 +54,26 @@ async def find_places_nearby(
                     return []
                 data = await response.json()
 
-        # SerpApi возвращает результаты в 'local_results' для engine=google_maps
         local_results = data.get("local_results", [])
 
         print(f"[SEARCH] Found {len(local_results)} raw results.")
 
         for item in local_results:
-            # Получаем координаты из ответа
             gps = item.get("gps_coordinates", {})
             place_lat = gps.get("latitude")
             place_lon = gps.get("longitude")
 
-            # Фильтрация по расстоянию
             if lat and lon and place_lat and place_lon:
                 dist = calculate_distance(lat, lon, place_lat, place_lon)
                 if dist is not None and dist > 30.0:
                     continue
 
-            cid = item.get("data_id")  # Это и есть нужный нам ID (0x...)
+            cid = item.get("data_id")
 
-            # Фото
             photos = []
             if "thumbnail" in item:
                 photos.append(item["thumbnail"])
 
-            # Маппинг DTO
             dto = PlaceInfoDTO(
                 place_id=str(cid) if cid else None,
                 name=item.get("title", "Unknown"),
@@ -91,10 +81,10 @@ async def find_places_nearby(
                 rating=float(item.get("rating", 0.0)),
                 reviews_count=int(item.get("reviews", 0)),
                 location=Location(lat=place_lat, lon=place_lon),
-                description=item.get("type", ""),  # Категория (напр. "Ресторан")
+                description=item.get("type", ""),
                 photos=photos,
                 reviews=[],
-                url=None,  # Можно сформировать maps ссылку, если нужно
+                url=None,
             )
             candidates.append(dto)
 
@@ -148,9 +138,7 @@ async def enrich_place_with_reviews(
                 review = ReviewDTO(
                     author=item.get("user", {}).get("name", "Guest"),
                     rating=float(item.get("rating") or 0.0),
-                    date=item.get(
-                        "date", ""
-                    ),  # SerpApi дает строку, напр "2 месяца назад"
+                    date=item.get("date", ""),
                     text=snippet,
                 )
                 collected_reviews.append(review)
@@ -170,29 +158,19 @@ async def search_and_parse_places(
     query: str,
     lat: float,
     lon: float,
-    place_repo: PlaceRepo,  # <--- ДОБАВИЛИ АРГУМЕНТ
+    place_repo: PlaceRepo,
     limit_places: int = 5,
 ) -> List[PlaceInfoDTO]:
-    """
-    Главная функция:
-    1. Ищет места (API).
-    2. Проверяет БД: если место есть и есть отзывы -> берет из БД.
-    3. Если нет -> тянет отзывы из API.
-    """
+
     t0 = time.time()
 
-    # 1. Ищем кандидатов через Google Maps (поиск по локации)
-    # Это дешевый запрос, его оставляем
     candidates = await find_places_nearby(query, lat, lon, limit=limit_places)
 
     if not candidates:
         return []
 
-    # Списки для разделения задач
     tasks_api = []
-    indices_for_api = (
-        []
-    )  # Чтобы потом знать, к какому кандидату привязать результат API
+    indices_for_api = []
 
     print(f"[SEARCH_AND_PARSE] Checking DB for {len(candidates)} candidates...")
 
@@ -200,20 +178,15 @@ async def search_and_parse_places(
         if not place_dto.place_id:
             continue
 
-        # 2. Проверяем наличие в базе данных
-        # Используем новый метод с подгрузкой отзывов
         cached_place = await place_repo.get_by_google_id_with_reviews(
             place_dto.place_id
         )
 
-        # Логика кеширования: Если место есть и у него есть отзывы (например > 0)
-        # Можно добавить проверку по дате обновления (cached_place.updated_at), если нужно
         if cached_place and cached_place.reviews and len(cached_place.reviews) > 0:
             print(
                 f"   [CACHE HIT] Found '{place_dto.name}' in DB with {len(cached_place.reviews)} reviews."
             )
 
-            # Маппим отзывы из БД (SQLAlchemy models) в Pydantic DTO
             db_reviews_dto = [
                 ReviewDTO(
                     author=rev.author_name or "Guest",
@@ -224,33 +197,26 @@ async def search_and_parse_places(
                 for rev in cached_place.reviews
             ]
 
-            # Обновляем кандидата данными из БД
             place_dto.reviews = db_reviews_dto
-
-            # Опционально: если в БД есть более подробное описание или фото, можно тоже подтянуть
             if cached_place.description:
                 place_dto.description = cached_place.description
             if cached_place.photos:
-                # cached_place.photos у тебя JSON, убедись что там список строк
                 if isinstance(cached_place.photos, list):
                     place_dto.photos = cached_place.photos
 
         else:
-            # Если в базе нет или нет отзывов — ставим в очередь на API запрос
             print(f"   [CACHE MISS] '{place_dto.name}' needs API fetch.")
             tasks_api.append(
                 enrich_place_with_reviews(place_dto.place_id, max_reviews=3)
             )
             indices_for_api.append(i)
 
-    # 3. Выполняем запросы к API только для тех, кого не нашли в БД
     if tasks_api:
         print(
             f"[SEARCH_AND_PARSE] Fetching reviews from API for {len(tasks_api)} places..."
         )
         reviews_results = await asyncio.gather(*tasks_api)
 
-        # Привязываем результаты обратно к кандидатам
         for idx_in_candidates, reviews in zip(indices_for_api, reviews_results):
             candidate = candidates[idx_in_candidates]
             if reviews:

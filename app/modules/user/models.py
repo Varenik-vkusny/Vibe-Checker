@@ -6,9 +6,9 @@ from ...database import Base
 
 
 class UserRole(str, enum.Enum):
-    ADMIN = "ADMIN"  # Было "admin"
-    USER = "USER"  # Было "user"
-    SERVICE = "SERVICE"  # Было "service"
+    ADMIN = "ADMIN"
+    USER = "USER"
+    SERVICE = "SERVICE"
 
 
 class ActionType(str, enum.Enum):

@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from fastapi import FastAPI, status, Depends
 from .modules.admin.dependencies import get_current_admin_user
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 # Import all models here to prevent circular import errors with SQLAlchemy
 from app.modules.analysis_result import models as analysis_result_models
@@ -32,34 +33,35 @@ def setup_logging():
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
-    # Настраиваем формат
     formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | [%(name)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Хендлер для файла (макс 10 МБ, храним 3 файла)
     file_handler = RotatingFileHandler(
         LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=3, encoding="utf-8"
     )
     file_handler.setFormatter(formatter)
 
-    # Добавляем хендлер к корневому логгеру и uvicorn
     logging.getLogger().addHandler(file_handler)
     logging.getLogger("uvicorn").addHandler(file_handler)
     logging.getLogger("uvicorn.access").addHandler(file_handler)
 
-    # Чтобы видеть уровень INFO
     logging.getLogger().setLevel(logging.INFO)
 
 
-# Запускаем настройку
 setup_logging()
 
 
+@asynccontextmanager
 async def lifespan(app: FastAPI):
 
     logging.info("Запускаю приложение...")
+
+    from app.database import async_engine, Base
+
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     yield
 

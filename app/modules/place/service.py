@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from .repo import PlaceRepo, ReviewRepo
 from .schemas import PlaceInfoDTO
 
@@ -42,6 +43,27 @@ class PlaceService:
 
         final_url = data.url if data.url else self._generate_google_url(data.place_id)
 
+        if not place:
+            try:
+                place = await self.place_repo.add(
+                    google_place_id=data.place_id,
+                    source_url=final_url,
+                    name=data.name,
+                    address=data.address,
+                    google_rating=data.rating,
+                    reviews_count=data.reviews_count,
+                    latitude=data.location.lat,
+                    longitude=data.location.lon,
+                    updated_at=datetime.utcnow(),
+                    description=data.description,
+                    photos=data.photos,
+                )
+                await self.place_repo.db.flush()
+
+            except IntegrityError:
+                await self.place_repo.db.rollback()
+                place = await self.place_repo.get_by_google_id(data.place_id)
+
         if place:
             place.name = data.name
             place.google_rating = data.rating
@@ -58,24 +80,7 @@ class PlaceService:
 
             await self.review_repo.delete(place_id=place.id)
 
-        else:
-            place = await self.place_repo.add(
-                google_place_id=data.place_id,
-                source_url=final_url,
-                name=data.name,
-                address=data.address,
-                google_rating=data.rating,
-                reviews_count=data.reviews_count,
-                latitude=data.location.lat,
-                longitude=data.location.lon,
-                updated_at=datetime.utcnow(),
-                description=data.description,
-                photos=data.photos,
-            )
-
-        await self.review_repo.delete(place_id=place.id)
-
-        if data.reviews:
+        if data.reviews and place:
             for rev in data.reviews:
                 await self.review_repo.add(
                     place_id=place.id,

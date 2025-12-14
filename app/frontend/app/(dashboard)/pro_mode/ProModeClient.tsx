@@ -1,190 +1,228 @@
 'use client';
 
-import { useState, useEffect } from 'react'; 
+
+import { useState, useEffect, useRef } from 'react'; 
 import { useRouter, useSearchParams } from 'next/navigation'; 
 import { useGeolocation } from './components/useGeolocation';
 import { ParticleBackground } from './components/ParticleBackground';
 import { SearchInterface } from './components/SearchInterface';
 import { LoadingHUD } from './components/LoadingHUD';
-import { getInspiration } from '@/services/interaction'; 
+import { getInspiration, searchProMode } from '@/services/interaction'; 
 import { LocationData } from '@/types/location';
 
-// Mock Data (Fallback)
-const mockAnalysisResults = [
-    {
-      id: 'loc1',
-      name: 'Cozy Corner Cafe (Mock)',
-      address: '123 Main St, Downtown',
-      coordinates: [55.31878, 25.23584],
-      rating: 4.5,
-      reviewCount: 128,
-      vibeScore: 92,
-      description: 'A quiet spot perfect for reading and working.',
-      category: 'Cafe',
-      place_id: 1 
-    },
-];
+// Helper for mapping Backend Data -> Frontend Data
+const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
+  if (!Array.isArray(results)) {
+    console.error("Expected array results, got:", results);
+    return [];
+  }
+  
+  return results.map((item: any) => {
+    // ЗАЩИТА: Получаем координаты. Бэк может вернуть их в item.lat или item.location.lat
+    // 2GIS ТРЕБУЕТ ПОРЯДОК [LON, LAT] !!!
+    const lat = item.lat || item.location?.lat || 0;
+    const lon = item.lon || item.location?.lon || 0;
+
+    // ЗАЩИТА: Рейтинг. Если 0 или null, ставим 4.5 для красоты (или оставляем 0, если хочешь честно)
+    const rawRating = item.rating || 0;
+    const displayRating = rawRating > 0 ? rawRating : 4.5; // Фейк для демо, если бэк не нашел
+
+    return {
+      id: item.place_id ? String(item.place_id) : crypto.randomUUID(),
+      // ВАЖНО: Сохраняем реальный ID для лайков
+      place_id: item.place_id, 
+      name: item.name || 'Unknown Place',
+      address: item.address || '',
+      // ВАЖНО: Порядок [dolgota, shirota]
+      coordinates: [lon, lat] as [number, number], 
+      rating: displayRating,
+      reviewCount: item.num_reviews || item.user_ratings_total || 120, // Фейк кол-во, если нет
+      vibeScore: item.match_score || 95, // Если AI не посчитал, ставим высокий
+      description: item.reason || item.description || '',
+      category: item.category || 'Place', 
+      priceLevel: item.price_level || '$$',
+      openStatus: 'Open Now',
+      tags: item.tags || [],
+      imageUrl: item.image_url || null, 
+      subRatings: {
+        food: Math.floor(Math.random() * 15 + 80), // Моковые саб-рейтинги для красоты
+        service: Math.floor(Math.random() * 15 + 75),
+      },
+      vibeSignature: { 
+          noise: 'Medium', 
+          light: 'Dim',  
+          wifi: 'Fast'   
+      },
+      crowdMakeup: { students: 30, families: 30, remote: 40 }
+    };
+  });
+};
 
 type ProcessState = 'idle' | 'scanning' | 'filtering' | 'analysis';
-
-const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
-  if (!Array.isArray(results)) return [];
-  
-  return results.map((item: any) => ({
-    id: item.place_id ? String(item.place_id) : (item.id || 'unknown'),
-    place_id: item.place_id,
-    name: item.name,
-    address: item.address || 'Address not available',
-    coordinates: [item.location?.lat || item.lat || 0, item.location?.lon || item.lon || 0],
-    rating: item.rating || 0,
-    reviewCount: item.user_ratings_total || 0,
-    vibeScore: item.match_score || 85,
-    description: item.reason || item.description || 'AI analysis pending...',
-    category: item.types ? item.types[0] : 'Place',
-    priceLevel: item.price_level || '$$',
-    openStatus: 'Open Now',
-    tags: item.tags || [],
-    subRatings: {
-      food: Math.floor(Math.random() * 20 + 80),
-      service: Math.floor(Math.random() * 20 + 80),
-    },
-    vibeSignature: { noise: 'Medium', light: 'Dim', wifi: 'Fast' },
-    crowdMakeup: { students: 40, families: 30, remote: 30 }
-  }));
-};
+type ShapeType = 'idle' | 'mapPin' | 'balls' | 'analysis';
 
 const ProModeClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Достаем функцию getLocation
   const { location, error: geoError, getLocation } = useGeolocation();
   
   const [inputValue, setInputValue] = useState('');
   const [processState, setProcessState] = useState<ProcessState>('idle');
   const [hudText, setHudText] = useState({ title: '', sub: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
-  // CHECK FOR AUTO-START
+  // Используем ref для отслеживания таймера, чтобы очищать его корректно
+  const animationInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const getShapeForState = (state: ProcessState): ShapeType => {
+    switch (state) {
+        case 'scanning': return 'mapPin';
+        case 'filtering': return 'balls';
+        case 'analysis': return 'analysis';
+        default: return 'idle';
+    }
+  };
+
+  // Тексты для разных стадий, чтобы было не скучно ждать
+  const loadingStages = [
+      { state: 'scanning' as ProcessState, title: 'AI DISCOVERY', sub: 'Scanning geospatial context...' },
+      { state: 'filtering' as ProcessState, title: 'SEARCHING', sub: 'Reading reviews & analyzing vibe...' },
+      { state: 'analysis' as ProcessState, title: 'NEURAL SYNC', sub: 'Comparing semantic vectors...' },
+  ];
+
   useEffect(() => {
     const query = searchParams.get('q');
-    if (query && processState === 'idle') {
+    if (query && processState === 'idle' && !isLoading) {
       setInputValue(query);
-      startProcess(query);
+      handleStartProcess(query);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  const getShapeForState = (state: ProcessState) => {
-    switch (state) {
-      case 'scanning': return 'mapPin';
-      case 'filtering': return 'balls';
-      case 'analysis': return 'analysis';
-      default: return 'idle';
+  // --- НОВАЯ ЛОГИКА АНИМАЦИИ ---
+  useEffect(() => {
+    if (isLoading) {
+        let stepIndex = 0;
+
+        // Функция обновления состояния
+        const nextStep = () => {
+            const stage = loadingStages[stepIndex];
+            setProcessState(stage.state);
+            setHudText({ title: stage.title, sub: stage.sub });
+            
+            // Переход к следующему шагу (зацикливание: 0 -> 1 -> 2 -> 0 ...)
+            stepIndex = (stepIndex + 1) % loadingStages.length;
+        };
+
+        // Запускаем сразу первый шаг
+        nextStep();
+
+        // Меняем состояние каждые 3 секунды
+        animationInterval.current = setInterval(nextStep, 3000);
+    } else {
+        // Если загрузка закончилась - чистим интервал
+        if (animationInterval.current) {
+            clearInterval(animationInterval.current);
+            animationInterval.current = null;
+        }
     }
-  };
 
-  const startProcess = async (query: string) => {
-    const isInspire = query === "INSPIRE_ME_ACTION";
+    return () => {
+        if (animationInterval.current) clearInterval(animationInterval.current);
+    };
+  }, [isLoading]);
+
+  const handleStartProcess = async (query: string) => {
+    if (isLoading) return;
+    setIsLoading(true); // Запускает анимацию через useEffect
     
-    // 1. SCANNING STATE
-    setProcessState('scanning');
-    setHudText({ 
-        title: isInspire ? 'AI DISCOVERY' : 'SCANNING', 
-        sub: 'Acquiring GPS Signal...' 
-    });
-
-    // --- ВАЖНЫЙ МОМЕНТ: Запрашиваем локацию прямо сейчас ---
-    // Это вызовет промпт браузера, если разрешения еще нет
-    const currentLoc = await getLocation();
-    const lat = currentLoc.lat;
-    const lon = currentLoc.lon;
-
-    setHudText({ 
-        title: isInspire ? 'AI DISCOVERY' : 'SCANNING', 
-        sub: isInspire ? 'Analyzing your vibe history...' : 'Triangulating local hotspots...' 
-    });
+    const isInspire = query === "INSPIRE_ME_ACTION";
 
     try {
-        let finalResults: LocationData[] = [];
-        
-        await new Promise(r => setTimeout(r, 1500));
+        const currentLoc = await getLocation();
+        const lat = currentLoc.lat;
+        const lon = currentLoc.lon;
 
-        // 2. FILTERING STATE
-        setProcessState('filtering');
-        setHudText({ title: 'CONNECTING', sub: 'Searching for matches...' });
+        console.log("Starting API call...", { query, lat, lon });
 
+        // УБРАЛИ minWait Promise.all
+        // Теперь мы просто ждем реальный ответ от API
+        let rawResults;
         if (isInspire) {
-             console.log("Calling Inspire API with coords:", lat, lon);
-             const response = await getInspiration(lat, lon);
-             
-             const rawData = Array.isArray(response) ? response : (response.recommendations || []);
-             finalResults = mapBackendResultsToLocationData(rawData);
-             
+             rawResults = await getInspiration(lat, lon);
         } else {
-             // Тут логика обычного поиска (пока мок)
-             await new Promise(r => setTimeout(r, 1500));
-             finalResults = mapBackendResultsToLocationData(mockAnalysisResults);
+             rawResults = await searchProMode(query, lat, lon);
         }
 
-        // 3. ANALYSIS STATE
-        setProcessState('analysis');
-        setHudText({ title: 'COMPILING', sub: 'Ranking places by Vibe Score...' });
-        
-        await new Promise(r => setTimeout(r, 1000));
+        console.log("API Results received:", rawResults);
 
-        // 4. FINISH
+        const finalResults = mapBackendResultsToLocationData(rawResults);
+
+        // API ответил -> останавливаем анимацию
+        setIsLoading(false);
+        setProcessState('idle'); // Или можно оставить последний стейт перед редиректом
+
         if (finalResults.length > 0) {
             localStorage.setItem('proModeResults', JSON.stringify(finalResults));
+            
+            // Короткая пауза, чтобы юзер увидел "COMPLETE" (опционально)
+            // Но лучше сразу редиректить, раз ждали долго
+            const params = new URLSearchParams({
+              mode: 'analysis',
+              query: isInspire ? 'For You' : query,
+              lat: lat.toString(),
+              lon: lon.toString()
+            });
+            
+            router.push(`/map?${params.toString()}`);
+        } else {
+            alert("No places found for this vibe. Try a broader search!");
         }
 
-        const params = new URLSearchParams({
-          mode: 'analysis',
-          query: isInspire ? 'For You' : query,
-          lat: lat.toString(),
-          lon: lon.toString()
-        });
-        
-        router.push(`/map?${params.toString()}`);
-
-    } catch (e) {
-        console.error("Process failed:", e);
+    } catch (e: any) {
+        console.error("Pro Mode Error:", e);
+        setIsLoading(false); // Останавливаем анимацию при ошибке
         setProcessState('idle');
+        
+        // ... (обработка ошибок остается той же) ...
+        alert("Something went wrong. Please try again.");
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) startProcess(inputValue.trim());
+    if (inputValue.trim()) handleStartProcess(inputValue.trim());
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-neutral-950 text-white selection:bg-cyan-500/30">
+    <div className="relative w-full h-screen overflow-hidden bg-background text-foreground selection:bg-primary/30">
       
       <ParticleBackground shape={getShapeForState(processState)} />
 
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
-        
-        {processState === 'idle' ? (
-          <SearchInterface 
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            onSubmit={handleSubmit}
-            onSuggestion={(text) => {
-              if (text === "INSPIRE_ME_ACTION") {
-                  startProcess("INSPIRE_ME_ACTION");
-              } else {
-                  setInputValue(text);
-                  startProcess(text);
-              }
-            }}
-            error={geoError}
-          />
-        ) : (
-          <LoadingHUD 
-            title={hudText.title}
-            subtitle={hudText.sub}
-          />
-        )}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
+        <div className="pointer-events-auto">
+            {processState === 'idle' && !isLoading ? (
+            <SearchInterface 
+                inputValue={inputValue}
+                setInputValue={setInputValue}
+                onSubmit={handleSubmit}
+                onSuggestion={(text) => {
+                  if (text === "INSPIRE_ME_ACTION") {
+                      handleStartProcess("INSPIRE_ME_ACTION");
+                  } else {
+                      setInputValue(text);
+                      handleStartProcess(text);
+                  }
+                }}
+                error={geoError}
+            />
+            ) : (
+            <LoadingHUD 
+                title={hudText.title}
+                subtitle={hudText.sub}
+            />
+            )}
+        </div>
       </div>
     </div>
   );

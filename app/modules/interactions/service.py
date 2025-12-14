@@ -1,28 +1,43 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from .models import UserInteraction, LikeState
 from .schemas import InteractionUpdate
+from ..place.models import Place
 
 
 async def update_interaction(db: AsyncSession, user_id: int, data: InteractionUpdate):
-    # 1. Ищем существующую запись
+
+    stmt_place = select(Place).where(Place.google_place_id == data.place_id)
+    result_place = await db.execute(stmt_place)
+    place = result_place.scalar_one_or_none()
+
+    if not place:
+        if data.place_id.isdigit():
+            stmt_place_id = select(Place).where(Place.id == int(data.place_id))
+            result_place_id = await db.execute(stmt_place_id)
+            place = result_place_id.scalar_one_or_none()
+
+        if not place:
+            raise HTTPException(status_code=404, detail="Place not found in database")
+
+    real_place_id = place.id
+
     stmt = select(UserInteraction).where(
-        UserInteraction.user_id == user_id, UserInteraction.place_id == data.place_id
+        UserInteraction.user_id == user_id, UserInteraction.place_id == real_place_id
     )
     result = await db.execute(stmt)
     interaction = result.scalar_one_or_none()
 
-    # 2. Если нет - создаем
     if not interaction:
         interaction = UserInteraction(
             user_id=user_id,
-            place_id=data.place_id,
+            place_id=real_place_id,
             rating=LikeState.NONE,
             is_visited=False,
         )
         db.add(interaction)
 
-    # 3. Обновляем поля, если они пришли
     if data.rating is not None:
         interaction.rating = data.rating
 
@@ -35,11 +50,6 @@ async def update_interaction(db: AsyncSession, user_id: int, data: InteractionUp
 
 
 async def get_user_interactions_summary(db: AsyncSession, user_id: int):
-    """
-    Получает списки для AI: что лайкнул, что дизлайкнул, где был.
-    Нужно для генерации контекста.
-    """
-    # Загружаем всё сразу с названиями мест
     stmt = (
         select(UserInteraction)
         .where(UserInteraction.user_id == user_id)

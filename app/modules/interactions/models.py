@@ -31,7 +31,7 @@ class UserInteraction(Base):
 
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user = relationship("User", backref="interactions")
+    user = relationship("User", back_populates="interactions")
     place = relationship("Place")
 
     __table_args__ = (
