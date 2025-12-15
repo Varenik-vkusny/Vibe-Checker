@@ -1,82 +1,95 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
-import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import {
-  Settings, LogOut, MapPin, Star, Library,
-  TrendingUp, Info, X, MoreHorizontal, Check, Trash2
+  LogOut,
+  Map as MapIcon,
+  Navigation,
+  Globe,
+  Locate,
+  X,
+  CreditCard,
+  Sun,
+  Moon,
+  Laptop
 } from 'lucide-react';
-
-// UI Components
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Badge } from '@/components/ui/badge';
+import { VibeSlider } from './_components/VibeSlider';
+import { NavigatorCard } from './_components/NavigatorCard';
+import { cn } from '@/lib/utils'; // Assuming cn exists
 
-// Recharts
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-  Tooltip
-} from 'recharts';
-
-// --- MOCK DATA ---
-const VIBE_DATA = [
-  { subject: 'Quick', A: 120, fullMark: 150 },
-  { subject: 'Quiet', A: 98, fullMark: 150 },
-  { subject: 'Value', A: 86, fullMark: 150 },
-  { subject: 'Cozy', A: 99, fullMark: 150 },
-  { subject: 'Social', A: 85, fullMark: 150 },
-  { subject: 'Late', A: 65, fullMark: 150 },
-];
-
-const INITIAL_SAVED_PLACES = [
-  { id: 1, title: "Brew & Code", score: 9.8, tags: ["Work", "Coffee"], img: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800" },
-  { id: 2, title: "The Velvet Room", score: 9.2, tags: ["Date", "Jazz"], img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=800" },
-  { id: 3, title: "Sunny Side", score: 8.9, tags: ["Brunch", "Sunny"], img: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=800" },
-  { id: 4, title: "Night Owl", score: 8.5, tags: ["Late", "Bar"], img: "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=800" },
-];
+const getTimeGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good Evening';
+};
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { theme, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage(); // Assuming setLanguage works this way
   const router = useRouter();
 
-  // State
-  const [tags, setTags] = useState(['Quiet Atmosphere', 'Strong Coffee', 'Late Night', 'Fast Wifi']);
-  const [savedPlaces, setSavedPlaces] = useState(INITIAL_SAVED_PLACES);
+  // --- STATE ---
+  const [greeting, setGreeting] = useState('');
 
-  // Handlers
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  // Vibe DNA
+  const [vibeDNA, setVibeDNA] = useState({
+    noise: 50,
+    light: 50,
+    social: 50,
+    budget: 50
+  });
+
+  // Negative Prompts
+  const [negativePrompts, setNegativePrompts] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+
+  // System
+  const [navigator, setNavigator] = useState('google');
+
+  // --- EFFECT: Hydration & LocalStorage ---
+  useEffect(() => {
+    setGreeting(getTimeGreeting());
+
+    // Load from local storage (Mock)
+    const savedNav = localStorage.getItem('navigator_preference');
+    if (savedNav) setNavigator(savedNav);
+
+    // Mock Vibe DNA loading
+    // In a real app, this would fetch from DB
+  }, []);
+
+  useEffect(() => {
+    if (navigator) {
+      localStorage.setItem('navigator_preference', navigator);
+    }
+  }, [navigator]);
+
+  // --- HANDLERS ---
+  const handleVibeChange = (key: keyof typeof vibeDNA, value: number) => {
+    setVibeDNA(prev => ({ ...prev, [key]: value }));
   };
 
-  const addTag = (newTag: string) => {
-    if (newTag && !tags.includes(newTag)) {
-      setTags([...tags, newTag]);
+  const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!negativePrompts.includes(tagInput.trim())) {
+        setNegativePrompts([...negativePrompts, tagInput.trim()]);
+      }
+      setTagInput('');
     }
   };
 
-  const deletePlace = (id: number) => {
-    setSavedPlaces(savedPlaces.filter(p => p.id !== id));
+  const removeTag = (tag: string) => {
+    setNegativePrompts(negativePrompts.filter(t => t !== tag));
   };
 
   const handleLogout = () => {
@@ -84,261 +97,194 @@ export default function ProfilePage() {
     router.push('/');
   };
 
-  const handleSettings = () => {
-    alert("Settings panel would open here.");
-  };
-
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-8 pt-24 max-w-full overflow-x-hidden">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white pt-6 pb-20 px-6 font-sans">
+      <div className="max-w-5xl mx-auto space-y-12">
 
-        {/* --- LEFT COLUMN: IDENTITY CARD (4 cols) --- */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        {/* --- 1. HEADER (Greeting Console) --- */}
+        <header className="border-b border-zinc-200 dark:border-zinc-800 pb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">
+            {greeting}, {user?.first_name || 'User'}
+          </h1>
+        </header>
 
-            {/* Header / Avatar */}
-            <div className="flex flex-col items-center text-center mb-6">
-              <Avatar className="w-24 h-24 mb-4 border-2 border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <AvatarImage src="/avatars/01.png" />
-                <AvatarFallback className="text-2xl font-bold bg-zinc-100 dark:bg-zinc-800">{user?.first_name?.[0]}</AvatarFallback>
-              </Avatar>
-              <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{user?.first_name} {user?.last_name}</h1>
-              <p className="text-sm text-zinc-500">{user?.email}</p>
-              <p className="text-xs font-mono text-zinc-400 mt-2">Member since Dec 2024</p>
-            </div>
+        {/* --- MAIN GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 gap-4 py-6 border-t border-b border-zinc-100 dark:border-zinc-800 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{savedPlaces.length}</div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Saved</div>
+          {/* --- LEFT COLUMN: "THE BRAIN" (7 Cols) --- */}
+          <div className="md:col-span-12 lg:col-span-7 space-y-10 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
+
+            {/* MODULE A: VIBE DNA */}
+            <section className="space-y-6">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Vibe DNA</h2>
+                <p className="text-zinc-500 text-sm">Fine-tune the weights of your discovery engine.</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">12</div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Reviews</div>
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div className="space-y-3">
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 space-y-8">
+                <VibeSlider
+                  label="Acoustic Profile"
+                  leftLabel="Library Silence"
+                  rightLabel="Stadium Concert"
+                  value={vibeDNA.noise}
+                  onChange={(val) => handleVibeChange('noise', val)}
+                />
+                <VibeSlider
+                  label="Luminosity Index"
+                  leftLabel="Dim / Intimate"
+                  rightLabel="Bright / Daylight"
+                  value={vibeDNA.light}
+                  onChange={(val) => handleVibeChange('light', val)}
+                />
+                <VibeSlider
+                  label="Social Density"
+                  leftLabel="Solo"
+                  rightLabel="Packed Crowd"
+                  value={vibeDNA.social}
+                  onChange={(val) => handleVibeChange('social', val)}
+                />
+                <VibeSlider
+                  label="Fiscal Limit"
+                  leftLabel="Saver"
+                  rightLabel="Splurger"
+                  value={vibeDNA.budget}
+                  onChange={(val) => handleVibeChange('budget', val)}
+                />
+              </div>
+            </section>
+
+            {/* MODULE B: NEGATIVE PROMPTS */}
+            <section className="space-y-6">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Vibe Killers (Hard Block)</h2>
+                <p className="text-zinc-500 text-sm">The AI will strictly avoid places with these attributes.</p>
+              </div>
+
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 space-y-4">
+                <Input
+                  placeholder="Type 'Hookah' + Enter..."
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={addTag}
+                  className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-zinc-700 h-12"
+                />
+                <div className="flex flex-wrap gap-2 min-h-[40px]">
+                  {negativePrompts.length === 0 && (
+                    <span className="text-zinc-700 text-xs italic py-2">No active blocks configured.</span>
+                  )}
+                  {negativePrompts.map((tag) => (
+                    <Badge
+                      key={tag}
+                      className="bg-red-950/30 border-red-900/50 text-red-500 hover:bg-red-900/50 hover:text-red-400 pl-3 pr-1 py-1 gap-1 text-xs uppercase"
+                    >
+                      {tag}
+                      <button onClick={() => removeTag(tag)} className="ml-1 hover:text-white"><X className="w-3 h-3" /></button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          {/* --- RIGHT COLUMN: "THE SYSTEM" (5 Cols) --- */}
+          <div className="md:col-span-12 lg:col-span-5 space-y-10 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
+
+            {/* MODULE C: NAVIGATOR PROTOCOL */}
+            <section className="space-y-6">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Navigator Protocol</h2>
+                <p className="text-zinc-500 text-sm">Select your default geospatial provider.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <NavigatorCard
+                  id="google"
+                  name="Google Maps"
+                  selected={navigator === 'google'}
+                  onSelect={setNavigator}
+                  imageSrc="/Google_Logo.svg"
+                />
+                <NavigatorCard
+                  id="yandex"
+                  name="Yandex"
+                  selected={navigator === 'yandex'}
+                  onSelect={setNavigator}
+                  imageSrc="/Yandex_Logo.svg"
+                />
+                <NavigatorCard
+                  id="2gis"
+                  name="2GIS"
+                  selected={navigator === '2gis'}
+                  onSelect={setNavigator}
+                  imageSrc="/2GIS_Logo.svg"
+                />
+                <NavigatorCard
+                  id="apple"
+                  name="Apple Maps"
+                  selected={navigator === 'apple'}
+                  onSelect={setNavigator}
+                  imageSrc="/Apple_Logo.svg"
+                />
+              </div>
+            </section>
+
+            {/* MODULE D: INTERFACE SETTINGS */}
+            <section className="space-y-6">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Interface</h2>
+              </div>
+
+              <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-6">
+
+                {/* Theme Control */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Theme</span>
+                  <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                    <button onClick={() => setTheme('light')} className={cn("p-2 rounded-md transition-all", theme === 'light' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      <Sun className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setTheme('dark')} className={cn("p-2 rounded-md transition-all", theme === 'dark' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      <Moon className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setTheme('system')} className={cn("p-2 rounded-md transition-all", theme === 'system' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      <Laptop className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Language Control */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Language</span>
+                  <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                    <button onClick={() => setLanguage('en')} className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", language === 'en' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      EN
+                    </button>
+                    <button onClick={() => setLanguage('ru')} className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", language === 'ru' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      RU
+                    </button>
+                    <button onClick={() => setLanguage('kz')} className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", language === 'kz' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
+                      KZ
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Sign Out */}
               <Button
                 variant="outline"
-                onClick={handleSettings}
-                className="w-full justify-start rounded-lg font-medium text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-              >
-                <Settings className="w-4 h-4 mr-3 text-zinc-400" />
-                Settings
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start rounded-lg font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/10"
                 onClick={handleLogout}
+                className="w-full border-red-900/30 bg-red-950/10 text-red-500 hover:bg-red-950/30 hover:border-red-900/50 hover:text-red-400 h-12 uppercase tracking-widest font-bold"
               >
-                <LogOut className="w-4 h-4 mr-3" />
+                <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
-            </div>
+            </section>
+
           </div>
         </div>
 
-        {/* --- RIGHT COLUMN: MAIN CONTENT (8 cols) --- */}
-        <div className="lg:col-span-8 space-y-8">
-
-          {/* 1. VIBE MODEL */}
-          <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-            {/* Mobile: Accordion / Desktop: Block */}
-            <div className="block md:hidden">
-              <Accordion type="single" collapsible defaultValue="vibe-model">
-                <AccordionItem value="vibe-model" className="border-none">
-                  <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                      <TrendingUp className="w-4 h-4 text-indigo-500" />
-                      <span className="font-bold">Your Vibe Model</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <VibeModelContent tags={tags} removeTag={removeTag} addTag={addTag} isMobile={true} />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-
-            <div className="hidden md:block p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <TrendingUp className="w-5 h-5 text-indigo-500" />
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Your Vibe Model</h2>
-                <Info className="w-4 h-4 text-zinc-400" />
-              </div>
-              <VibeModelContent tags={tags} removeTag={removeTag} addTag={addTag} isMobile={false} />
-            </div>
-          </section>
-
-          {/* 2. COLLECTIONS */}
-          <section>
-            <Tabs defaultValue="saved" className="w-full">
-              <div className="flex items-center justify-between mb-6">
-                <TabsList className="bg-transparent p-0 h-auto space-x-6">
-                  <TabsTrigger
-                    value="saved"
-                    className="bg-transparent p-0 pb-2 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-none font-bold text-zinc-400"
-                  >
-                    Saved Places
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="visited"
-                    className="bg-transparent p-0 pb-2 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-none font-bold text-zinc-400"
-                  >
-                    Visited
-                  </TabsTrigger>
-                </TabsList>
-                <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-zinc-400">View All</Button>
-              </div>
-
-              <TabsContent value="saved">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {savedPlaces.map((place) => (
-                    <div key={place.id} className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md">
-                      <div className="aspect-[16/10] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-                        <img src={place.img} alt={place.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute top-2 right-2 flex gap-1">
-                          <Badge className="bg-black/80 text-white backdrop-blur-md border-none text-[10px] h-5 px-1.5">{place.score}</Badge>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="flex justify-between items-start mb-1 h-6">
-                          <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 truncate">{place.title}</h3>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1 -mr-1">
-                                <MoreHorizontal className="w-4 h-4 text-zinc-400" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="text-red-600" onClick={() => deletePlace(place.id)}>
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {place.tags.map(tag => (
-                            <span key={tag} className="text-[10px] text-zinc-500 font-medium">#{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {/* Add New Placeholder */}
-                  <div className="border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex flex-col items-center justify-center text-zinc-400 min-h-[160px] cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-2">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-medium">Add Place</span>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="visited">
-                <div className="border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-12 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4">
-                    <Library className="w-6 h-6 text-zinc-400" />
-                  </div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50 mb-1">No visited places yet</h3>
-                  <p className="text-xs text-zinc-500 max-w-[200px]">Mark places you've been to build your history.</p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </section>
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Extracted Component
-function VibeModelContent({ tags, removeTag, addTag, isMobile }: { tags: string[], removeTag: (t: string) => void, addTag: (t: string) => void, isMobile: boolean }) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [newValue, setNewValue] = useState("");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newValue.trim()) {
-      addTag(newValue);
-      setNewValue("");
-      setIsAdding(false);
-    }
-  };
-
-  return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${isMobile ? 'p-6 pt-0' : ''}`}>
-      <div>
-        <h3 className="text-sm font-medium text-zinc-500 mb-4">Based on your searching history, you prefer:</h3>
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 pl-3 pr-1 py-1 gap-1 cursor-default text-xs font-normal border border-zinc-200 dark:border-zinc-700"
-            >
-              {tag}
-              <button
-                onClick={() => removeTag(tag)}
-                className="w-4 h-4 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-600 flex items-center justify-center transition-colors"
-                aria-label={`Remove ${tag}`}
-              >
-                <X className="w-3 h-3 text-zinc-500" />
-              </button>
-            </Badge>
-          ))}
-
-          {isAdding ? (
-            <form onSubmit={submit} className="flex items-center gap-1">
-              <Input
-                autoFocus
-                value={newValue}
-                onChange={e => setNewValue(e.target.value)}
-                className="h-6 w-24 text-xs px-2 py-0"
-                placeholder="Trait..."
-                onBlur={() => !newValue && setIsAdding(false)}
-              />
-              <button type="submit" className="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center">
-                <Check className="w-3 h-3" />
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="text-xs text-indigo-500 font-medium hover:underline px-2 py-1 flex items-center"
-            >
-              + Add Trait
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="h-40 w-full flex items-center justify-center pointer-events-auto">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={VIBE_DATA}>
-            <PolarGrid stroke="#e4e4e7" />
-            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#71717a' }} />
-            <Radar
-              name="Vibe"
-              dataKey="A"
-              stroke="#6366f1"
-              strokeWidth={2}
-              fill="#6366f1"
-              fillOpacity={0.2}
-            />
-            <Tooltip
-              contentStyle={{ background: '#18181b', border: 'none', borderRadius: '8px', color: '#fff' }}
-              itemStyle={{ color: '#fff' }}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
       </div>
     </div>
   );

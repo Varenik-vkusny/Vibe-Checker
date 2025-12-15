@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
           <DropdownMenuItem
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
-            className={language === lang.code ? 'bg-accent' : ''}
+            className={language === lang.code ? 'bg-violet-600 text-white focus:bg-violet-600 focus:text-white' : ''}
           >
             {lang.label}
           </DropdownMenuItem>

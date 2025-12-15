@@ -65,14 +65,14 @@ export default function BookmarksPage() {
     });
 
     return (
-        <div className="min-h-screen bg-zinc-950 pt-24 pb-40 px-6">
+        <div className="min-h-screen bg-white dark:bg-zinc-950 pt-24 pb-40 px-6">
             <div className="max-w-5xl mx-auto space-y-8">
 
                 {/* HEADER SECTION */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-2">
-                        <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Library</h1>
-                        <p className="text-zinc-400 text-sm md:text-base">Your personal collection of curated vibes.</p>
+                        <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">Library</h1>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm md:text-base">Your personal collection of curated vibes.</p>
                     </div>
 
                     {/* FILTER PILLS */}
@@ -93,14 +93,14 @@ export default function BookmarksPage() {
                 ) : (
                     /* EMPTY STATE */
                     <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center">
-                            <Bookmark className="w-10 h-10 text-zinc-700" />
+                        <div className="w-24 h-24 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                            <Bookmark className="w-10 h-10 text-zinc-400 dark:text-zinc-700" />
                         </div>
                         <div className="space-y-2 max-w-sm">
-                            <h3 className="text-xl font-bold text-white">Your collection is empty.</h3>
-                            <p className="text-zinc-400">Start exploring the map to find hidden gems and save them for later.</p>
+                            <h3 className="text-xl font-bold text-zinc-900 dark:text-white">Your collection is empty.</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400">Start exploring the map to find hidden gems and save them for later.</p>
                         </div>
-                        <Button asChild className="rounded-full bg-white text-black hover:bg-zinc-200 font-bold">
+                        <Button asChild className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 font-bold">
                             <Link href="/map">
                                 <MapPin className="w-4 h-4 mr-2" /> Find a Vibe
                             </Link>
@@ -121,8 +121,8 @@ const FilterPill = ({ label, active, onClick }: { label: string, active: boolean
         className={cn(
             "px-4 py-1.5 rounded-full text-sm font-medium transition-all border",
             active
-                ? "bg-white text-black border-white"
-                : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200"
+                ? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black dark:border-white"
+                : "bg-transparent text-zinc-500 border-zinc-200 hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:text-zinc-200"
         )}
     >
         {label}
@@ -132,7 +132,7 @@ const FilterPill = ({ label, active, onClick }: { label: string, active: boolean
 const VibeCard = ({ place }: { place: any }) => (
     <div className="group relative flex flex-col gap-3 min-w-0 cursor-pointer">
         {/* Image Container */}
-        <div className="aspect-[4/3] rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 relative">
+        <div className="aspect-[4/3] rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 relative">
             <img
                 src={place.image}
                 alt={place.name}
@@ -153,7 +153,7 @@ const VibeCard = ({ place }: { place: any }) => (
         {/* Content */}
         <div className="space-y-1">
             <div className="flex justify-between items-start">
-                <h3 className="font-bold text-white text-lg truncate pr-2 group-hover:text-zinc-300 transition-colors">{place.name}</h3>
+                <h3 className="font-bold text-zinc-900 dark:text-white text-lg truncate pr-2 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">{place.name}</h3>
             </div>
 
             <div className="flex items-center text-sm text-zinc-500 font-medium list-none">
@@ -166,7 +166,7 @@ const VibeCard = ({ place }: { place: any }) => (
 
             <div className="flex flex-wrap gap-2 mt-2">
                 {place.tags.map((tag: string, i: number) => (
-                    <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-medium">
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
                         {tag}
                     </span>
                 ))}

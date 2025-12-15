@@ -1,5 +1,6 @@
 import { Search, SendHorizonal, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface Props {
@@ -20,41 +21,35 @@ export const SearchInterface = ({ inputValue, setInputValue, onSubmit, onSuggest
 
       {/* Header - Minimalist */}
       <div className="text-center space-y-3">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-foreground">
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-white">
           {t.pro.title}
         </h1>
-        <p className="text-muted-foreground text-sm md:text-base font-light tracking-wide max-w-sm mx-auto">
+        <p className="text-zinc-500 dark:text-zinc-400 text-lg md:text-xl mb-10 max-w-2xl leading-relaxed mx-auto">
           {t.pro.subtitle}
         </p>
       </div>
 
       {/* Input Form - Industrial Style */}
       <form onSubmit={onSubmit} className="w-full relative group">
-
-        <div className="relative bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 flex items-center transition-all focus-within:ring-2 focus-within:ring-zinc-900 dark:focus-within:ring-zinc-100 focus-within:border-transparent">
-          <div className="pl-3 text-zinc-400">
-            <Search className="w-5 h-5" />
-          </div>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={t.pro.searchPlaceholder}
-            className="flex-1 bg-transparent border-none text-foreground placeholder:text-zinc-400 focus:ring-0 px-4 py-3 outline-none text-lg font-medium"
-          />
-          <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className={cn(
-              "rounded-lg w-10 h-10 flex items-center justify-center transition-all duration-300",
-              inputValue.trim()
-                ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:scale-105"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
-            )}
-          >
-            <SendHorizonal className="w-4 h-4" />
-          </button>
-        </div>
+        <UnifiedSearchInput
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={t.pro.searchPlaceholder}
+          rightElement={
+            <button
+              type="submit"
+              disabled={!inputValue.trim()}
+              className={cn(
+                "h-12 w-12 md:h-14 md:w-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg border border-zinc-800 dark:border-zinc-200",
+                inputValue.trim()
+                  ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:scale-105 hover:bg-zinc-800 dark:hover:bg-white"
+                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border-transparent"
+              )}
+            >
+              <SendHorizonal className="w-6 h-6" />
+            </button>
+          }
+        />
       </form>
 
       {/* Error Message */}

@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
 import { Check, Loader2, ArrowRight, Edit2, Trophy, Minus } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
+
+import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
 
 const compareSchema = z.object({
   url_a: z.string().url('Please enter a valid URL'),
@@ -78,63 +79,68 @@ export default function ComparePage() {
     <div className={`container mx-auto p-6 max-w-5xl h-[calc(100vh-4rem)] overflow-hidden flex flex-col pb-32 ${!result ? 'justify-center' : ''}`}>
 
       {/* --- 1. COMPACT HEADER / INPUTS --- */}
-      <AnimatePresence mode="wait">
-        {showInputs ? (
-          <motion.div
-            key="inputs"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-8 mb-12"
-          >
-            <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold tracking-tight">{t.compare.title}</h1>
-              <p className="text-muted-foreground">{t.compare.subtitle}</p>
+      {showInputs ? (
+        <div
+          className="space-y-8 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
+          <div className="flex flex-col items-center text-center md:items-start md:text-left">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-white mb-6">
+              {t.compare.title}
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 text-lg md:text-xl mb-4 max-w-2xl leading-relaxed">
+              {t.compare.subtitle}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col md:flex-row gap-6 items-center w-full justify-center">
+            <div className="space-y-2 w-full relative group">
+              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">Candidate A</Label>
+              <UnifiedSearchInput
+                {...register('url_a')}
+                placeholder="Paste URL..."
+                className="pr-6"
+              />
+              {errors.url_a && <span className="absolute -bottom-6 left-2 text-red-500 text-xs font-medium">{errors.url_a.message}</span>}
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-zinc-500">Candidate A</Label>
-                <Input {...register('url_a')} placeholder="Paste URL..." className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 h-12" />
-                {errors.url_a && <span className="text-red-500 text-xs">{errors.url_a.message}</span>}
-              </div>
-
-              <div className="flex justify-center pt-6">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-400 text-xs">VS</div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-zinc-500">Candidate B</Label>
-                <Input {...register('url_b')} placeholder="Paste URL..." className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 h-12" />
-                {errors.url_b && <span className="text-red-500 text-xs">{errors.url_b.message}</span>}
-              </div>
-
-              <div className="md:col-span-3 flex justify-center mt-6">
-                <Button type="submit" disabled={loading} size="lg" className="rounded-full px-8 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-black hover:scale-105 transition-transform">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  {loading ? t.compare.comparingButton : t.compare.compareButton}
-                </Button>
-              </div>
-            </form>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="header"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-4 mb-8 py-4 border-b border-zinc-100 dark:border-zinc-900"
-          >
-            <div className="flex items-center gap-3 text-sm font-medium text-zinc-500">
-              <span className="text-zinc-900 dark:text-zinc-200 max-w-[120px] md:max-w-xs truncate">{result?.place_a?.name || getValues('url_a')}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800">VS</span>
-              <span className="text-zinc-900 dark:text-zinc-200 max-w-[120px] md:max-w-xs truncate">{result?.place_b?.name || getValues('url_b')}</span>
+            <div className="flex shrink-0 justify-center pt-6 md:pt-6 relative z-10">
+              <div className="w-12 h-12 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-600 shadow-md flex items-center justify-center font-black text-zinc-800 dark:text-zinc-100 text-sm italic">VS</div>
             </div>
-            <Button variant="ghost" size="icon" onClick={toggleInputs} className="h-8 w-8 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full">
-              <Edit2 className="w-3 h-3 text-zinc-400" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="space-y-2 w-full relative group">
+              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">Candidate B</Label>
+              <UnifiedSearchInput
+                {...register('url_b')}
+                placeholder="Paste URL..."
+                rightElement={
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white hover:scale-105 transition-all shadow-lg border border-zinc-800 dark:border-zinc-200 p-0 flex items-center justify-center shrink-0"
+                  >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ArrowRight className="w-6 h-6" />}
+                  </Button>
+                }
+              />
+              {errors.url_b && <span className="absolute -bottom-6 left-2 text-red-500 text-xs font-medium">{errors.url_b.message}</span>}
+            </div>
+
+          </form>
+        </div>
+      ) : (
+        <div
+          className="flex items-center justify-center gap-4 mb-8 py-4 border-b border-zinc-100 dark:border-zinc-900 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
+          <div className="flex items-center gap-3 text-sm font-medium text-zinc-500">
+            <span className="text-zinc-900 dark:text-zinc-200 max-w-[120px] md:max-w-xs truncate">{result?.place_a?.name || getValues('url_a')}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800">VS</span>
+            <span className="text-zinc-900 dark:text-zinc-200 max-w-[120px] md:max-w-xs truncate">{result?.place_b?.name || getValues('url_b')}</span>
+          </div>
+          <Button variant="ghost" size="icon" onClick={toggleInputs} className="h-8 w-8 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full">
+            <Edit2 className="w-3 h-3 text-zinc-400" />
+          </Button>
+        </div>
+      )}
 
 
       {/* --- RESULTS VIEW --- */}
@@ -183,11 +189,9 @@ export default function ComparePage() {
                     <div className="flex items-center justify-end gap-2 md:gap-3">
                       <span className={`font-mono font-bold text-sm md:text-lg ${winner === 'A' ? 'text-green-500' : 'text-zinc-500'}`}>{scoreA}</span>
                       <div className="h-1.5 md:h-2 flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden flex justify-end max-w-[80px] md:max-w-[120px]">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${percentA}%` }}
-                          transition={{ duration: 1, ease: 'easeOut' }}
-                          className={`h-full ${winner === 'A' ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                        <div
+                          className={`h-full transition-all duration-1000 ease-out ${winner === 'A' ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                          style={{ width: `${percentA}%` }}
                         />
                       </div>
                     </div>
@@ -198,11 +202,9 @@ export default function ComparePage() {
                     {/* Place B Side */}
                     <div className="flex items-center justify-start gap-2 md:gap-3">
                       <div className="h-1.5 md:h-2 flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden max-w-[80px] md:max-w-[120px]">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${percentB}%` }}
-                          transition={{ duration: 1, ease: 'easeOut' }}
-                          className={`h-full ${winner === 'B' ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                        <div
+                          className={`h-full transition-all duration-1000 ease-out ${winner === 'B' ? 'bg-green-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                          style={{ width: `${percentB}%` }}
                         />
                       </div>
                       <span className={`font-mono font-bold text-sm md:text-lg ${winner === 'B' ? 'text-green-500' : 'text-zinc-500'}`}>{scoreB}</span>

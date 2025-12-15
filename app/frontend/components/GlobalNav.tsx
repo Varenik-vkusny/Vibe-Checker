@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useNav } from '@/context/NavContext';
-import { GitCompare, Map as MapIcon, Search, User, Sun, Moon, LogOut, ShieldCheck, Command, Sparkles, Bookmark, BarChart2 } from 'lucide-react';
+import { GitCompare, Map as MapIcon, Search, User, Sun, Moon, LogOut, ShieldCheck, Command, Sparkles, Bookmark, BarChart2, Home } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { LanguageSwitcher } from './layout/LanguageSwitcher';
@@ -44,11 +45,11 @@ export const GlobalNav = () => {
   }
 
   const navItems = [
-    { name: t.header.places, href: '/map' },
-    { name: t.header.compare, href: '/compare' },
-    { name: t.header.analysis, href: '/analysis' },
-    { name: 'Bookmarks', href: '/bookmarks' },
-    { name: t.header.pro_mode, href: '/pro_mode' },
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'AI Analysis', href: '/analysis', icon: BarChart2 },
+    { name: 'Search', href: '/pro_mode', icon: Sparkles },
+    { name: 'Compare', href: '/compare', icon: GitCompare },
+    { name: 'Library', href: '/bookmarks', icon: Bookmark },
   ];
 
   return (
@@ -73,15 +74,15 @@ export const GlobalNav = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`
-                    px-4 py-1.5 rounded-full text-sm font-medium transition-all
-                    ${active
-                      ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50'
-                      : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-                    }
-                  `}
+                  className={cn( // Using cn here if available, or template literals as before. File imports `cn`? No, it doesn't. I should check imports. It uses template literals.
+                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                    active
+                      ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
+                      : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 dark:hover:text-zinc-200 dark:hover:bg-zinc-800/50"
+                  )}
                 >
-                  {item.name}
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
                 </Link>
               );
             })}
@@ -128,48 +129,51 @@ export const GlobalNav = () => {
             </div>
 
             {/* Profile Avatar / Auth */}
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0 overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-800 hover:ring-zinc-400 dark:hover:ring-zinc-600 transition-all">
-                    <Avatar className="h-full w-full">
-                      <AvatarImage src="/avatars/01.png" alt={user?.first_name} />
-                      <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold text-xs">{user?.first_name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900" align="end" forceMount>
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{user?.first_name} {user?.last_name}</p>
-                    <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
-                  </div>
-                  <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
-                  {user?.role === 'ADMIN' && (
+            {/* Profile Avatar / Auth - Desktop Only */}
+            <div className="hidden md:block">
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0 overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-800 hover:ring-zinc-400 dark:hover:ring-zinc-600 transition-all">
+                      <Avatar className="h-full w-full">
+                        <AvatarImage src="/avatars/01.png" alt={user?.first_name} />
+                        <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold text-xs">{user?.first_name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900" align="end" forceMount>
+                    <div className="px-2 py-1.5">
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{user?.first_name} {user?.last_name}</p>
+                      <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                    </div>
+                    <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
+                    {user?.role === 'ADMIN' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
-                      <Link href="/admin">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
+                      <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>{t.header.profile}</span>
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>{t.header.profile}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
-                  <DropdownMenuItem onClick={() => logout()} className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t.header.logout}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button variant="default" size="sm" className="rounded-full px-4 h-8 font-medium bg-zinc-900 dark:bg-zinc-50 text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200" asChild>
-                <Link href="/login">{t.header.signIn}</Link>
-              </Button>
-            )}
+                    <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
+                    <DropdownMenuItem onClick={() => logout()} className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>{t.header.logout}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="default" size="sm" className="rounded-full px-4 h-8 font-medium bg-zinc-900 dark:bg-zinc-50 text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200" asChild>
+                  <Link href="/login">{t.header.signIn}</Link>
+                </Button>
+              )}
+            </div>
 
           </div>
         </div>

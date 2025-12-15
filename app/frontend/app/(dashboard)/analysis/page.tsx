@@ -20,6 +20,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Loader2, Sparkles, Wifi, Sun, Volume2, Globe, ArrowUpRight, Search, Bookmark, ArrowRight, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SkeletonAnalysis } from "@/components/SkeletonAnalysis";
+import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
 import { toast } from 'sonner'; // Assuming sonner is installed or will use simple alert/state if not.
 
 // Relaxed Schema to allow Text Search
@@ -118,7 +119,8 @@ export default function AnalysisPage() {
 
   return (
     <div className={cn(
-      "h-[calc(100vh-3.5rem)] bg-white dark:bg-zinc-950 text-foreground pt-20 pb-24 px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+      "h-[calc(100vh-3.5rem)] bg-white dark:bg-zinc-950 text-foreground pb-24 px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+      isIdle ? "pt-20" : "pt-4 md:pt-6",
       (result || searchCandidates) ? "overflow-y-auto" : "overflow-hidden"
     )}>
       <div className={cn("w-full max-w-4xl mx-auto transition-all duration-500 ease-in-out", isIdle ? "space-y-12" : "space-y-6")}>
@@ -137,22 +139,24 @@ export default function AnalysisPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="w-full relative group">
-            <div className="relative">
-              <Input
-                id="query"
-                placeholder="Paste URL or type 'Sushi'..."
-                {...register('query')}
-                className="pl-6 pr-20 h-16 md:h-20 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-950 text-lg md:text-xl placeholder:text-zinc-400 dark:placeholder:text-zinc-600 rounded-2xl shadow-2xl w-full transition-all"
-                autoComplete="off"
-              />
-              <Button
-                type="submit"
-                disabled={loading}
-                className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 h-12 w-12 md:h-14 md:w-14 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white hover:scale-105 transition-all shadow-lg border border-zinc-800 dark:border-zinc-200 p-0 flex items-center justify-center"
-              >
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
-              </Button>
-            </div>
+            <UnifiedSearchInput
+              {...register('query')}
+              placeholder="Paste URL or type 'Sushi'..."
+              loading={loading}
+              // We use a custom submit button behavior via form, but we can pass null if we want the form `onSubmit` to handle it.
+              // However, the component renders a button if `onSearch` is present.
+              // Since the form handles submit, we can just let the button be a "submit" trigger or just pass the button as `rightElement`.
+              // Best approach here: Pass `rightElement` to preserve exact behavior (type="submit").
+              rightElement={
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white hover:scale-105 transition-all shadow-lg border border-zinc-800 dark:border-zinc-200 p-0 flex items-center justify-center"
+                >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
+                </Button>
+              }
+            />
           </form>
         </div>
 
