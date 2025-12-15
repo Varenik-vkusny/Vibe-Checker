@@ -1,21 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, BarChart3, Terminal, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Users, BarChart3, Terminal, LogOut, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { logout } = useAuth();
 
+    const { t } = useLanguage();
+
     const links = [
-        { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/users', label: 'Users', icon: Users },
-        { href: '/admin/analyses', label: 'Analyses', icon: BarChart3 },
-        { href: '/admin/system-logs', label: 'System Logs', icon: Terminal },
+        { href: '/admin', label: t.admin.dashboard, icon: LayoutDashboard },
+        { href: '/admin/users', label: t.admin.users, icon: Users },
+        { href: '/admin/analyses', label: t.admin.analyses, icon: BarChart3 },
+        { href: '/admin/system-logs', label: t.admin.logs, icon: FileText },
     ];
 
     return (
@@ -25,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex h-full flex-col">
                     {/* Header */}
                     <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
-                        <span className="text-lg font-semibold tracking-tight">Admin OS</span>
+                        <span className="text-lg font-semibold tracking-tight">Admin Panel</span>
                     </div>
 
                     {/* Navigation */}

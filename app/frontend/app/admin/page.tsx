@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Activity, HardDrive, Cpu, Loader2 } from 'lucide-react';
+import { Users, Activity, HardDrive, Database, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Badge } from '@/components/ui/badge';
 import api from '@/lib/api';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface DashboardStats {
     db_status: boolean;
@@ -24,6 +26,7 @@ interface DashboardData {
 }
 
 export default function AdminDashboard() {
+    const { t } = useLanguage();
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -54,60 +57,67 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Dashboard</h1>
-                <p className="text-zinc-500 dark:text-zinc-400">System overview and performance metrics.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t.admin.dashboard}</h1>
+                <p className="text-zinc-500 dark:text-zinc-400">{t.admin.subtitle}</p>
             </div>
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Total Users */}
-                <Card className="border-border shadow-sm">
+                <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+                        <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.totalUsers}</CardTitle>
                         <Users className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data.stats.total_users}</div>
-                        <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                        <div className="text-2xl font-bold text-zinc-900 dark:text-white">{data.stats.total_users}</div>
+                        <p className="text-xs text-zinc-500">+20.1% from last month</p>
                     </CardContent>
                 </Card>
 
-                {/* Analyses Today (Mocked as we don't have this in API yet, user mentioned it but API has tasks) */}
-                <Card className="border-border shadow-sm">
+                {/* Active Tasks */}
+                <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Active Tasks</CardTitle>
-                        <Cpu className="h-4 w-4 text-zinc-500" />
+                        <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.activeTasks}</CardTitle>
+                        <Activity className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data.stats.active_tasks}</div>
-                        <p className="text-xs text-muted-foreground">Currently processing</p>
+                        <div className="text-2xl font-bold text-zinc-900 dark:text-white">{data.stats.active_tasks}</div>
+                        <p className="text-xs text-zinc-500">+19% from last hour</p>
                     </CardContent>
                 </Card>
 
                 {/* Database Health */}
-                <Card className="border-border shadow-sm">
+                <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Database Status</CardTitle>
-                        <HardDrive className="h-4 w-4 text-zinc-500" />
+                        <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.dbStatus}</CardTitle>
+                        <Database className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-2">
-                            <div className={`h-2.5 w-2.5 rounded-full ${data.stats.db_status ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`} />
-                            <span className="text-2xl font-bold">{data.stats.db_status ? 'Online' : 'Offline'}</span>
+                            {data.stats.db_status ? (
+                                <Badge variant="default" className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-0">
+                                    {t.admin.stats.online}
+                                </Badge>
+                            ) : (
+                                <Badge variant="destructive">
+                                    {t.admin.stats.offline}
+                                </Badge>
+                            )}
                         </div>
-                        <p className="text-xs text-muted-foreground">Last backup: {data.stats.last_backup}</p>
+                        <p className="text-xs text-zinc-500 mt-2">{t.admin.stats.lastBackup}: {data.stats.last_backup}</p>
                     </CardContent>
                 </Card>
 
                 {/* System Activity (Mocked KPI) */}
                 <Card className="border-border shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">System Load</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">{t.admin.systemLoad.title}</CardTitle>
                         <Activity className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">98.2%</div>
-                        <p className="text-xs text-muted-foreground">Operational uptime</p>
+                        <p className="text-xs text-muted-foreground">{t.admin.systemLoad.subtitle}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -115,7 +125,7 @@ export default function AdminDashboard() {
             {/* Main Chart */}
             <Card className="col-span-4 border-border shadow-sm">
                 <CardHeader>
-                    <CardTitle>Weekly Activity</CardTitle>
+                    <CardTitle>{t.admin.weeklyActivity}</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
                     <div className="h-[350px] w-full">

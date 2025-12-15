@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
@@ -19,6 +20,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [tickerText, setTickerText] = useState("INITIALIZING VIBE ENGINE...");
 
@@ -71,10 +73,10 @@ export default function LoginPage() {
             <Image src="/logo.svg" alt="Logo" fill className="dark:invert" />
           </div>
           <h1 className="text-xl font-semibold tracking-tight text-center text-zinc-900 dark:text-zinc-100">
-            Welcome back.
+            {t.login.welcome}
           </h1>
           <p className="text-sm text-zinc-500 text-center mt-2">
-            Enter your credentials to access the Vibe Engine.
+            {t.login.subtitle}
           </p>
         </div>
 
@@ -109,7 +111,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-medium transition-opacity hover:opacity-90 shadow-none mt-2"
           >
-            {isSubmitting ? 'AUTHENTICATING...' : 'Sign In'}
+            {isSubmitting ? t.login.signingIn : t.login.signIn}
           </Button>
 
           <div className="relative my-6">
@@ -117,7 +119,7 @@ export default function LoginPage() {
               <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">Or continue with</span>
+              <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">{t.login.orContinue}</span>
             </div>
           </div>
 
@@ -132,7 +134,7 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center text-xs text-zinc-500">
           <Link href="/register" className="hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-4 decoration-zinc-300 dark:decoration-zinc-700">
-            Create an account
+            {t.login.createAccount}
           </Link>
         </div>
       </div>

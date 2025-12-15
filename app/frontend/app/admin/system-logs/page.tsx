@@ -5,8 +5,10 @@ import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Download, Trash, RefreshCw } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function LogsPage() {
+    const { t } = useLanguage();
     const [logs, setLogs] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -45,21 +47,21 @@ export default function LogsPage() {
         <div className="space-y-6 animate-in fade-in duration-500 h-[calc(100vh-8rem)] flex flex-col">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">System Logs</h1>
-                    <p className="text-zinc-500">Live system events and debug information.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t.admin.logsPage.title}</h1>
+                    <p className="text-zinc-500">{t.admin.logsPage.subtitle}</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
                         <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        {t.admin.logsPage.refresh}
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => window.open('/api/admin/logs/download', '_blank')}>
                         <Download className="mr-2 h-4 w-4" />
-                        Download
+                        {t.admin.logsPage.download}
                     </Button>
                     <Button variant="destructive" size="sm" onClick={handleClear}>
                         <Trash className="mr-2 h-4 w-4" />
-                        Clear
+                        {t.admin.logsPage.clear}
                     </Button>
                 </div>
             </div>
@@ -67,7 +69,7 @@ export default function LogsPage() {
             <div className="flex-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-950 p-4 font-mono text-sm text-zinc-300 shadow-inner overflow-hidden">
                 <ScrollArea className="h-full w-full">
                     {!Array.isArray(logs) || logs.length === 0 ? (
-                        <div className="text-zinc-500 italic">No logs available.</div>
+                        <div className="text-zinc-500 italic">{t.admin.logsPage.noLogs}</div>
                     ) : (
                         logs.map((log, i) => (
                             <div key={i} className="whitespace-pre-wrap border-b border-zinc-900/50 py-0.5 hover:bg-zinc-900/50">

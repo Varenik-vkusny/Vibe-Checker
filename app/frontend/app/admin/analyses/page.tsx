@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // Mock Data
 const analyses = [
@@ -13,11 +14,13 @@ const analyses = [
 ];
 
 export default function AnalysesPage() {
+    const { t } = useLanguage();
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Recent Analyses</h1>
-                <p className="text-zinc-500">Real-time feed of Vibe Engine outputs.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t.admin.analysesPage.title}</h1>
+                <p className="text-zinc-500">{t.admin.analysesPage.subtitle}</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -38,7 +41,7 @@ export default function AnalysesPage() {
                                 ))}
                             </div>
                             <div className="text-xs text-zinc-400">
-                                Analyzed {item.time}
+                                {t.admin.analysesPage.analyzed} {item.time}
                             </div>
                         </CardContent>
                     </Card>
@@ -46,7 +49,7 @@ export default function AnalysesPage() {
             </div>
 
             <div className="text-center p-8 text-zinc-400 text-sm">
-                Connect to a real data source to see live analyses.
+                {t.admin.analysesPage.connectPrompt}
             </div>
         </div>
     );

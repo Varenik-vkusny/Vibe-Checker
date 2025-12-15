@@ -23,6 +23,7 @@ import { MoreHorizontal, Loader2, Shield, Trash2, UserCog } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface User {
     id: number;
@@ -34,6 +35,7 @@ interface User {
 }
 
 export default function UsersPage() {
+    const { t } = useLanguage();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -69,18 +71,18 @@ export default function UsersPage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Users</h1>
-                <p className="text-zinc-500">Manage system access and permissions.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t.admin.usersPage.title}</h1>
+                <p className="text-zinc-500">{t.admin.usersPage.subtitle}</p>
             </div>
 
             <div className="rounded-md border border-zinc-200 dark:border-zinc-800">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[300px]">User</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="w-[300px]">{t.admin.users}</TableHead>
+                            <TableHead>{t.admin.usersPage.role}</TableHead>
+                            <TableHead>{t.admin.usersPage.joined}</TableHead>
+                            <TableHead className="text-right">{t.admin.usersPage.actions}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -116,19 +118,19 @@ export default function UsersPage() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuLabel>{t.admin.usersPage.actions}</DropdownMenuLabel>
                                             <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.email)}>
-                                                Copy Email
+                                                {t.admin.usersPage.copyEmail}
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem onClick={() => handleRoleChange(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}>
                                                 <UserCog className="mr-2 h-4 w-4" />
-                                                {user.role === 'ADMIN' ? 'Demote to User' : 'Promote to Admin'}
+                                                {user.role === 'ADMIN' ? t.admin.usersPage.demote : t.admin.usersPage.promote}
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem className="text-red-600">
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete User
+                                                {t.admin.usersPage.delete}
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
