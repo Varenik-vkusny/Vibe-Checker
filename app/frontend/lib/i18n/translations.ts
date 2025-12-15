@@ -105,7 +105,7 @@ export const translations = {
         budget: { label: 'Fiscal Limit', left: 'Saver', right: 'Splurger' },
       },
       vibeKillers: {
-        title: 'Block places with tags',
+        title: 'Vibe Killers (Hard Block)',
         subtitle: 'The AI will strictly avoid places with these attributes.',
         placeholder: "Type 'Hookah' + Enter...",
         empty: 'No active blocks configured.',
@@ -150,7 +150,7 @@ export const translations = {
     },
     compare: {
       title: 'Compare Places',
-      heroTitle: 'Compare mode.',
+      heroTitle: 'Tale of the Tape.',
       heroSubtitle: 'See which spot wins the vibe check.',
       inputPlaceholderA: 'Search Candidate A...',
       inputPlaceholderB: 'Search Candidate B...',
@@ -191,18 +191,6 @@ export const translations = {
       noAccount: "Don't have an account?",
       signUp: 'Sign up',
     },
-    register: {
-      title: 'Create Account',
-      subtitle: 'Enter your details to create an account',
-      firstName: 'First Name',
-      lastName: 'Last Name',
-      email: 'Email',
-      password: 'Password',
-      createAccount: 'Sign Up',
-      creatingAccount: 'Creating account...',
-      alreadyHaveAccount: 'Already have an account?',
-      signIn: 'Sign In',
-    },
     map: {
       backToResults: 'Back to Results',
       proModeResults: 'Pro Mode Results',
@@ -215,11 +203,7 @@ export const translations = {
       light: 'Light',
       wifi: 'Wifi',
       ratingBreakdown: 'Rating Breakdown',
-      compareWith: 'Compare with {name}',
-      selectToCompare: 'Select a place to compare',
-      like: 'Like',
-      visited: 'Visited',
-      markVisited: 'Mark as visited',
+      fullReport: 'Full Analysis',
     }
   },
   ru: {
@@ -326,7 +310,7 @@ export const translations = {
         budget: { label: 'Финансовый Лимит', left: 'Эконом', right: 'Транжира' },
       },
       vibeKillers: {
-        title: 'Блокировать места с тегами',
+        title: 'Убийцы Вайба (Блок)',
         subtitle: 'ИИ будет строго избегать мест с этими атрибутами.',
         placeholder: "Введите 'Кальян' + Enter...",
         empty: 'Нет активных блокировок.',
@@ -371,7 +355,7 @@ export const translations = {
     },
     compare: {
       title: 'Сравнить Места',
-      heroTitle: 'Режим сравнения.',
+      heroTitle: 'Битва Титанов.',
       heroSubtitle: 'Узнайте, какое место побеждает в проверке вайба.',
       inputPlaceholderA: 'Поиск Кандидата А...',
       inputPlaceholderB: 'Поиск Кандидата Б...',
@@ -412,18 +396,6 @@ export const translations = {
       noAccount: "Нет аккаунта?",
       signUp: 'Регистрация',
     },
-    register: {
-      title: 'Создать Аккаунт',
-      subtitle: 'Введите данные для регистрации',
-      firstName: 'Имя',
-      lastName: 'Фамилия',
-      email: 'Email',
-      password: 'Пароль',
-      createAccount: 'Зарегистрироваться',
-      creatingAccount: 'Регистрация...',
-      alreadyHaveAccount: 'Уже есть аккаунт?',
-      signIn: 'Войти',
-    },
     map: {
       backToResults: 'Назад к результатам',
       proModeResults: 'Результаты Pro Режима',
@@ -436,11 +408,7 @@ export const translations = {
       light: 'Свет',
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
-      compareWith: 'Сравнить с {name}',
-      selectToCompare: 'Выберите место для сравнения',
-      like: 'Нравится',
-      visited: 'Посещено',
-      markVisited: 'В посещенные',
+      fullReport: 'Полный Отчет',
     }
   },
   kz: {
@@ -592,7 +560,7 @@ export const translations = {
     },
     compare: {
       title: 'Орындарды Салыстыру',
-      heroTitle: 'Салыстыру режимі.',
+      heroTitle: 'Титандар шайқасы.',
       heroSubtitle: 'Қай орын вайб тексерісінде жеңетінін көріңіз.',
       inputPlaceholderA: 'А Кандидатын іздеу...',
       inputPlaceholderB: 'Б Кандидатын іздеу...',
@@ -633,18 +601,6 @@ export const translations = {
       noAccount: "Аккаунтыңыз жоқ па?",
       signUp: 'Тіркелу',
     },
-    register: {
-      title: 'Аккаунт Құру',
-      subtitle: 'Тіркелу үшін деректерді енгізіңіз',
-      firstName: 'Аты',
-      lastName: 'Тегі',
-      email: 'Email',
-      password: 'Құпия сөз',
-      createAccount: 'Тіркелу',
-      creatingAccount: 'Тіркелу...',
-      alreadyHaveAccount: 'Аккаунтыңыз бар ма?',
-      signIn: 'Кіру',
-    },
     map: {
       backToResults: 'Нәтижелерге оралу',
       proModeResults: 'Pro Режим Нәтижелері',
@@ -657,11 +613,7 @@ export const translations = {
       light: 'Жарық',
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
-      compareWith: '{name} орынымен салыстыру',
-      selectToCompare: 'Салыстыру үшін орынды таңдаңыз',
-      like: 'Ұнайды',
-      visited: 'Бардым',
-      markVisited: 'Бардым деп белгілеу',
+      fullReport: 'Толық Есеп',
     }
   },
 };
