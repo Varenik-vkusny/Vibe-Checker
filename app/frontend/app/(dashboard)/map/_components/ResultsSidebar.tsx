@@ -254,7 +254,7 @@ export const ResultsSidebar = ({
       <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
         <DialogContent className="sm:max-w-[425px] bg-background border border-border sm:rounded-2xl shadow-xl">
           <DialogHeader>
-            <DialogTitle>{t.map.compareWith.replace('{name}', selectedLocation?.name || '')}</DialogTitle>
+            <DialogTitle>{(t.map.compareWith || 'Compare with {name}').replace('{name}', selectedLocation?.name || '')}</DialogTitle>
             <DialogDescription>{t.map.selectToCompare}</DialogDescription>
           </DialogHeader>
           <div className="h-[300px] mt-2 pr-2 overflow-y-auto">
