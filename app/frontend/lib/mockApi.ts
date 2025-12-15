@@ -101,7 +101,7 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
   }
 
   if (cleanUrl === '/users/me' && method === 'get') {
-    return [200, { ...MOCK_USER, role: 'USER' }];
+    return [200, { ...MOCK_USER, role: 'ADMIN' }];
   }
 
   // Updated to return the detailed structure
@@ -145,6 +145,54 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
       place_a: { name: 'Burger King Center', price_level: '$$' },
       place_b: { name: 'KFC Downtown', price_level: '$$$' }
     }];
+  }
+
+    if (cleanUrl === '/admin/stats' && method === 'get') {
+    return [200, {
+      stats: {
+        db_status: true,
+        last_backup: "12:00 Today",
+        total_users: 1250,
+        active_tasks: 5
+      },
+      chart_data: [
+        { name: "Jan", value: 1200 },
+        { name: "Feb", value: 2100 },
+        { name: "Mar", value: 800 },
+        { name: "Apr", value: 1600 },
+        { name: "May", value: 2400 },
+        { name: "Jun", value: 3800 }
+      ]
+    }];
+  }
+
+  // 2. Список пользователей (Users)
+  if (cleanUrl === '/admin/users' && method === 'get') {
+    return [200, [
+      { id: 1, first_name: "Admin", last_name: "User", email: "admin@vibe.com", role: "ADMIN", created_at: "2024-01-01" },
+      { id: 2, first_name: "John", last_name: "Doe", email: "john@gmail.com", role: "USER", created_at: "2024-02-15" },
+      { id: 3, first_name: "Service", last_name: "Bot", email: "bot@vibe.com", role: "SERVICE", created_at: "2024-03-10" },
+    ]];
+  }
+
+  // 3. Логи (System Logs)
+  if (cleanUrl === '/admin/logs' && method === 'get') {
+    return [200, [
+      "[INFO] System started successfully.",
+      "[INFO] Database connected.",
+      "[WARNING] High latency detected in search module.",
+      "[INFO] User 123 logged in.",
+      "[ERROR] Failed to fetch external reviews from SerpAPI (Timeout).",
+      "[INFO] Backup completed successfully."
+    ]];
+  }
+
+  if (cleanUrl.match(/\/admin\/users\/\d+\/role/) && method === 'patch') {
+    return [200, { status: "success" }];
+  }
+  
+  if (cleanUrl === '/admin/logs/clear' && method === 'delete') {
+    return [200, { status: "cleared" }];
   }
 
   return [404, { message: 'Mock endpoint not found' }];

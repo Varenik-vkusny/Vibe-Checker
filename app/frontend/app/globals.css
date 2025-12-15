@@ -137,6 +137,18 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background-image: url('/grid.svg');
+    background-size: 40px 40px;
+    /* Opacity handling via separate pseudoelement or tint usually better, but for simplicity applying to bg directly with subtle stroke in SVG or masking? 
+       Actually user asked: "bg-[url('/grid.svg')] opacity-5" - usually implies the element has opacity, but that fades content.
+       Better to use a pseudo-element or just rely on the SVG being subtle.
+       The SVG uses "currentColor", so it takes color from... where? It won't contextually unless inline.
+       If loaded as image, currentColor is black (usually).
+       Let's stick to the prompt's suggestion of "subtle Dot Pattern... bg-[url('/grid.svg')] opacity-5".
+       Wait, opacity-5 on body makes everything transparent.
+       I will add a utility class for the background specifically or handle it in the Page layout wrapper.
+       Let's Just keep body clean and add the specific background classes in the Page component as requested: "Base: min-h-screen ... bg-[url('/grid.svg')]"
+    */
   }
 
   h1,

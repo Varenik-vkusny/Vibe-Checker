@@ -22,7 +22,6 @@ export const translations = {
       toggleTheme: 'Toggle Theme',
       home: 'Home',
     },
-    // ... Landing & Analysis (Keep existing if needed, but for brevity I will include the relevant new ones)
     landing: {
       titlePrefix: 'Find Your',
       titleSuffix: 'Vibe.',
@@ -151,7 +150,7 @@ export const translations = {
     },
     compare: {
       title: 'Compare Places',
-      heroTitle: 'Tale of the Tape.',
+      heroTitle: 'Compare mode.',
       heroSubtitle: 'See which spot wins the vibe check.',
       inputPlaceholderA: 'Search Candidate A...',
       inputPlaceholderB: 'Search Candidate B...',
@@ -192,6 +191,18 @@ export const translations = {
       noAccount: "Don't have an account?",
       signUp: 'Sign up',
     },
+    register: {
+      title: 'Create Account',
+      subtitle: 'Enter your details to create an account',
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      email: 'Email',
+      password: 'Password',
+      createAccount: 'Sign Up',
+      creatingAccount: 'Creating account...',
+      alreadyHaveAccount: 'Already have an account?',
+      signIn: 'Sign In',
+    },
     map: {
       backToResults: 'Back to Results',
       proModeResults: 'Pro Mode Results',
@@ -205,6 +216,11 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Rating Breakdown',
       fullReport: 'Full Analysis',
+      compareWith: 'Compare with {name}',
+      selectToCompare: 'Select a place to compare',
+      like: 'Like',
+      visited: 'Visited',
+      markVisited: 'Mark as visited',
     }
   },
   ru: {
@@ -356,7 +372,7 @@ export const translations = {
     },
     compare: {
       title: 'Сравнить Места',
-      heroTitle: 'Битва Титанов.',
+      heroTitle: 'Режим сравнения.',
       heroSubtitle: 'Узнайте, какое место побеждает в проверке вайба.',
       inputPlaceholderA: 'Поиск Кандидата А...',
       inputPlaceholderB: 'Поиск Кандидата Б...',
@@ -397,6 +413,18 @@ export const translations = {
       noAccount: "Нет аккаунта?",
       signUp: 'Регистрация',
     },
+    register: {
+      title: 'Создать Аккаунт',
+      subtitle: 'Введите данные для регистрации',
+      firstName: 'Имя',
+      lastName: 'Фамилия',
+      email: 'Email',
+      password: 'Пароль',
+      createAccount: 'Зарегистрироваться',
+      creatingAccount: 'Регистрация...',
+      alreadyHaveAccount: 'Уже есть аккаунт?',
+      signIn: 'Войти',
+    },
     map: {
       backToResults: 'Назад к результатам',
       proModeResults: 'Результаты Pro Режима',
@@ -410,6 +438,11 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
       fullReport: 'Полный Отчет',
+      compareWith: 'Сравнить с {name}',
+      selectToCompare: 'Выберите место для сравнения',
+      like: 'Нравится',
+      visited: 'Посещено',
+      markVisited: 'В посещенные',
     }
   },
   kz: {
@@ -561,7 +594,7 @@ export const translations = {
     },
     compare: {
       title: 'Орындарды Салыстыру',
-      heroTitle: 'Титандар шайқасы.',
+      heroTitle: 'Салыстыру режимі.',
       heroSubtitle: 'Қай орын вайб тексерісінде жеңетінін көріңіз.',
       inputPlaceholderA: 'А Кандидатын іздеу...',
       inputPlaceholderB: 'Б Кандидатын іздеу...',
@@ -602,6 +635,18 @@ export const translations = {
       noAccount: "Аккаунтыңыз жоқ па?",
       signUp: 'Тіркелу',
     },
+    register: {
+      title: 'Аккаунт Құру',
+      subtitle: 'Тіркелу үшін деректерді енгізіңіз',
+      firstName: 'Аты',
+      lastName: 'Тегі',
+      email: 'Email',
+      password: 'Құпия сөз',
+      createAccount: 'Тіркелу',
+      creatingAccount: 'Тіркелу...',
+      alreadyHaveAccount: 'Аккаунтыңыз бар ма?',
+      signIn: 'Кіру',
+    },
     map: {
       backToResults: 'Нәтижелерге оралу',
       proModeResults: 'Pro Режим Нәтижелері',
@@ -615,6 +660,11 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
       fullReport: 'Толық Есеп',
+      compareWith: '{name} орынымен салыстыру',
+      selectToCompare: 'Салыстыру үшін орынды таңдаңыз',
+      like: 'Ұнайды',
+      visited: 'Бардым',
+      markVisited: 'Бардым деп белгілеу',
     }
   },
 };

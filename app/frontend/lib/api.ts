@@ -2,9 +2,7 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError, AxiosAdap
 import { getCookie } from 'cookies-next';
 import { handleMockRequest } from './mockApi';
 
-// Default to MOCK enabled if not explicitly disabled. 
-// This ensures the demo works out-of-the-box without .env configuration.
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API !== 'false';
+const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API !== 'true';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000',
@@ -15,12 +13,10 @@ const api = axios.create({
   timeout: 300000,
 });
 
-// Debug Log
 if (typeof window !== 'undefined') {
   console.log('[API] Initializing. Mock Mode:', USE_MOCK_API);
 }
 
-// Request interceptor for Auth token
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getCookie('access_token');
   if (token) {

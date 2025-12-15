@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,8 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const registerSchema = z.object({
@@ -25,6 +24,23 @@ export default function RegisterPage() {
   const { register: registerUser } = useAuth();
   const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
+  const [tickerText, setTickerText] = useState("INITIALIZING NEW PROTOCOL...");
+
+  // Simple ticker effect
+  useEffect(() => {
+    const texts = [
+      "VERIFYING BIOMETRICS...",
+      "ALLOCATING SECURE STORAGE...",
+      "SYNCING WITH VIBE NETWORK...",
+      "AWAITING USER INPUT..."
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      i = (i + 1) % texts.length;
+      setTickerText(texts[i]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const {
     register,
@@ -38,58 +54,113 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError('Registration failed. Please try again.');
     }
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 bg-secondary/30">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">{t.register.title}</CardTitle>
-          <CardDescription>{t.register.subtitle}</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && <div className="text-destructive text-sm font-medium">{error}</div>}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">{t.register.firstName}</Label>
-                <Input id="first_name" placeholder="John" {...register('first_name')} />
-                {errors.first_name && <span className="text-destructive text-xs">{errors.first_name.message}</span>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">{t.register.lastName}</Label>
-                <Input id="last_name" placeholder="Doe" {...register('last_name')} />
-                {errors.last_name && <span className="text-destructive text-xs">{errors.last_name.message}</span>}
-              </div>
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-black flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Background Texture */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.1]" style={{ backgroundImage: "url('/grid.svg')", backgroundSize: '40px 40px' }}></div>
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent to-zinc-50/80 dark:to-black/80 pointer-events-none"></div>
+
+      {/* Access Card */}
+      <div className="relative z-10 w-full max-w-[400px] bg-white dark:bg-zinc-900/50 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 dark:shadow-2xl dark:shadow-black rounded-2xl p-8 animate-in fade-in zoom-in-95 duration-500">
+
+        {/* Header */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-10 h-10 mb-6 relative">
+            <Image src="/logo.svg" alt="Logo" fill className="dark:invert" />
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-center text-zinc-900 dark:text-zinc-100">
+            {t.register.title}
+          </h1>
+          <p className="text-sm text-zinc-500 text-center mt-2">
+            {t.register.subtitle}
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {error && <div className="text-red-500 text-xs font-mono text-center mb-4">{error}</div>}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              {/* Visual Label hack: we use placeholders mostly but for semantic reasons verify labels? 
+                    The design says "Makes the email feel like data". 
+                    Let's use placeholders as primary guide or small labels? 
+                    The Login page didn't use labels, just one input. 
+                    I'll stick to inputs for cleanliness but labels are good for a11y.
+                    I'll add hidden labels or small labels. Login page had no visible labels in my implementation?
+                    Checking: Login page implementation used just Input with placeholder. 
+                    I will do the same for consistency, relying on placeholders.
+                */}
+              <Input
+                id="first_name"
+                placeholder={t.register.firstName}
+                {...register('first_name')}
+                className="h-11 bg-transparent border-zinc-300 dark:border-zinc-700 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white focus:border-zinc-900 dark:focus:border-white transition-all font-mono text-sm shadow-none"
+              />
+              {errors.first_name && <span className="text-red-500 text-[10px] font-mono">{errors.first_name.message}</span>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t.register.email}</Label>
-              <Input id="email" type="email" placeholder="m@example.com" {...register('email')} />
-              {errors.email && <span className="text-destructive text-xs">{errors.email.message}</span>}
+            <div className="space-y-1">
+              <Input
+                id="last_name"
+                placeholder={t.register.lastName}
+                {...register('last_name')}
+                className="h-11 bg-transparent border-zinc-300 dark:border-zinc-700 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white focus:border-zinc-900 dark:focus:border-white transition-all font-mono text-sm shadow-none"
+              />
+              {errors.last_name && <span className="text-red-500 text-[10px] font-mono">{errors.last_name.message}</span>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t.register.password}</Label>
-              <Input id="password" type="password" {...register('password')} />
-              {errors.password && <span className="text-destructive text-xs">{errors.password.message}</span>}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? t.register.creatingAccount : t.register.createAccount}
-            </Button>
-            <div className="text-center text-sm text-muted-foreground">
-              {t.register.alreadyHaveAccount}{' '}
-              <Link href="/login" className="underline underline-offset-4 hover:text-primary">
-                {t.register.signIn}
-              </Link>
-            </div>
-          </CardFooter>
+          </div>
+
+          <div className="space-y-1">
+            <Input
+              id="email"
+              type="email"
+              placeholder={t.register.email}
+              {...register('email')}
+              className="h-11 bg-transparent border-zinc-300 dark:border-zinc-700 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white focus:border-zinc-900 dark:focus:border-white transition-all font-mono text-sm shadow-none"
+            />
+            {errors.email && <span className="text-red-500 text-[10px] font-mono">{errors.email.message}</span>}
+          </div>
+
+          <div className="space-y-1">
+            <Input
+              id="password"
+              type="password"
+              placeholder={t.register.password}
+              {...register('password')}
+              className="h-11 bg-transparent border-zinc-300 dark:border-zinc-700 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white focus:border-zinc-900 dark:focus:border-white transition-all font-mono text-sm shadow-none"
+            />
+            {errors.password && <span className="text-red-500 text-[10px] font-mono">{errors.password.message}</span>}
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-medium transition-opacity hover:opacity-90 shadow-none mt-2"
+          >
+            {isSubmitting ? t.register.creatingAccount : t.register.createAccount}
+          </Button>
+
+          <div className="mt-8 text-center text-xs text-zinc-500">
+            {t.register.alreadyHaveAccount}{' '}
+            <Link href="/login" className="hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-4 decoration-zinc-300 dark:decoration-zinc-700">
+              {t.register.signIn}
+            </Link>
+          </div>
         </form>
-      </Card>
+      </div>
+
+      {/* Vibe Ticker */}
+      <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
+        <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.2em] animate-pulse">
+          {tickerText}
+        </p>
+      </div>
     </div>
   );
 }
