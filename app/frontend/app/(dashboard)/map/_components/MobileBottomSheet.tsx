@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Wifi, Sun, Volume2, Coffee, Armchair, Laptop, ChevronLeft, ArrowRight, GitCompare } from 'lucide-react';
 import Link from 'next/link';
@@ -61,6 +63,25 @@ export const MobileBottomSheet = ({
     ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
     : MOCK_PHOTOS;
 
+  const router = useRouter();
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+
+  // --- Url Construction Generator (Shared Logic) ---
+  const constructUrl = (place: LocationData) => {
+    if (place.place_id && String(place.place_id).includes('0x')) {
+      return `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${place.place_id}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`;
+  };
+
+  const handleCompareSelect = (secondPlace: LocationData) => {
+    if (!selectedLocation) return;
+    const urlA = constructUrl(selectedLocation);
+    const urlB = constructUrl(secondPlace);
+    router.push(`/compare?url_a=${encodeURIComponent(urlA)}&url_b=${encodeURIComponent(urlB)}`);
+    setIsCompareOpen(false);
+  };
+
   return (
     <motion.div
       initial={false}
@@ -74,7 +95,7 @@ export const MobileBottomSheet = ({
         rounded-t-[32px] overflow-hidden flex flex-col max-h-[80vh]
       `}
     >
-      {/* --- HANDLE & HEADER (Always Visible) --- */}
+      {/* ... (Previous Header Code) ... */}
       <div
         onClick={toggleSheet}
         className="w-full shrink-0 pt-3 pb-4 px-6 bg-white dark:bg-zinc-900 cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors"
@@ -213,16 +234,18 @@ export const MobileBottomSheet = ({
 
             {/* Extra Actions */}
             <div className="grid grid-cols-2 gap-3 pt-4">
-              <Link href={`/analysis?url=https://goo.gl/maps/mock`} className="w-full">
+              <Link href={`/analysis?url=${encodeURIComponent(constructUrl(selectedLocation))}`} className="w-full">
                 <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
                   {t.map.fullReport} <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
                 </Button>
               </Link>
-              <Link href={`/compare?url_a=https://goo.gl/maps/mock`} className="w-full">
-                <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
-                  {t.compare.compareButton || 'Compare'} <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800"
+                onClick={() => setIsCompareOpen(true)}
+              >
+                {t.compare.compareButton || 'Compare'} <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
+              </Button>
             </div>
           </div>
         ) : (
@@ -271,6 +294,38 @@ export const MobileBottomSheet = ({
           )
         )}
       </div>
+
+      {/* Compare Dialog */}
+      <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
+        <DialogContent className="sm:max-w-[425px] w-[90%] rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <DialogHeader>
+            <DialogTitle>Compare with {selectedLocation?.name}</DialogTitle>
+            <DialogDescription>Select another place to compare</DialogDescription>
+          </DialogHeader>
+          <div className="h-[300px] mt-2 pr-2 overflow-y-auto">
+            <div className="space-y-2">
+              {locations
+                .filter(l => l.id !== selectedLocation?.id)
+                .map(loc => (
+                  <div
+                    key={loc.id}
+                    onClick={() => handleCompareSelect(loc)}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 active:bg-zinc-100 dark:active:bg-zinc-800 cursor-pointer transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-700 flex items-center justify-center font-bold text-xs">
+                      {loc.rating > 0 ? loc.rating.toFixed(1) : "4.5"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{loc.name}</h4>
+                      <p className="text-xs text-zinc-500 truncate">{loc.address}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-zinc-400" />
+                  </div>
+                ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

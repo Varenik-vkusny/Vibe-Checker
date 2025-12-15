@@ -233,11 +233,13 @@ export const ResultsSidebar = ({
                     Full Analysis <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
                   </Button>
                 </Link>
-                <Link href={`/compare?url_a=${encodeURIComponent(constructUrl(selectedLocation))}`} className="flex-1 min-w-[140px]">
-                  <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
-                    Compare <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
-                  </Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800"
+                  onClick={() => setIsCompareOpen(true)}
+                >
+                  Compare <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
+                </Button>
               </div>
 
             </div>
