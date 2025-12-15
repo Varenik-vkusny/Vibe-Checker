@@ -104,3 +104,5 @@ app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])
 @app.get("/", status_code=status.HTTP_200_OK)
 async def hello():
     return {"message": "Hello Timurka!"}
+
+# Force reload

@@ -31,9 +31,11 @@ class FavoritesService:
         existing = await self.repo.find_one(user_id=user_id, place_id=real_id)
         if existing:
             await self.repo.delete(user_id=user_id, place_id=real_id)
+            await self.db.commit()
             return {"status": "removed"}
         else:
             await self.repo.add(user_id=user_id, place_id=real_id)
+            await self.db.commit()
             return {"status": "added"}
 
     async def get_bookmarks(self, user_id: int):
@@ -96,3 +98,17 @@ class FavoritesService:
                 }
         
         return list(bookmarks_map.values())
+
+    async def search_favorites(self, user_id: int, query: str):
+        """Search favorites by name (case-insensitive substring)."""
+        favorites = await self.get_bookmarks(user_id)
+        query = query.lower().strip()
+        
+        matches = []
+        for fav in favorites:
+            if query in fav["name"].lower():
+                # Add source tag
+                fav["source"] = "library"
+                matches.append(fav)
+        
+        return matches

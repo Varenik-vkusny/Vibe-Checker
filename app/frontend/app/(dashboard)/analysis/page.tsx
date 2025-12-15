@@ -43,6 +43,7 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [searchCandidates, setSearchCandidates] = useState<any[] | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number, lon: number } | null>(null);
 
   const { t } = useLanguage();
   const searchParams = useSearchParams();
@@ -51,6 +52,28 @@ export default function AnalysisPage() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<AnalysisValues>({
     resolver: zodResolver(analysisSchema),
   });
+
+  // Get user location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+          // Fallback to default location (Astana)
+          setUserLocation({ lat: 51.1694, lon: 71.4491 });
+        }
+      );
+    } else {
+      // Fallback if geolocation not supported
+      setUserLocation({ lat: 51.1694, lon: 71.4491 });
+    }
+  }, []);
 
   // --- API HANDLERS ---
 
@@ -74,12 +97,21 @@ export default function AnalysisPage() {
   const performSearch = async (query: string) => {
     setLoading(true);
     setResult(null); // Clear previous result
+    setSearchCandidates(null);
 
-    // Simulate API Search Delay
-    setTimeout(() => {
-      setSearchCandidates(MOCK_SEARCH_RESULTS);
+    try {
+      const response = await api.post('/place/search_candidates', {
+        query,
+        lat: userLocation?.lat,
+        lon: userLocation?.lon
+      });
+      setSearchCandidates(response.data.candidates);
+    } catch (error) {
+      console.error(error);
+      toast.error("Search failed");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const checkBookmarkStatus = async (placeId: number) => {
@@ -89,6 +121,23 @@ export default function AnalysisPage() {
       setIsBookmarked(isFav);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleCandidateClick = (candidate: any) => {
+    // Construct a URL that the backend parser can understand or use as a key
+    // If it's a library item, it has an ID.
+    // If result from Google, it has google_place_id.
+    // The backend expects a URL to 'scrape' or analyze.
+    // Since we already have basic info, arguably we could skip scraping if library?
+    // But /analyze endpoint is designed to take a URL.
+    // Let's construct a standard Google Maps URL which the backend parser likely supports.
+    if (candidate.google_place_id) {
+      const validUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(candidate.name)}&query_place_id=${candidate.google_place_id}`;
+      performAnalysis(validUrl);
+    } else {
+      // Fallback
+      performAnalysis(candidate.name);
     }
   };
 
@@ -195,16 +244,27 @@ export default function AnalysisPage() {
             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4 text-center md:text-left">{t.analysis.didYouMean}</h3>
             {searchCandidates.map((candidate) => (
               <div
-                key={candidate.id}
-                onClick={() => performAnalysis("https://goo.gl/maps/mockurl")} // Mock selection
+                key={candidate.id || candidate.google_place_id || Math.random()}
+                onClick={() => handleCandidateClick(candidate)}
                 className="group flex items-center justify-between p-3 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 rounded-xl cursor-pointer transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                    <img src={candidate.image} alt={candidate.name} className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative">
+                    {candidate.image ? (
+                      <img src={candidate.image} alt={candidate.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-300"><MapPin size={24} /></div>
+                    )}
                   </div>
                   <div>
-                    <h4 className="text-zinc-900 dark:text-white font-bold group-hover:text-zinc-700 dark:group-hover:text-zinc-200">{candidate.name}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-zinc-900 dark:text-white font-bold group-hover:text-zinc-700 dark:group-hover:text-zinc-200">{candidate.name}</h4>
+                      {candidate.source === 'library' && (
+                        <Badge variant="secondary" className="text-[10px] h-5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          Library
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-zinc-500">{candidate.address}</p>
                   </div>
                 </div>
@@ -215,7 +275,6 @@ export default function AnalysisPage() {
             ))}
           </div>
         )}
-
         {/* 3. ANALYSIS RESULT (Result Mode) */}
         {!loading && result && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 items-stretch">
@@ -239,19 +298,7 @@ export default function AnalysisPage() {
                       if (updates.saved !== undefined) setIsBookmarked(updates.saved);
                     }}
                   />
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={handleBookmark}
-                    className={cn(
-                      "h-10 w-10 shrink-0 rounded-full border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900",
-                      isBookmarked
-                        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100"
-                        : "text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    )}
-                  >
-                    <Bookmark className={cn("w-5 h-5", isBookmarked && "fill-current")} />
-                  </Button>
+
                 </div>
               </div>
 

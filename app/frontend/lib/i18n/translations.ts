@@ -263,6 +263,9 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Rating Breakdown',
       fullReport: 'Full Analysis',
+      like: 'Like',
+      visited: 'Visited',
+      markVisited: 'Mark Visited',
     }
   },
   ru: {
@@ -527,6 +530,9 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
       fullReport: 'Полный Отчет',
+      like: 'Нравится',
+      visited: 'Посещено',
+      markVisited: 'Отметить как посещенное',
     }
   },
   kz: {
@@ -791,6 +797,9 @@ export const translations = {
       wifi: 'Wifi',
       ratingBreakdown: 'Рейтинг',
       fullReport: 'Толық Есеп',
+      like: 'Ұнату',
+      visited: 'Бардым',
+      markVisited: 'Барғанымды белгілеу',
     }
   },
 };

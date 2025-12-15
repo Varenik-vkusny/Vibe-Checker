@@ -8,7 +8,7 @@ from ..place.models import Place
 
 
 async def update_interaction(db: AsyncSession, user_id: int, data: InteractionUpdate):
-
+    print(f"DEBUG: update_interaction called for user {user_id} with place_id='{data.place_id}'")
     stmt_place = select(Place).where(Place.google_place_id == data.place_id)
     result_place = await db.execute(stmt_place)
     place = result_place.scalar_one_or_none()
@@ -74,3 +74,16 @@ async def get_user_interactions_summary(db: AsyncSession, user_id: int):
             visited.append(place_name)
 
     return {"likes": likes, "dislikes": dislikes, "visited": visited}
+
+
+async def get_user_disliked_google_place_ids(db: AsyncSession, user_id: int) -> set[str]:
+    stmt = (
+        select(Place.google_place_id)
+        .join(UserInteraction, UserInteraction.place_id == Place.id)
+        .where(
+            UserInteraction.user_id == user_id,
+            UserInteraction.rating == LikeState.DISLIKE
+        )
+    )
+    result = await db.execute(stmt)
+    return set(result.scalars().all())

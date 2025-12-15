@@ -77,21 +77,57 @@ async def generate_search_params(user_text: str) -> SearchParams:
         )
 
 
-def smart_rerank(user_query: str, candidates: list[dict], top_k=5):
+def smart_rerank(user_query: str, candidates: list[dict], top_k=5, acoustics=50, lighting=50, crowdedness=50, budget=50, restrictions=None):
+    if restrictions is None:
+        restrictions = []
+    
+    print(f"DEBUG: smart_rerank called with restrictions: {restrictions}")
 
     if not candidates:
         return []
+
+    # Construct preference string
+    pref_parts = []
+    if acoustics < 30: pref_parts.append("Quiet, intimate, no loud music")
+    elif acoustics > 70: pref_parts.append("Lively, loud music, buzz")
+    
+    if lighting < 30: pref_parts.append("Dim lighting, cozy, dark")
+    elif lighting > 70: pref_parts.append("Bright, well-lit, sunny")
+    
+    if crowdedness < 30: pref_parts.append("Empty, private, secluded")
+    elif crowdedness > 70: pref_parts.append("Crowded, popular, busy")
+    
+    if budget < 30: pref_parts.append("Cheap, budget-friendly, affordable")
+    elif budget > 70: pref_parts.append("Expensive, premium, upscale, fine dining")
+    
+    pref_str = ". ".join(pref_parts)
+    if pref_str:
+        user_query = f"{user_query}. Preferences: {pref_str}"
+        
+    if restrictions:
+        user_query = f"{user_query}. EXCLUDE: {', '.join(restrictions)}"
 
     pairs = []
     doc_indices = []
 
     for i, c in enumerate(candidates):
+        # Restriction Check (Pre-filter)
         name = c.get("name", "")
-        address = c.get("address") or "Адрес не указан"
+        summary = c.get("reviews_summary") or ""
+        text_to_check = f"{name} {summary}".lower()
+        
+        blocked = False
+        for r in restrictions:
+            if r.lower() in text_to_check:
+                blocked = True
+                break
+        
+        if blocked:
+            continue
 
+        address = c.get("address") or "Адрес не указан"
         logging.info(f"Rerank address processing: {address}")
 
-        summary = c.get("reviews_summary")
         if not summary and c.get("types"):
             summary = " ".join(c["types"])
 

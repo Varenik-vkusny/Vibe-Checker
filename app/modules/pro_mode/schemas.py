@@ -5,9 +5,14 @@ from typing import List, Optional
 
 class UserRequest(BaseModel):
     query: str
-    lat: float
-    lon: float
+    lat: Optional[float] = None
+    lon: Optional[float] = None
     radius: int = 2000
+    acoustics: Optional[int] = 50
+    lighting: Optional[int] = 50
+    crowdedness: Optional[int] = 50
+    budget: Optional[int] = 50
+    restrictions: Optional[List[str]] = []
 
 
 class SearchParams(BaseModel):

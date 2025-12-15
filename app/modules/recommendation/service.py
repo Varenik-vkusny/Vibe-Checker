@@ -164,6 +164,18 @@ async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
         logger.error(f"Pro Mode failed inside Inspire Me: {e}")
         raise e
 
+    # --- FILTER DISLIKED PLACES ---
+    from ..interactions.service import get_user_disliked_google_place_ids
+    disliked_ids = await get_user_disliked_google_place_ids(db, user_id)
+    
+    if disliked_ids and results.recommendations:
+        original_count = len(results.recommendations)
+        results.recommendations = [
+            r for r in results.recommendations 
+            if r.get("place_id") not in disliked_ids
+        ]
+        logger.info(f"Filtered {original_count - len(results.recommendations)} disliked places.")
+
     await log_user_action(
         db,
         user_id,

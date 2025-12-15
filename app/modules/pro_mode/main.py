@@ -46,6 +46,7 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
     t_start = time.time()
     for dto in places_dtos:
         await place_service.save_or_update_place(dto)
+    await db.commit()
     logger.info(f"[4/6] SQL Save: {time.time() - t_start:.2f}s")
 
     t_start = time.time()
@@ -68,7 +69,16 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession):
         print(f"Address: {c.get('address')}")
         print("-" * 20)
 
-    top_candidates = smart_rerank(user_query.query, candidates, top_k=5)
+    top_candidates = smart_rerank(
+        user_query=user_query.query,
+        candidates=candidates,
+        top_k=5,
+        acoustics=user_query.acoustics,
+        lighting=user_query.lighting,
+        crowdedness=user_query.crowdedness,
+        budget=user_query.budget,
+        restrictions=user_query.restrictions
+    )
     final_result = await explain_selection(user_query.query, top_candidates)
     logger.info(f"[6/6] LLM (Final Rerank): {time.time() - t_start:.2f}s")
 

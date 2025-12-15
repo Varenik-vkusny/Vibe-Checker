@@ -35,16 +35,16 @@ async def find_places_nearby(
     candidates = []
     endpoint = "https://serpapi.com/search.json"
 
-    ll_param = f"@{lat},{lon},14z"
-
     params = {
         "engine": "google_maps",
         "q": query,
-        "ll": ll_param,
         "type": "search",
         "hl": "ru",
         "api_key": SERPAPI_API_KEY,
     }
+    
+    if lat is not None and lon is not None:
+        params["ll"] = f"@{lat},{lon},14z"
 
     try:
         async with aiohttp.ClientSession() as session:

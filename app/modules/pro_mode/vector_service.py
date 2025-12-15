@@ -111,7 +111,5 @@ async def search_places(
         limit=limit,
         with_payload=True,
     )
-
-    logging.info(f"First payload: {hits.points[0].payload}")
-
+    
     return [hit.payload for hit in hits.points]

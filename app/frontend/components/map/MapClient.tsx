@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import api from '@/lib/api';
 import { geocodeAddress } from '@/lib/geocoding';
+import { SearchSettingsPanel, SearchSettings } from '../search/SearchSettingsPanel';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -31,6 +32,13 @@ export default function MapClient() {
   const [places, setPlaces] = useState<any[]>([]);
   const [center, setCenter] = useState<[number, number]>([51.505, -0.09]); // Default London
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<SearchSettings>({
+    acoustics: 50,
+    lighting: 50,
+    crowdedness: 50,
+    budget: 50,
+    restrictions: []
+  });
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +50,8 @@ export default function MapClient() {
         query,
         lat: center[0],
         lon: center[1],
-        radius: 5000
+        radius: 5000,
+        ...settings
       });
 
       const recommendations = response.data.recommendations || [];
@@ -68,8 +77,8 @@ export default function MapClient() {
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-background">
-      <div className="absolute top-4 left-4 z-[1000] w-full max-w-sm">
-        <Card className="p-2 bg-background/95 border border-border shadow-none rounded-lg">
+      <div className="absolute top-4 left-4 z-[1000] w-full max-w-sm space-y-2">
+        <Card className="p-2 bg-background/95 border border-border shadow-md rounded-lg">
           <form onSubmit={handleSearch} className="flex gap-2">
             <Input
               placeholder="Describe your vibe (e.g. 'Cozy cafe with wifi')"
@@ -77,11 +86,18 @@ export default function MapClient() {
               onChange={(e) => setQuery(e.target.value)}
               className="bg-transparent border-0 border-b border-border rounded-none focus-visible:ring-0 focus-visible:border-primary px-0"
             />
-            <Button type="submit" size="icon" disabled={loading} className="rounded-md">
+            <Button type="submit" size="icon" disabled={loading} className="rounded-md shrink-0">
               <Search className="h-4 w-4" />
             </Button>
           </form>
         </Card>
+
+        {/* Search Settings */}
+        <SearchSettingsPanel
+          settings={settings}
+          onSettingsChange={setSettings}
+          className="shadow-md border-border"
+        />
       </div>
 
       <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false} className="outline-none">
