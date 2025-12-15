@@ -265,16 +265,16 @@ export default function AnalysisPage() {
             </div>
 
             {/* PHOTO GALLERY (Accordion) */}
-            {result.photos && result.photos.length > 0 && (
+            {(result.place_info?.photos?.length > 0 || result.place_info?.imageUrl) && (
               <div className="lg:col-span-3 -mt-4 mb-2 pb-2">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="single" collapsible className="w-full" defaultValue="photos">
                   <AccordionItem value="photos" className="border-none">
                     <AccordionTrigger className="py-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300 font-mono text-xs uppercase tracking-wider hover:no-underline justify-start gap-2">
-                      vibe shots ({result.photos.length})
+                      vibe shots ({result.place_info.photos?.length || 1})
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        {result.photos.map((photo: string, index: number) => (
+                        {(result.place_info.photos?.length > 0 ? result.place_info.photos : [result.place_info.imageUrl]).map((photo: string, index: number) => (
                           <div key={index} className="group relative aspect-square overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 cursor-zoom-in">
                             <img
                               src={photo}
@@ -340,9 +340,6 @@ export default function AnalysisPage() {
                     <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{t.map.ratingBreakdown}</h3>
                     <p className="text-zinc-500 text-sm">{t.compare.basedOn}</p>
                   </div>
-                  <Button variant="outline" size="sm" className="hidden md:flex gap-2 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                    <ArrowUpRight className="w-4 h-4" /> {t.map.fullReport}
-                  </Button>
                 </div>
 
                 {/* MOBILE: Label-on-Top Stack */}
