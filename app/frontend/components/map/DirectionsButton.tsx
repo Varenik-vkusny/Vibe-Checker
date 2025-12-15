@@ -14,7 +14,7 @@ import { Navigation, MoreHorizontal, Copy, Check } from 'lucide-react';
 interface DirectionsButtonProps {
     lat: number;
     lng: number;
-    address?: string; // Optional address for "Copy" feature
+    address?: string;
 }
 
 export const DirectionsButton = ({ lat, lng, address }: DirectionsButtonProps) => {
@@ -32,7 +32,6 @@ export const DirectionsButton = ({ lat, lng, address }: DirectionsButtonProps) =
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
     };
 
-    // Universal Links
     const links = {
         yandex: `yandexmaps://build_route_on_map?lat_to=${lat}&lon_to=${lng}`,
         twoGis: `https://2gis.ru/route/search/to/${lng},${lat}`,
@@ -41,7 +40,7 @@ export const DirectionsButton = ({ lat, lng, address }: DirectionsButtonProps) =
 
     return (
         <div className="flex items-center gap-2 w-full">
-            {/* Primary: Google Maps (Universal Standard) */}
+            {}
             <Button
                 onClick={openGoogleMaps}
                 className="flex-1 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200"
@@ -50,7 +49,7 @@ export const DirectionsButton = ({ lat, lng, address }: DirectionsButtonProps) =
                 Get Directions
             </Button>
 
-            {/* Secondary: Local Apps & Utils */}
+            {}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 border-zinc-200 dark:border-zinc-800">
@@ -59,7 +58,6 @@ export const DirectionsButton = ({ lat, lng, address }: DirectionsButtonProps) =
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
 
-                    {/* Copy Address - Top Priority for Local Apps */}
                     {address && (
                         <>
                             <DropdownMenuItem onClick={handleCopy} className="cursor-pointer font-medium text-zinc-900 dark:text-zinc-100">

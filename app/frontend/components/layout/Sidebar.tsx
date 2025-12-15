@@ -63,7 +63,7 @@ export function Sidebar() {
           <h3 className="text-sm font-semibold text-left text-foreground">Your Vibe Signature</h3>
           <div className="h-[200px] w-full min-h-[200px]"> 
             <ResponsiveContainer width="100%" height="100%">
-              {/* Используем CSS переменные для цветов графика */}
+              {}
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                 <PolarGrid stroke="var(--border)" />
                 <PolarAngleAxis 

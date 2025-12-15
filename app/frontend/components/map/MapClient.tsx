@@ -11,7 +11,6 @@ import { Search } from 'lucide-react';
 import api from '@/lib/api';
 import { geocodeAddress } from '@/lib/geocoding';
 
-// Fix Leaflet icons in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -39,7 +38,6 @@ export default function MapClient() {
     setLoading(true);
 
     try {
-      // Call Pro Mode Analyze
       const response = await api.post('/place/pro_analyze', {
         query,
         lat: center[0],
@@ -49,7 +47,6 @@ export default function MapClient() {
 
       const recommendations = response.data.recommendations || [];
 
-      // Geocode results
       const geocodedPlaces = await Promise.all(recommendations.map(async (place: any) => {
         if (!place.address) return { ...place, lat: center[0], lon: center[1] }; // Fallback
         const coords = await geocodeAddress(place.address);

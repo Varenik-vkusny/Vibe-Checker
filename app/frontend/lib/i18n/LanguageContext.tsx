@@ -35,7 +35,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (!mounted) {
-    return null; // or a loading spinner, but null avoids hydration mismatch for now
+    return null;
   }
 
   return (

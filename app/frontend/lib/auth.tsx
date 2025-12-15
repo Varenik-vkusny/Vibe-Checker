@@ -30,13 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       try {
         const decoded: any = jwtDecode(token as string);
-        // We only get email from token, but we might have stored user info in localStorage
         const storedUser = localStorage.getItem('user_info');
         if (storedUser) {
-           setUser(JSON.parse(storedUser));
+          setUser(JSON.parse(storedUser));
         } else {
-           // Fallback if we have token but no stored info
-           setUser({ email: decoded.sub, id: 0, first_name: 'User', role: 'USER' });
+          setUser({ email: decoded.sub, id: 0, first_name: 'User', role: 'USER' });
         }
       } catch (e) {
         console.error('Invalid token', e);
@@ -50,31 +48,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await loginService(credentials);
     setCookie('access_token', data.access_token);
-    
+
     try {
-        const userResponse = await api.get<User>('/users/me');
-        const userData = userResponse.data;
-        
-        setUser(userData);
-        localStorage.setItem('user_info', JSON.stringify(userData));
-        
-        if (userData.role === 'ADMIN') { 
-            router.push('/admin');
-        } else {
-            router.push('/profile');
-        }
+      const userResponse = await api.get<User>('/users/me');
+      const userData = userResponse.data;
+
+      setUser(userData);
+      localStorage.setItem('user_info', JSON.stringify(userData));
+
+      if (userData.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/profile');
+      }
     } catch (error) {
-        console.error("Failed to fetch user info", error);
+      console.error("Failed to fetch user info", error);
     }
   };
 
   const register = async (data: RegisterData) => {
     const newUser = await registerService(data);
-    // After register, we usually auto-login or ask to login.
-    // Let's auto-login
     await login({ email: data.email, password: data.password });
-    
-    // Update user info with the real data from register response
+
     setUser(newUser);
     localStorage.setItem('user_info', JSON.stringify(newUser));
   };
