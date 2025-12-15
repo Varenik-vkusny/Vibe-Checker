@@ -105,7 +105,7 @@ export const translations = {
         budget: { label: 'Fiscal Limit', left: 'Saver', right: 'Splurger' },
       },
       vibeKillers: {
-        title: 'Vibe Killers (Hard Block)',
+        title: 'Block places with tags',
         subtitle: 'The AI will strictly avoid places with these attributes.',
         placeholder: "Type 'Hookah' + Enter...",
         empty: 'No active blocks configured.',
@@ -327,7 +327,7 @@ export const translations = {
         budget: { label: 'Финансовый Лимит', left: 'Эконом', right: 'Транжира' },
       },
       vibeKillers: {
-        title: 'Убийцы Вайба (Блок)',
+        title: 'Блокировать места с тегами',
         subtitle: 'ИИ будет строго избегать мест с этими атрибутами.',
         placeholder: "Введите 'Кальян' + Enter...",
         empty: 'Нет активных блокировок.',

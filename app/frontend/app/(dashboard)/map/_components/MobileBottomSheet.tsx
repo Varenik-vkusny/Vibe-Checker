@@ -9,6 +9,8 @@ import { motion } from 'framer-motion';
 import { LocationData } from '@/types/location';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { DirectionsButton } from '@/components/map/DirectionsButton';
+import { InteractionToolbar } from '@/components/map/InteractionToolbar';
+import { getDistance, convertDistance } from 'geolib';
 
 interface MobileBottomSheetProps {
   locations: LocationData[];
@@ -17,9 +19,20 @@ interface MobileBottomSheetProps {
   onClose: () => void;
   onExpandChange?: (isExpanded: boolean) => void;
   onClearSelection?: () => void;
+  userLocation: { lat: number; lng: number } | null;
+  onInteractionUpdate?: (placeId: string, updates: any) => void;
 }
 
-export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClose, onExpandChange, onClearSelection }: MobileBottomSheetProps) => {
+export const MobileBottomSheet = ({
+  locations,
+  selectedLocation,
+  onSelect,
+  onClose,
+  onExpandChange,
+  onClearSelection,
+  userLocation,
+  onInteractionUpdate
+}: MobileBottomSheetProps) => {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -43,6 +56,10 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
     "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=400",
     "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
   ];
+
+  const displayPhotos = selectedLocation?.imageUrl
+    ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
+    : MOCK_PHOTOS;
 
   return (
     <motion.div
@@ -79,7 +96,12 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
                 </motion.button>
                 <h2 className="text-xl font-bold truncate max-w-[200px]">{selectedLocation.name}</h2>
               </div>
-              <p className="text-sm text-zinc-500 pl-6">{selectedLocation.category} • {selectedLocation.distance || '1.2km'}</p>
+              <p className="text-sm text-zinc-500 pl-6">{selectedLocation.category} • {userLocation && selectedLocation.coordinates
+                ? `${convertDistance(getDistance(
+                  userLocation,
+                  { latitude: selectedLocation.coordinates[1], longitude: selectedLocation.coordinates[0] }
+                ), 'km').toFixed(1)}km`
+                : (selectedLocation.distance || '1.2km')}</p>
             </div>
             <div className="flex flex-col items-end">
               <Badge className="bg-black text-white dark:bg-white dark:text-black h-8 px-3 text-sm font-mono">
@@ -120,7 +142,7 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
 
             {/* Horizontal Photos */}
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
-              {MOCK_PHOTOS.map((url, i) => (
+              {displayPhotos.map((url, i) => (
                 <div key={i} className="shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-zinc-100 snap-center">
                   <img src={url} alt="Location" className="w-full h-full object-cover" />
                 </div>
@@ -178,6 +200,17 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
                 </div>
               </div>
             </div>
+            {/* Interaction Toolbar */}
+            {selectedLocation.place_id && (
+              <InteractionToolbar
+                placeId={String(selectedLocation.place_id)}
+                initialLikeState={selectedLocation.userInteraction?.isLiked}
+                initialDislikeState={selectedLocation.userInteraction?.isDisliked}
+                initialVisitedState={selectedLocation.userInteraction?.isVisited}
+                onUpdate={(updates) => onInteractionUpdate?.(String(selectedLocation.place_id), updates)}
+              />
+            )}
+
             {/* Extra Actions */}
             <div className="grid grid-cols-2 gap-3 pt-4">
               <Link href={`/analysis?url=https://goo.gl/maps/mock`} className="w-full">
@@ -196,26 +229,44 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
           /* LIST VIEW */
           isExpanded && (
             <div className="space-y-2 pt-2">
-              {locations.map(loc => (
-                <div
-                  key={loc.id}
-                  onClick={() => onSelect(loc)}
-                  className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl active:scale-[0.98] transition-transform"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center font-bold text-sm">
-                    {loc.rating}
+              {locations.map(loc => {
+                const distanceStr = (userLocation && loc.coordinates)
+                  ? `${convertDistance(getDistance(
+                    userLocation,
+                    { latitude: loc.coordinates[1], longitude: loc.coordinates[0] }
+                  ), 'km').toFixed(1)}km`
+                  : (loc.distance || '1.2km');
+
+                return (
+                  <div
+                    key={loc.id}
+                    onClick={() => onSelect(loc)}
+                    className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl active:scale-[0.98] transition-transform"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center font-bold text-sm">
+                      {loc.rating}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm truncate">{loc.name}</h3>
+                      <p className="text-xs text-zinc-500">{loc.category} • {distanceStr}</p>
+                      <div className="mt-2 w-full max-w-[200px]" onClick={(e) => e.stopPropagation()}>
+                        <InteractionToolbar
+                          placeId={String(loc.place_id || '0')}
+                          initialLikeState={loc.userInteraction?.isLiked}
+                          initialDislikeState={loc.userInteraction?.isDisliked}
+                          initialVisitedState={loc.userInteraction?.isVisited}
+                          onUpdate={(updates) => onInteractionUpdate?.(String(loc.place_id), updates)}
+                        />
+                      </div>
+                    </div>
+                    {loc.vibeScore && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        {loc.vibeScore}%
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm truncate">{loc.name}</h3>
-                    <p className="text-xs text-zinc-500">{loc.category} • {loc.distance || '1.2km'}</p>
-                  </div>
-                  {loc.vibeScore && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                      {loc.vibeScore}%
-                    </Badge>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )
         )}

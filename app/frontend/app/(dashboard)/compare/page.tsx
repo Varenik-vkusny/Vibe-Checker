@@ -13,6 +13,7 @@ import { Check, Loader2, ArrowRight, Edit2, Trophy, Minus } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
+import { InteractionToolbar } from '@/components/map/InteractionToolbar';
 
 const compareSchema = z.object({
   url_a: z.string().url('Please enter a valid URL'),
@@ -169,9 +170,33 @@ export default function ComparePage() {
           {/* --- 3. TALE OF THE TAPE --- */}
           <div className="max-w-4xl mx-auto w-full px-2 md:px-0">
             <div className="grid grid-cols-[1fr_auto_1fr] gap-2 md:gap-8 mb-8 text-[10px] md:text-sm font-mono text-zinc-400 uppercase tracking-widest text-center border-b border-zinc-200 dark:border-zinc-800 pb-4">
-              <div className="text-right truncate">{result.place_a.name}</div>
-              <div className="w-20 md:w-24">Category</div>
-              <div className="text-left truncate">{result.place_b.name}</div>
+              <div className="text-right truncate">
+                <div className="text-lg font-bold mb-2">{result.place_a.name}</div>
+                <div className="flex justify-end">
+                  <div className="w-full max-w-[200px]">
+                    <InteractionToolbar
+                      placeId={String(result.place_a.place_id || '0')}
+                      initialLikeState={result.place_a.userInteraction?.isLiked}
+                      initialDislikeState={result.place_a.userInteraction?.isDisliked}
+                      initialVisitedState={result.place_a.userInteraction?.isVisited}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="w-20 md:w-24 pt-1">Category</div>
+              <div className="text-left truncate">
+                <div className="text-lg font-bold mb-2">{result.place_b.name}</div>
+                <div className="flex justify-start">
+                  <div className="w-full max-w-[200px]">
+                    <InteractionToolbar
+                      placeId={String(result.place_b.place_id || '0')}
+                      initialLikeState={result.place_b.userInteraction?.isLiked}
+                      initialDislikeState={result.place_b.userInteraction?.isDisliked}
+                      initialVisitedState={result.place_b.userInteraction?.isVisited}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-8">

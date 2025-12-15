@@ -21,7 +21,8 @@ import { Loader2, Sparkles, Wifi, Sun, Volume2, Globe, ArrowUpRight, Search, Boo
 import { cn } from '@/lib/utils';
 import { SkeletonAnalysis } from "@/components/SkeletonAnalysis";
 import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
-// import { toast } from 'sonner'; // Assuming sonner is installed or will use simple alert/state if not.
+import { InteractionToolbar } from '@/components/map/InteractionToolbar';
+import { toast } from 'sonner';
 
 // Relaxed Schema to allow Text Search
 const analysisSchema = z.object({
@@ -209,19 +210,27 @@ export default function AnalysisPage() {
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
                   {result.place_info.name}
                 </h1>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={handleBookmark}
-                  className={cn(
-                    "h-10 w-10 shrink-0 rounded-full border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900",
-                    isBookmarked
-                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100"
-                      : "text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  )}
-                >
-                  <Bookmark className={cn("w-5 h-5", isBookmarked && "fill-current")} />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <InteractionToolbar
+                    placeId={String(result.place_info.place_id || '0')}
+                    initialLikeState={false} // Default to false as we might not have this data yet
+                    initialDislikeState={false}
+                    initialVisitedState={false}
+                  />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handleBookmark}
+                    className={cn(
+                      "h-10 w-10 shrink-0 rounded-full border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900",
+                      isBookmarked
+                        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100"
+                        : "text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    )}
+                  >
+                    <Bookmark className={cn("w-5 h-5", isBookmarked && "fill-current")} />
+                  </Button>
+                </div>
               </div>
 
               {/* Row 2: Metadata Strip */}

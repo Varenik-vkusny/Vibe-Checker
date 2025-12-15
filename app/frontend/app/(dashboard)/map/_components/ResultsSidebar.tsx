@@ -17,6 +17,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { LocationData } from '@/types/location';
 import { interactWithPlace, markVisited } from '@/services/interaction';
+import { InteractionToolbar } from '@/components/map/InteractionToolbar';
+import { getDistance, convertDistance } from 'geolib';
 
 interface ResultsSidebarProps {
   locations: LocationData[];
@@ -25,6 +27,8 @@ interface ResultsSidebarProps {
   onSelect: (location: LocationData) => void;
   onBack: () => void;
   isVisible: boolean;
+  userLocation: { lat: number; lng: number } | null;
+  onInteractionUpdate?: (placeId: string, updates: any) => void;
 }
 
 export const ResultsSidebar = ({
@@ -33,7 +37,9 @@ export const ResultsSidebar = ({
   query,
   onSelect,
   onBack,
-  isVisible
+  isVisible,
+  userLocation,
+  onInteractionUpdate
 }: ResultsSidebarProps) => {
   const router = useRouter();
   const { t } = useLanguage();
@@ -46,6 +52,10 @@ export const ResultsSidebar = ({
     "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=400",
     "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
   ];
+
+  const displayPhotos = selectedLocation?.imageUrl
+    ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
+    : MOCK_PHOTOS;
 
   if (!isVisible) return null;
 
@@ -102,7 +112,14 @@ export const ResultsSidebar = ({
                   <div className="flex items-center gap-2 text-sm text-zinc-500 pl-7 font-mono">
                     <span>{selectedLocation.category}</span>
                     <span>•</span>
-                    <span>{selectedLocation.distance || '1.2km'}</span>
+                    <span>
+                      {userLocation && selectedLocation.coordinates
+                        ? `${convertDistance(getDistance(
+                          userLocation,
+                          { latitude: selectedLocation.coordinates[1], longitude: selectedLocation.coordinates[0] }
+                        ), 'km').toFixed(1)}km`
+                        : (selectedLocation.distance || '1.2km')}
+                    </span>
                   </div>
                 </div>
                 <Badge className="bg-zinc-900 text-white dark:bg-white dark:text-black font-mono text-xs h-7 px-2">
@@ -130,9 +147,9 @@ export const ResultsSidebar = ({
 
               {/* Photos - Grid + Overflow Pattern */}
               <div className="grid grid-cols-3 gap-2 mb-6">
-                {MOCK_PHOTOS.slice(0, 3).map((url, i) => {
+                {displayPhotos.slice(0, 3).map((url, i) => {
                   const isLastSlot = i === 2;
-                  const overflowCount = MOCK_PHOTOS.length - 3;
+                  const overflowCount = displayPhotos.length - 3;
                   const showOverlay = isLastSlot && overflowCount > 0;
 
                   return (
@@ -195,6 +212,20 @@ export const ResultsSidebar = ({
                 </div>
               </div>
 
+              {/* Interaction Toolbar */}
+              <div className="mb-6">
+                {selectedLocation.place_id && (
+                  <InteractionToolbar
+                    placeId={String(selectedLocation.place_id)}
+                    initialLikeState={selectedLocation.userInteraction?.isLiked}
+                    initialDislikeState={selectedLocation.userInteraction?.isDisliked}
+                    initialVisitedState={selectedLocation.userInteraction?.isVisited}
+                    onUpdate={(updates) => onInteractionUpdate?.(String(selectedLocation.place_id), updates)}
+                  />
+                )}
+              </div>
+
+
               {/* Actions */}
               <div className="flex flex-wrap gap-3 pt-4">
                 <Link href={`/analysis?url=${encodeURIComponent(constructUrl(selectedLocation))}`} className="flex-1 min-w-[140px]">
@@ -213,38 +244,56 @@ export const ResultsSidebar = ({
           ) : (
             /* --- LIST VIEW (Compact) --- */
             <div className="flex flex-col">
-              {locations.map((loc) => (
-                <div
-                  key={loc.id}
-                  onClick={() => onSelect(loc)}
-                  className="group flex items-center p-4 border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors relative"
-                >
-                  {/* Selection Indicator */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-black dark:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              {locations.map((loc) => {
+                const distanceStr = (userLocation && loc.coordinates)
+                  ? `${convertDistance(getDistance(
+                    userLocation,
+                    { latitude: loc.coordinates[1], longitude: loc.coordinates[0] }
+                  ), 'km').toFixed(1)}km`
+                  : (loc.distance || '1.2km');
 
-                  {/* Number / Score */}
-                  <div className="w-10 h-10 shrink-0 bg-zinc-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center font-mono text-sm font-bold text-zinc-700 dark:text-zinc-300 mr-4">
-                    {loc.rating.toFixed(1)}
-                  </div>
+                return (
+                  <div
+                    key={loc.id}
+                    onClick={() => onSelect(loc)}
+                    className="group flex items-center p-4 border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors relative"
+                  >
+                    {/* Selection Indicator */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-black dark:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="font-semibold text-sm truncate text-zinc-900 dark:text-zinc-200">{loc.name}</h3>
-                      {loc.vibeScore && (
-                        <span className="font-mono text-[10px] font-bold text-green-600 bg-green-50 px-1.5 rounded">{loc.vibeScore}%</span>
-                      )}
+                    {/* Number / Score */}
+                    <div className="w-10 h-10 shrink-0 bg-zinc-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center font-mono text-sm font-bold text-zinc-700 dark:text-zinc-300 mr-4">
+                      {loc.rating.toFixed(1)}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
-                      <span>{loc.distance || '1.2km'}</span>
-                      <span>•</span>
-                      <span>{loc.priceLevel || '$$'}</span>
-                      <span>•</span>
-                      <span className="truncate max-w-[100px]">{loc.category}</span>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h3 className="font-semibold text-sm truncate text-zinc-900 dark:text-zinc-200">{loc.name}</h3>
+                        {loc.vibeScore && (
+                          <span className="font-mono text-[10px] font-bold text-green-600 bg-green-50 px-1.5 rounded">{loc.vibeScore}%</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+                        <span>{distanceStr}</span>
+                        <span>•</span>
+                        <span>{loc.priceLevel || '$$'}</span>
+                        <span>•</span>
+                        <span className="truncate max-w-[100px]">{loc.category}</span>
+                      </div>
+                      <div className="mt-2 w-full max-w-[200px]" onClick={(e) => e.stopPropagation()}>
+                        <InteractionToolbar
+                          placeId={String(loc.place_id || '0')}
+                          initialLikeState={loc.userInteraction?.isLiked}
+                          initialDislikeState={loc.userInteraction?.isDisliked}
+                          initialVisitedState={loc.userInteraction?.isVisited}
+                          onUpdate={(updates) => onInteractionUpdate?.(String(loc.place_id), updates)}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </ScrollArea>
@@ -288,7 +337,7 @@ export const ResultsSidebar = ({
           <div className="p-4 border-b border-border bg-background z-10 sticky top-0 flex justify-between items-center">
             <div>
               <DialogTitle className="text-lg font-bold">{selectedLocation?.name}</DialogTitle>
-              <DialogDescription className="text-xs">Gallery • {MOCK_PHOTOS.length} photos</DialogDescription>
+              <DialogDescription className="text-xs">Gallery • {displayPhotos.length} photos</DialogDescription>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setIsGalleryOpen(false)}>
               <div className="sr-only">Close</div>
@@ -297,7 +346,7 @@ export const ResultsSidebar = ({
           </div>
           <ScrollArea className="h-full max-h-[calc(90vh-65px)] w-full p-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pb-4">
-              {MOCK_PHOTOS.map((url, i) => (
+              {displayPhotos.map((url, i) => (
                 <div key={i} className="aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                   <img src={url} alt={`Location photo ${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
@@ -326,52 +375,3 @@ const ProgressBar = ({ label, value, color }: any) => (
     </div>
   </div>
 );
-
-const InteractionButtons = ({ place }: { place: LocationData }) => {
-  const { t } = useLanguage();
-  const [state, setState] = useState({ liked: false, disliked: false, visited: false });
-
-  useEffect(() => {
-    if (place.userInteraction) {
-      setState({
-        liked: place.userInteraction.isLiked,
-        disliked: place.userInteraction.isDisliked,
-        visited: place.userInteraction.isVisited
-      });
-    } else {
-      setState({ liked: false, disliked: false, visited: false });
-    }
-  }, [place]);
-
-  const handleRate = async (type: 'LIKE' | 'DISLIKE') => {
-    const newState = type === 'LIKE' ? { liked: !state.liked, disliked: false } : { disliked: !state.disliked, liked: false };
-    setState(prev => ({ ...prev, ...newState }));
-    try {
-      if (place.place_id) {
-        const apiRating = (type === 'LIKE' && state.liked) || (type === 'DISLIKE' && state.disliked) ? 'NONE' : type;
-        await interactWithPlace(place.place_id, apiRating);
-      }
-    } catch (e) { setState(prev => ({ ...prev, liked: state.liked, disliked: state.disliked })); }
-  };
-
-  const handleVisit = async () => {
-    setState(prev => ({ ...prev, visited: !prev.visited }));
-    try {
-      if (place.place_id) await markVisited(place.place_id, !state.visited);
-    } catch (e) { setState(prev => ({ ...prev, visited: state.visited })); }
-  };
-
-  return (
-    <div className="flex gap-2 w-full">
-      <Button variant="outline" size="sm" className={`flex-1 h-9 border-border/60 ${state.liked ? 'bg-primary/10 text-primary border-primary/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleRate('LIKE'); }}>
-        <ThumbsUp className={`w-3.5 h-3.5 mr-1.5 ${state.liked ? 'fill-current' : ''}`} /> {t.map.like}
-      </Button>
-      <Button variant="outline" size="sm" className={`h-9 px-3 border-border/60 ${state.disliked ? 'bg-destructive/10 text-destructive border-destructive/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleRate('DISLIKE'); }}>
-        <ThumbsDown className={`w-3.5 h-3.5 ${state.disliked ? 'fill-current' : ''}`} />
-      </Button>
-      <Button variant="outline" size="sm" className={`flex-1 h-9 border-border/60 ${state.visited ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'hover:bg-muted'}`} onClick={(e) => { e.stopPropagation(); handleVisit(); }}>
-        <CheckCircle className={`w-3.5 h-3.5 mr-1.5 ${state.visited ? 'fill-current' : ''}`} /> {state.visited ? t.map.visited : t.map.markVisited}
-      </Button>
-    </div>
-  );
-};

@@ -10,6 +10,7 @@ import { useNav } from '@/context/NavContext';
 import { LocationData } from '@/types/location';
 // ВАЖНО: Импортируем хук нормально
 import { useMap } from './_components/MapContext';
+import { useUserLocation } from '@/hooks/useUserLocation';
 
 interface MapClientProps {
   mode?: string;
@@ -55,6 +56,7 @@ const UserLocationMarker = ({ coordinates }: { coordinates: [number, number] }) 
 // --- ОСНОВНОЙ КОМПОНЕНТ ---
 const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
   const { setNavHidden } = useNav();
+  const { location: realUserLocation } = useUserLocation();
 
   // Дефолт (Астана/Алматы), если координат нет
   // 2GIS порядок: [LON (Долгота), LAT (Широта)]
@@ -136,6 +138,31 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
 
   useEffect(() => { return () => setNavHidden(false); }, [setNavHidden]);
 
+  const handleInteractionUpdate = (placeId: string, updates: any) => {
+    setLocations(prevLocations =>
+      prevLocations.map(loc => {
+        if (String(loc.place_id) === placeId) {
+          return {
+            ...loc,
+            userInteraction: {
+              ...loc.userInteraction,
+              ...updates
+            }
+          };
+        }
+        return loc;
+      })
+    );
+
+    // Also update selectedLocation if it matches
+    if (selectedLocation && String(selectedLocation.place_id) === placeId) {
+      setSelectedLocation(prev => prev ? ({
+        ...prev,
+        userInteraction: { ...prev.userInteraction, ...updates }
+      }) : null);
+    }
+  };
+
   return (
     <div className="w-full h-[calc(100vh-4rem)] flex flex-col md:flex-row overflow-hidden bg-background">
 
@@ -148,6 +175,8 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
             onSelect={handleSelect}
             onBack={handleBack}
             isVisible={true} // Always visible if rendered
+            userLocation={realUserLocation}
+            onInteractionUpdate={handleInteractionUpdate}
           />
         </aside>
       )}
@@ -161,6 +190,8 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
           onClose={handleBack}
           onExpandChange={handleSheetStateChange}
           onClearSelection={handleBack}
+          userLocation={realUserLocation}
+          onInteractionUpdate={handleInteractionUpdate}
         />
       )}
 

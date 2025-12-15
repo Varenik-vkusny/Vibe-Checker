@@ -6,6 +6,7 @@ import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 // !!! НОВЫЙ ИМПОРТ !!!
 import { AuthProvider } from '@/lib/auth'; // <--- Замените на реальный путь
 import { Metadata } from 'next';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'Vibe-Checker',
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div className="pt-16">
                   {children}
                 </div>
+                <Toaster />
 
               </LanguageProvider>
             </NavProvider>
@@ -49,6 +51,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
 
       </body>
-    </html>
+    </html >
   );
 }
