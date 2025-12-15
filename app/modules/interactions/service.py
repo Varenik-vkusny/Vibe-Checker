@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from .models import UserInteraction, LikeState
 from .schemas import InteractionUpdate
 from ..place.models import Place
@@ -52,8 +53,8 @@ async def update_interaction(db: AsyncSession, user_id: int, data: InteractionUp
 async def get_user_interactions_summary(db: AsyncSession, user_id: int):
     stmt = (
         select(UserInteraction)
+        .options(selectinload(UserInteraction.place))
         .where(UserInteraction.user_id == user_id)
-        .join(UserInteraction.place)
     )
     result = await db.execute(stmt)
     items = result.scalars().all()
