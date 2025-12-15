@@ -150,7 +150,7 @@ export const translations = {
     },
     compare: {
       title: 'Compare Places',
-      heroTitle: 'Tale of the Tape.',
+      heroTitle: 'Compare Mode.',
       heroSubtitle: 'See which spot wins the vibe check.',
       inputPlaceholderA: 'Search Candidate A...',
       inputPlaceholderB: 'Search Candidate B...',
@@ -414,7 +414,7 @@ export const translations = {
     },
     compare: {
       title: 'Сравнить Места',
-      heroTitle: 'Битва Титанов.',
+      heroTitle: 'Режим Сравнения.',
       heroSubtitle: 'Узнайте, какое место побеждает в проверке вайба.',
       inputPlaceholderA: 'Поиск Кандидата А...',
       inputPlaceholderB: 'Поиск Кандидата Б...',
@@ -678,7 +678,7 @@ export const translations = {
     },
     compare: {
       title: 'Орындарды Салыстыру',
-      heroTitle: 'Титандар шайқасы.',
+      heroTitle: 'Салыстыру Режимі.',
       heroSubtitle: 'Қай орын вайб тексерісінде жеңетінін көріңіз.',
       inputPlaceholderA: 'А Кандидатын іздеу...',
       inputPlaceholderB: 'Б Кандидатын іздеу...',
