@@ -140,7 +140,7 @@ export const ResultsSidebar = ({
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1 w-full min-w-0">
+        <div className="flex-1 w-full min-w-0 overflow-y-auto">
           {selectedLocation ? (
             /* --- DETAIL VIEW (Vibe Sheet) --- */
             <div className="p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full">
@@ -296,7 +296,7 @@ export const ResultsSidebar = ({
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Compare Dialog */}
