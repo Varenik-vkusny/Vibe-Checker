@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, CheckCircle } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle, Bookmark } from 'lucide-react';
 import { interactWithPlace, markVisited } from '@/services/interaction';
+import { favoritesService } from '@/services/favorites';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -13,7 +14,8 @@ interface InteractionToolbarProps {
     initialLikeState?: boolean;
     initialDislikeState?: boolean;
     initialVisitedState?: boolean;
-    onUpdate?: (updates: { liked?: boolean; disliked?: boolean; visited?: boolean }) => void;
+    initialSavedState?: boolean;
+    onUpdate?: (updates: { liked?: boolean; disliked?: boolean; visited?: boolean; saved?: boolean }) => void;
 }
 
 export const InteractionToolbar = ({
@@ -21,6 +23,7 @@ export const InteractionToolbar = ({
     initialLikeState = false,
     initialDislikeState = false,
     initialVisitedState = false,
+    initialSavedState = false,
     onUpdate
 }: InteractionToolbarProps) => {
     const { t } = useLanguage();
@@ -28,6 +31,7 @@ export const InteractionToolbar = ({
     const [liked, setLiked] = useState(initialLikeState);
     const [disliked, setDisliked] = useState(initialDislikeState);
     const [visited, setVisited] = useState(initialVisitedState);
+    const [saved, setSaved] = useState(initialSavedState);
     const [isLoading, setIsLoading] = useState(false);
 
     // Sync state if props change (e.g. valid data arrival)
@@ -35,7 +39,8 @@ export const InteractionToolbar = ({
         setLiked(initialLikeState);
         setDisliked(initialDislikeState);
         setVisited(initialVisitedState);
-    }, [initialLikeState, initialDislikeState, initialVisitedState]);
+        setSaved(initialSavedState);
+    }, [initialLikeState, initialDislikeState, initialVisitedState, initialSavedState]);
 
     const handleRate = async (type: 'LIKE' | 'DISLIKE') => {
         if (isLoading) return;
@@ -92,6 +97,23 @@ export const InteractionToolbar = ({
         }
     };
 
+    const handleSave = async () => {
+        if (isLoading) return;
+
+        const prevSaved = saved;
+        setSaved(!prevSaved);
+        onUpdate?.({ saved: !prevSaved });
+
+        try {
+            await favoritesService.toggleFavorite(placeId);
+            toast.success(!prevSaved ? "Saved to Library" : "Removed from Library");
+        } catch (error) {
+            setSaved(prevSaved);
+            onUpdate?.({ saved: prevSaved });
+            toast.error("Failed to update bookmark.");
+        }
+    };
+
     return (
         <div className="flex gap-1.5">
             <Button
@@ -137,6 +159,21 @@ export const InteractionToolbar = ({
                 title={visited ? (t.map.visited || 'Visited') : (t.map.markVisited || 'Mark Visited')}
             >
                 <CheckCircle className={cn("w-4 h-4", visited && "fill-current")} />
+            </Button>
+
+            <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                    "h-9 w-9 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
+                    saved
+                        ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/50 hover:bg-yellow-500/20 hover:text-yellow-700 hover:border-yellow-600"
+                        : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                )}
+                onClick={(e) => { e.stopPropagation(); handleSave(); }}
+                title="Save"
+            >
+                <Bookmark className={cn("w-4 h-4", saved && "fill-current")} />
             </Button>
         </div>
     );

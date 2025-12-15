@@ -3,6 +3,8 @@ from typing import Optional, List, Union
 
 
 class PlaceInfo(BaseModel):
+    id: Optional[int] = None
+    google_place_id: Optional[str] = None
     name: str
     google_rating: Optional[float] = None
     url: str

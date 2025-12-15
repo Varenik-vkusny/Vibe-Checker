@@ -1,70 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bookmark, MapPin, Sparkles, Filter } from 'lucide-react';
+import { Bookmark, MapPin, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-
-// Mock Data for Vibe Cards
-const MOCK_BOOKMARKS = [
-    {
-        id: 1,
-        name: "Downtown Social",
-        category: "Coffee Shop",
-        image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800",
-        rating: 9.8,
-        price: "$$",
-        distance: "1.2km",
-        tags: ["Cozy", "Wifi", "Laptop Friendly"],
-        status: "visited"
-    },
-    {
-        id: 2,
-        name: "Neon Nights Arcade",
-        category: "Entertainment",
-        image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800",
-        rating: 9.4,
-        price: "$$",
-        distance: "3.5km",
-        tags: ["Retro", "Loud", "Fun"],
-        status: "to_go"
-    },
-    {
-        id: 3,
-        name: "The Green House",
-        category: "Restaurant",
-        image: "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=800",
-        rating: 8.9,
-        price: "$$$",
-        distance: "0.8km",
-        tags: ["Organic", "Quiet", "Date Night"],
-        status: "visited"
-    },
-    {
-        id: 4,
-        name: "Skyline Lounge",
-        category: "Bar",
-        image: "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=800", // Fallback image reuse
-        rating: 9.2,
-        price: "$$$$",
-        distance: "5.0km",
-        tags: ["View", "Cocktails", "Fancy"],
-        status: "to_go"
-    }
-];
+import { favoritesService, VibeCardProps } from '@/services/favorites';
 
 export default function BookmarksPage() {
     const { t } = useLanguage();
     const [filter, setFilter] = useState<'all' | 'visited' | 'to_go'>('all');
+    const [bookmarks, setBookmarks] = useState<VibeCardProps[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Filter Logic
-    const filteredBookmarks = MOCK_BOOKMARKS.filter(item => {
+    useEffect(() => {
+        const fetchBookmarks = async () => {
+            try {
+                const data = await favoritesService.getFavorites();
+                setBookmarks(data);
+            } catch (error) {
+                console.error("Failed to fetch bookmarks", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBookmarks();
+    }, []);
+
+    const filteredBookmarks = bookmarks.filter(item => {
         if (filter === 'all') return true;
         return item.status === filter;
     });
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-zinc-950 pt-6 pb-40 px-6 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white dark:bg-zinc-950 pt-6 pb-40 px-6">
@@ -103,7 +78,7 @@ export default function BookmarksPage() {
                             <p className="text-zinc-500 dark:text-zinc-400">{t.bookmarks.empty.description}</p>
                         </div>
                         <Button asChild className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 font-bold">
-                            <Link href="/map">
+                            <Link href="/pro_mode">
                                 <MapPin className="w-4 h-4 mr-2" /> {t.bookmarks.empty.button}
                             </Link>
                         </Button>
@@ -131,20 +106,22 @@ const FilterPill = ({ label, active, onClick }: { label: string, active: boolean
     </button>
 );
 
-const VibeCard = ({ place }: { place: any }) => (
+const VibeCard = ({ place }: { place: VibeCardProps }) => (
     <div className="group relative flex flex-col gap-3 min-w-0 cursor-pointer">
         {/* Image Container */}
         <div className="aspect-[4/3] rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 relative">
             <img
-                src={place.image}
+                src={place.image || "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=800"} // Fallback image
                 alt={place.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {/* Rating Badge */}
-            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-black text-xs font-bold px-2 py-1 rounded-md shadow-lg">
-                {place.rating}
-            </div>
-            {/* Status Indicator (Optional) */}
+            {place.rating && (
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-black text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+                    {place.rating.toFixed(1)}
+                </div>
+            )}
+            {/* Status Indicator */}
             {place.status === 'visited' && (
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-yellow-500" /> Visited
@@ -159,15 +136,15 @@ const VibeCard = ({ place }: { place: any }) => (
             </div>
 
             <div className="flex items-center text-sm text-zinc-500 font-medium list-none">
-                <span>{place.price}</span>
+                <span>{place.price || "$$"}</span>
                 <span className="mx-1.5">•</span>
-                <span>{place.distance}</span>
+                <span>{place.distance || "N/A"}</span>
                 <span className="mx-1.5">•</span>
-                <span className="truncate">{place.category}</span>
+                <span className="truncate">{place.category || "Place"}</span>
             </div>
 
             <div className="flex flex-wrap gap-2 mt-2">
-                {place.tags.map((tag: string, i: number) => (
+                {place.tags && place.tags.map((tag: string, i: number) => (
                     <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
                         {tag}
                     </span>

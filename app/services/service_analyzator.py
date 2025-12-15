@@ -77,6 +77,8 @@ async def get_or_create_place_analysis(
             )
 
             place_info = PlaceInfo(
+                id=existing_place.id,
+                google_place_id=existing_place.google_place_id,
                 name=existing_place.name,
                 google_rating=existing_place.google_rating,
                 url=existing_place.source_url,
@@ -119,6 +121,8 @@ async def get_or_create_place_analysis(
         await db.commit()
 
         place_info_out = PlaceInfo(
+            id=saved_place.id,
+            google_place_id=place_dto.place_id, # place_dto has place_id (Google ID)
             name=place_dto.name,
             google_rating=place_dto.rating,
             url=url,

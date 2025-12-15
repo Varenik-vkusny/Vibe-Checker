@@ -207,6 +207,7 @@ async def compare_places_with_gemini(
         "place_b_unique_pros": ["str"],
         "verdict": "str"
     }}
+    VERDICT SHOULD BE SHORT PARAGRAPH, THAT ONLY FOCUSED ON WINNER STRENGTH
     """
 
     try:
@@ -222,7 +223,9 @@ async def compare_places_with_gemini(
             place_a_unique_pros=res["place_a_unique_pros"],
             place_b_unique_pros=res["place_b_unique_pros"],
             verdict=res["verdict"],
-            scores=ComparisonScores(place_a=analysis_a.scores, place_b=analysis_b.scores),
+            scores=ComparisonScores(
+                place_a=analysis_a.scores, place_b=analysis_b.scores
+            ),
         )
     except Exception as e:
         logger.error(f"Ошибка сравнения: {e}")

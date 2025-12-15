@@ -23,6 +23,7 @@ import { SkeletonAnalysis } from "@/components/SkeletonAnalysis";
 import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
 import { InteractionToolbar } from '@/components/map/InteractionToolbar';
 import { toast } from 'sonner';
+import { favoritesService } from '@/services/favorites';
 
 // Relaxed Schema to allow Text Search
 const analysisSchema = z.object({
@@ -81,10 +82,31 @@ export default function AnalysisPage() {
     }, 800);
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(true);
-    // In a real app, this would call an API
-    // toast.success("Saved to Library"); 
+  const checkBookmarkStatus = async (placeId: number) => {
+    try {
+      const favorites = await favoritesService.getFavorites();
+      const isFav = favorites.some(f => f.id === placeId);
+      setIsBookmarked(isFav);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (result?.place_info?.id) {
+      checkBookmarkStatus(result.place_info.id);
+    }
+  }, [result]);
+
+  const handleBookmark = async () => {
+    if (!result?.place_info?.id) return;
+    try {
+      await favoritesService.toggleFavorite(result.place_info.id);
+      setIsBookmarked(prev => !prev);
+      toast.success(!isBookmarked ? "Saved to Library" : "Removed from Library");
+    } catch (e) {
+      toast.error("Failed to update bookmark");
+    }
   };
 
   const onSubmit = async (data: AnalysisValues) => {
@@ -144,10 +166,6 @@ export default function AnalysisPage() {
               {...register('query')}
               placeholder={t.analysis.placeholder}
               loading={loading}
-              // We use a custom submit button behavior via form, but we can pass null if we want the form `onSubmit` to handle it.
-              // However, the component renders a button if `onSearch` is present.
-              // Since the form handles submit, we can just let the button be a "submit" trigger or just pass the button as `rightElement`.
-              // Best approach here: Pass `rightElement` to preserve exact behavior (type="submit").
               rightElement={
                 <Button
                   type="submit"
@@ -212,10 +230,14 @@ export default function AnalysisPage() {
                 </h1>
                 <div className="flex items-center gap-2">
                   <InteractionToolbar
-                    placeId={String(result.place_info.place_id || '0')}
+                    placeId={result.place_info.google_place_id || String(result.place_info.id || '0')}
                     initialLikeState={false} // Default to false as we might not have this data yet
                     initialDislikeState={false}
                     initialVisitedState={false}
+                    initialSavedState={isBookmarked}
+                    onUpdate={(updates) => {
+                      if (updates.saved !== undefined) setIsBookmarked(updates.saved);
+                    }}
                   />
                   <Button
                     size="icon"

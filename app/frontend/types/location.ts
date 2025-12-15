@@ -36,6 +36,7 @@ export interface LocationData {
     isLiked: boolean;
     isDisliked: boolean;
     isVisited: boolean;
+    isSaved?: boolean;
   };
   photos?: string[]; // Array of photo URLs
 }

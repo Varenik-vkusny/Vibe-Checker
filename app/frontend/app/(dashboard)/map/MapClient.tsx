@@ -11,6 +11,7 @@ import { LocationData } from '@/types/location';
 // ВАЖНО: Импортируем хук нормально
 import { useMap } from './_components/MapContext';
 import { useUserLocation } from '@/hooks/useUserLocation';
+import { favoritesService } from '@/services/favorites';
 
 interface MapClientProps {
   mode?: string;
@@ -81,7 +82,34 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
         if (stored) {
           const parsedLocations: LocationData[] = JSON.parse(stored);
           console.log("📍 Loaded locations from Storage:", parsedLocations.length);
+
+          // Initial set
           setLocations(parsedLocations);
+
+          // Fetch favorites and update
+          favoritesService.getFavorites().then(favs => {
+            const favIds = new Set(favs.map(f => f.id));
+            const favGoogleIds = new Set(favs.map(f => f.google_place_id).filter(Boolean));
+
+            const updatedLocations = parsedLocations.map(loc => {
+              // loc.id is likely the Google Place ID string in Pro Mode results
+              // loc.place_id is the internal DB ID number (if available)
+              const isSaved = favGoogleIds.has(loc.id) || (loc.place_id && favIds.has(loc.place_id));
+              return {
+                ...loc,
+                userInteraction: {
+                  ...loc.userInteraction,
+                  isLiked: loc.userInteraction?.isLiked || false,
+                  isDisliked: loc.userInteraction?.isDisliked || false,
+                  isVisited: loc.userInteraction?.isVisited || false,
+                  isSaved: !!isSaved
+                }
+              } as LocationData;
+            });
+            setLocations(updatedLocations);
+          }).catch(e => {
+            console.error("Failed to sync favorites:", e);
+          });
         } else {
           console.warn("⚠️ No proModeResults in LocalStorage");
         }

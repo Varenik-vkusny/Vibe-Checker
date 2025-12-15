@@ -20,23 +20,32 @@ logger = logging.getLogger(__name__)
 async def get_user_context(user_id: int, db: AsyncSession) -> str:
 
     interactions = await get_user_interactions_summary(db, user_id)
-    stmt_logs = (
-        select(UserLog)
-        .where(UserLog.user_id == user_id)
-        .order_by(UserLog.created_at.desc())
-        .limit(10)
-    )
-    result_logs = await db.execute(stmt_logs)
-    logs = result_logs.scalars().all()
+    
+    try:
+        stmt_logs = (
+            select(UserLog)
+            .where(UserLog.user_id == user_id)
+            .order_by(UserLog.created_at.desc())
+            .limit(10)
+        )
+        result_logs = await db.execute(stmt_logs)
+        logs = result_logs.scalars().all()
+    except Exception as e:
+        logger.error(f"Error fetching UserLogs in get_user_context: {e}")
+        logs = []
 
-    stmt_favs = (
-        select(Favorite)
-        .options(selectinload(Favorite.place))
-        .where(Favorite.user_id == user_id)
-        .limit(5)
-    )
-    result_favs = await db.execute(stmt_favs)
-    favorites = result_favs.scalars().all()
+    try:
+        stmt_favs = (
+            select(Favorite)
+            .options(selectinload(Favorite.place))
+            .where(Favorite.user_id == user_id)
+            .limit(5)
+        )
+        result_favs = await db.execute(stmt_favs)
+        favorites = result_favs.scalars().all()
+    except Exception as e:
+        logger.error(f"Error fetching Favorites in get_user_context: {e}")
+        favorites = []
 
     context_parts = []
 

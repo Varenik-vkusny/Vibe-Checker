@@ -22,6 +22,7 @@ from .endpoints.place import router as place_router
 from .endpoints.admin import router as admin_router
 from .endpoints.recommendation import router as recommendation_router
 from .endpoints.interaction import router as interaction_router
+from .endpoints.favorites import router as favorites_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -97,6 +98,7 @@ app.include_router(
     dependencies=[Depends(get_current_admin_user)],
 )
 app.include_router(interaction_router, prefix="/interactions", tags=["Interactions"])
+app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])
 
 
 @app.get("/", status_code=status.HTTP_200_OK)

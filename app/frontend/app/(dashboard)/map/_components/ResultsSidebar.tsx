@@ -222,6 +222,7 @@ export const ResultsSidebar = ({
                     initialLikeState={selectedLocation.userInteraction?.isLiked}
                     initialDislikeState={selectedLocation.userInteraction?.isDisliked}
                     initialVisitedState={selectedLocation.userInteraction?.isVisited}
+                    initialSavedState={selectedLocation.userInteraction?.isSaved}
                     onUpdate={(updates) => onInteractionUpdate?.(String(selectedLocation.place_id), updates)}
                   />
                 )}
@@ -289,6 +290,7 @@ export const ResultsSidebar = ({
                           initialLikeState={loc.userInteraction?.isLiked}
                           initialDislikeState={loc.userInteraction?.isDisliked}
                           initialVisitedState={loc.userInteraction?.isVisited}
+                          initialSavedState={loc.userInteraction?.isSaved}
                           onUpdate={(updates) => onInteractionUpdate?.(String(loc.place_id), updates)}
                         />
                       </div>
