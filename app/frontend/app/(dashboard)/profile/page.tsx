@@ -24,11 +24,11 @@ import { VibeSlider } from './_components/VibeSlider';
 import { NavigatorCard } from './_components/NavigatorCard';
 import { cn } from '@/lib/utils'; // Assuming cn exists
 
-const getTimeGreeting = () => {
+const getTimeGreeting = (t: any) => {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 18) return 'Good Afternoon';
-  return 'Good Evening';
+  if (hour < 12) return t.profile.greeting;
+  if (hour < 18) return t.profile.greetingAfternoon;
+  return t.profile.greetingEvening;
 };
 
 export default function ProfilePage() {
@@ -36,6 +36,8 @@ export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage(); // Assuming setLanguage works this way
   const router = useRouter();
+
+  const { t } = useLanguage();
 
   // --- STATE ---
   const [greeting, setGreeting] = useState('');
@@ -57,7 +59,7 @@ export default function ProfilePage() {
 
   // --- EFFECT: Hydration & LocalStorage ---
   useEffect(() => {
-    setGreeting(getTimeGreeting());
+    setGreeting(getTimeGreeting(t));
 
     // Load from local storage (Mock)
     const savedNav = localStorage.getItem('navigator_preference');
@@ -65,7 +67,7 @@ export default function ProfilePage() {
 
     // Mock Vibe DNA loading
     // In a real app, this would fetch from DB
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (navigator) {
@@ -117,36 +119,36 @@ export default function ProfilePage() {
             {/* MODULE A: VIBE DNA */}
             <section className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Vibe DNA</h2>
-                <p className="text-zinc-500 text-sm">Fine-tune the weights of your discovery engine.</p>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.vibeDNA.title}</h2>
+                <p className="text-zinc-500 text-sm">{t.profile.vibeDNA.subtitle}</p>
               </div>
 
               <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 space-y-8">
                 <VibeSlider
-                  label="Acoustic Profile"
-                  leftLabel="Library Silence"
-                  rightLabel="Stadium Concert"
+                  label={t.profile.vibeDNA.noise.label}
+                  leftLabel={t.profile.vibeDNA.noise.left}
+                  rightLabel={t.profile.vibeDNA.noise.right}
                   value={vibeDNA.noise}
                   onChange={(val) => handleVibeChange('noise', val)}
                 />
                 <VibeSlider
-                  label="Luminosity Index"
-                  leftLabel="Dim / Intimate"
-                  rightLabel="Bright / Daylight"
+                  label={t.profile.vibeDNA.light.label}
+                  leftLabel={t.profile.vibeDNA.light.left}
+                  rightLabel={t.profile.vibeDNA.light.right}
                   value={vibeDNA.light}
                   onChange={(val) => handleVibeChange('light', val)}
                 />
                 <VibeSlider
-                  label="Social Density"
-                  leftLabel="Solo"
-                  rightLabel="Packed Crowd"
+                  label={t.profile.vibeDNA.social.label}
+                  leftLabel={t.profile.vibeDNA.social.left}
+                  rightLabel={t.profile.vibeDNA.social.right}
                   value={vibeDNA.social}
                   onChange={(val) => handleVibeChange('social', val)}
                 />
                 <VibeSlider
-                  label="Fiscal Limit"
-                  leftLabel="Saver"
-                  rightLabel="Splurger"
+                  label={t.profile.vibeDNA.budget.label}
+                  leftLabel={t.profile.vibeDNA.budget.left}
+                  rightLabel={t.profile.vibeDNA.budget.right}
                   value={vibeDNA.budget}
                   onChange={(val) => handleVibeChange('budget', val)}
                 />
@@ -156,13 +158,13 @@ export default function ProfilePage() {
             {/* MODULE B: NEGATIVE PROMPTS */}
             <section className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Vibe Killers (Hard Block)</h2>
-                <p className="text-zinc-500 text-sm">The AI will strictly avoid places with these attributes.</p>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.vibeKillers.title}</h2>
+                <p className="text-zinc-500 text-sm">{t.profile.vibeKillers.subtitle}</p>
               </div>
 
               <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 space-y-4">
                 <Input
-                  placeholder="Type 'Hookah' + Enter..."
+                  placeholder={t.profile.vibeKillers.placeholder}
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={addTag}
@@ -170,7 +172,7 @@ export default function ProfilePage() {
                 />
                 <div className="flex flex-wrap gap-2 min-h-[40px]">
                   {negativePrompts.length === 0 && (
-                    <span className="text-zinc-700 text-xs italic py-2">No active blocks configured.</span>
+                    <span className="text-zinc-700 text-xs italic py-2">{t.profile.vibeKillers.empty}</span>
                   )}
                   {negativePrompts.map((tag) => (
                     <Badge
@@ -193,8 +195,8 @@ export default function ProfilePage() {
             {/* MODULE C: NAVIGATOR PROTOCOL */}
             <section className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Navigator Protocol</h2>
-                <p className="text-zinc-500 text-sm">Select your default geospatial provider.</p>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.navigator.title}</h2>
+                <p className="text-zinc-500 text-sm">{t.profile.navigator.subtitle}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -232,14 +234,15 @@ export default function ProfilePage() {
             {/* MODULE D: INTERFACE SETTINGS */}
             <section className="space-y-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Interface</h2>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.interface.title}</h2>
+                <p className="text-zinc-500 text-sm">{t.profile.interface.subtitle}</p>
               </div>
 
               <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-6">
 
                 {/* Theme Control */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Theme</span>
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t.profile.interface.theme}</span>
                   <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
                     <button onClick={() => setTheme('light')} className={cn("p-2 rounded-md transition-all", theme === 'light' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
                       <Sun className="w-4 h-4" />
@@ -255,7 +258,7 @@ export default function ProfilePage() {
 
                 {/* Language Control */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Language</span>
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t.profile.interface.language}</span>
                   <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
                     <button onClick={() => setLanguage('en')} className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", language === 'en' ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-400")}>
                       EN
@@ -278,7 +281,7 @@ export default function ProfilePage() {
                 className="w-full border-red-900/30 bg-red-950/10 text-red-500 hover:bg-red-950/30 hover:border-red-900/50 hover:text-red-400 h-12 uppercase tracking-widest font-bold"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                {t.header.logout}
               </Button>
             </section>
 

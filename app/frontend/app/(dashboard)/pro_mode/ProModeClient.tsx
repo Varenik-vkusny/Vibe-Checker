@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeolocation } from './components/useGeolocation';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { SearchInterface } from './components/SearchInterface';
 import { LoadingHUD } from './components/LoadingHUD';
 import { getInspiration, searchProMode } from '@/services/interaction';
@@ -63,6 +64,7 @@ const ProModeClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { location, error: geoError, getLocation } = useGeolocation();
+  const { t } = useLanguage();
 
   const [inputValue, setInputValue] = useState('');
   const [processState, setProcessState] = useState<ProcessState>('idle');
@@ -73,10 +75,11 @@ const ProModeClient = () => {
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Тексты для разных стадий, чтобы было не скучно ждать
+  // Тексты для разных стадий, чтобы было не скучно ждать
   const loadingStages = [
-    { state: 'scanning' as ProcessState, title: 'AI DISCOVERY', sub: 'Scanning geospatial context...' },
-    { state: 'filtering' as ProcessState, title: 'SEARCHING', sub: 'Reading reviews & analyzing vibe...' },
-    { state: 'analysis' as ProcessState, title: 'NEURAL SYNC', sub: 'Comparing semantic vectors...' },
+    { state: 'scanning' as ProcessState, title: t.pro.loading.scanning.title, sub: t.pro.loading.scanning.sub },
+    { state: 'filtering' as ProcessState, title: t.pro.loading.filtering.title, sub: t.pro.loading.filtering.sub },
+    { state: 'analysis' as ProcessState, title: t.pro.loading.analysis.title, sub: t.pro.loading.analysis.sub },
   ];
 
   useEffect(() => {
@@ -165,7 +168,7 @@ const ProModeClient = () => {
 
         router.push(`/map?${params.toString()}`);
       } else {
-        alert("No places found for this vibe. Try a broader search!");
+        alert(t.pro.noResults);
       }
 
     } catch (e: any) {
@@ -174,7 +177,8 @@ const ProModeClient = () => {
       setProcessState('idle');
 
       // ... (обработка ошибок остается той же) ...
-      alert("Something went wrong. Please try again.");
+      // ... (обработка ошибок остается той же) ...
+      alert(t.pro.error);
     }
   };
 

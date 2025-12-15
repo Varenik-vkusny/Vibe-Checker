@@ -91,8 +91,8 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-lg font-bold">Pro Mode Results</h2>
-                <p className="text-sm text-zinc-500">{locations.length} places found</p>
+                <h2 className="text-lg font-bold">{t.map.proModeResults}</h2>
+                <p className="text-sm text-zinc-500">{locations.length} {t.header.places.toLowerCase()}</p>
               </div>
               <Button size="sm" variant="secondary" className="rounded-full h-8">{isExpanded ? 'View Map' : 'View List'}</Button>
             </div>
@@ -137,7 +137,7 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
             {/* AI Insight */}
             <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-700 rounded-2xl">
               <h3 className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                <Sparkles className="w-3 h-3" /> AI Insight
+                <Sparkles className="w-3 h-3" /> {t.map.aiInsight}
               </h3>
               <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                 {selectedLocation.description || t.map.defaultAiInsight}
@@ -148,24 +148,24 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl text-center">
                 <Volume2 className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
-                <div className="text-[10px] text-zinc-400 uppercase">Noise</div>
+                <div className="text-[10px] text-zinc-400 uppercase">{t.map.noise}</div>
                 <div className="font-semibold text-sm">Low</div>
               </div>
               <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl text-center">
                 <Sun className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
-                <div className="text-[10px] text-zinc-400 uppercase">Light</div>
+                <div className="text-[10px] text-zinc-400 uppercase">{t.map.light}</div>
                 <div className="font-semibold text-sm">Dim</div>
               </div>
               <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl text-center">
                 <Wifi className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
-                <div className="text-[10px] text-zinc-400 uppercase">Wifi</div>
+                <div className="text-[10px] text-zinc-400 uppercase">{t.map.wifi}</div>
                 <div className="font-semibold text-sm">Fast</div>
               </div>
             </div>
 
             {/* Reviews Breakdown */}
             <div className="space-y-3">
-              <h4 className="font-bold text-sm">Rating Breakdown</h4>
+              <h4 className="font-bold text-sm">{t.map.ratingBreakdown}</h4>
               <div className="flex items-center gap-4">
                 <div className="text-5xl font-bold tracking-tighter">{selectedLocation.rating}</div>
                 <div className="flex-1 space-y-2">
@@ -182,12 +182,12 @@ export const MobileBottomSheet = ({ locations, selectedLocation, onSelect, onClo
             <div className="grid grid-cols-2 gap-3 pt-4">
               <Link href={`/analysis?url=https://goo.gl/maps/mock`} className="w-full">
                 <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
-                  Full Analysis <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
+                  {t.map.fullReport} <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
                 </Button>
               </Link>
               <Link href={`/compare?url_a=https://goo.gl/maps/mock`} className="w-full">
                 <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
-                  Compare <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
+                  {t.compare.compareButton || 'Compare'} <GitCompare className="w-4 h-4 ml-2 text-zinc-400" />
                 </Button>
               </Link>
             </div>

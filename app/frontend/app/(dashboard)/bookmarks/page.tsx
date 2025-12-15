@@ -6,6 +6,7 @@ import { Bookmark, MapPin, Sparkles, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // Mock Data for Vibe Cards
 const MOCK_BOOKMARKS = [
@@ -56,6 +57,7 @@ const MOCK_BOOKMARKS = [
 ];
 
 export default function BookmarksPage() {
+    const { t } = useLanguage();
     const [filter, setFilter] = useState<'all' | 'visited' | 'to_go'>('all');
 
     // Filter Logic
@@ -65,21 +67,21 @@ export default function BookmarksPage() {
     });
 
     return (
-        <div className="min-h-screen bg-white dark:bg-zinc-950 pt-24 pb-40 px-6">
+        <div className="min-h-screen bg-white dark:bg-zinc-950 pt-6 pb-40 px-6">
             <div className="max-w-5xl mx-auto space-y-8">
 
                 {/* HEADER SECTION */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-2">
-                        <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">Library</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-sm md:text-base">Your personal collection of curated vibes.</p>
+                        <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">{t.bookmarks.title}</h1>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm md:text-base">{t.bookmarks.subtitle}</p>
                     </div>
 
                     {/* FILTER PILLS */}
                     <div className="flex items-center gap-2">
-                        <FilterPill label="All" active={filter === 'all'} onClick={() => setFilter('all')} />
-                        <FilterPill label="Visited" active={filter === 'visited'} onClick={() => setFilter('visited')} />
-                        <FilterPill label="To Go" active={filter === 'to_go'} onClick={() => setFilter('to_go')} />
+                        <FilterPill label={t.bookmarks.tabs.all} active={filter === 'all'} onClick={() => setFilter('all')} />
+                        <FilterPill label={t.bookmarks.tabs.visited} active={filter === 'visited'} onClick={() => setFilter('visited')} />
+                        <FilterPill label={t.bookmarks.tabs.wantToGo} active={filter === 'to_go'} onClick={() => setFilter('to_go')} />
                     </div>
                 </div>
 
@@ -97,12 +99,12 @@ export default function BookmarksPage() {
                             <Bookmark className="w-10 h-10 text-zinc-400 dark:text-zinc-700" />
                         </div>
                         <div className="space-y-2 max-w-sm">
-                            <h3 className="text-xl font-bold text-zinc-900 dark:text-white">Your collection is empty.</h3>
-                            <p className="text-zinc-500 dark:text-zinc-400">Start exploring the map to find hidden gems and save them for later.</p>
+                            <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{t.bookmarks.empty.title}</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400">{t.bookmarks.empty.description}</p>
                         </div>
                         <Button asChild className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 font-bold">
                             <Link href="/map">
-                                <MapPin className="w-4 h-4 mr-2" /> Find a Vibe
+                                <MapPin className="w-4 h-4 mr-2" /> {t.bookmarks.empty.button}
                             </Link>
                         </Button>
                     </div>

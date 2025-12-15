@@ -35,21 +35,21 @@ export const GlobalNav = () => {
 
   // Helper to get Page Name for Breadcrumb
   const getPageTitle = (path: string) => {
-    if (path === '/') return 'Home';
-    if (path === '/map') return 'Map';
-    if (path === '/pro_mode') return 'Pro Mode';
-    if (path === '/compare') return 'Compare';
-    if (path === '/profile') return 'Profile';
-    if (path === '/analysis') return 'Analysis';
+    if (path === '/') return t.header.home;
+    if (path === '/map') return t.header.places;
+    if (path === '/pro_mode') return t.header.pro_mode;
+    if (path === '/compare') return t.header.compare;
+    if (path === '/profile') return t.header.profile;
+    if (path === '/analysis') return t.header.analysis;
     return 'Page';
   }
 
   const navItems = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'AI Analysis', href: '/analysis', icon: BarChart2 },
-    { name: 'Search', href: '/pro_mode', icon: Sparkles },
-    { name: 'Compare', href: '/compare', icon: GitCompare },
-    { name: 'Library', href: '/bookmarks', icon: Bookmark },
+    { name: t.header.home, href: '/', icon: Home },
+    { name: t.header.analysis, href: '/analysis', icon: BarChart2 },
+    { name: t.header.search, href: '/pro_mode', icon: Sparkles },
+    { name: t.header.compare, href: '/compare', icon: GitCompare },
+    { name: t.header.library, href: '/bookmarks', icon: Bookmark },
   ];
 
   return (
@@ -151,7 +151,7 @@ export const GlobalNav = () => {
                       <DropdownMenuItem asChild>
                         <Link href="/admin">
                           <ShieldCheck className="mr-2 h-4 w-4" />
-                          <span>Admin Panel</span>
+                          <span>{t.header.admin}</span>
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -190,13 +190,13 @@ export const GlobalNav = () => {
           {/* 1. Analysis */}
           <Link href="/analysis" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/analysis') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
             <BarChart2 className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Analysis</span>
+            <span className="text-[10px] font-medium">{t.header.analysis}</span>
           </Link>
 
           {/* 2. Compare */}
           <Link href="/compare" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/compare') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
             <GitCompare className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Compare</span>
+            <span className="text-[10px] font-medium">{t.header.compare}</span>
           </Link>
 
           {/* 3. SEARCH (Center Focus) */}
@@ -211,19 +211,19 @@ export const GlobalNav = () => {
               `}>
               <Sparkles className="w-6 h-6" strokeWidth={2.5} />
             </div>
-            <span className="text-[10px] font-bold mt-1 text-zinc-900 dark:text-zinc-50">Search</span>
+            <span className="text-[10px] font-bold mt-1 text-zinc-900 dark:text-zinc-50">{t.header.search}</span>
           </Link>
 
           {/* 4. Bookmarks */}
           <Link href="/bookmarks" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/bookmarks') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
             <Bookmark className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Saved</span>
+            <span className="text-[10px] font-medium">{t.common.saved_places}</span>
           </Link>
 
           {/* 5. Profile */}
           <Link href="/profile" className={`flex flex-col items-center justify-center gap-1 h-full ${isActive('/profile/settings') ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-400'}`}>
             <User className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Profile</span>
+            <span className="text-[10px] font-medium">{t.header.profile}</span>
           </Link>
 
         </div>

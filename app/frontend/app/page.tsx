@@ -38,10 +38,10 @@ export default function Home() {
 
   return (
     // MAIN CONTAINER: Scroll Snap
-    <div className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-indigo-500/20">
+    <div className="fixed top-14 left-0 right-0 bottom-0 w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-indigo-500/20 z-0">
 
       {/* --- SLIDE 1: THE INPUT --- */}
-      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
+      <section className="h-full w-full snap-start relative flex flex-col justify-center items-center px-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -56,11 +56,11 @@ export default function Home() {
           </motion.div>
 
           <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-6 text-balance">
-            Contextual Search <br className="hidden md:block" /> for Places.
+            {t.landing.titlePrefix} <br className="hidden md:block" /> {t.landing.titleSuffix}
           </motion.h1>
 
           <motion.p variants={fadeInUp} className="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl mb-12 text-balance leading-relaxed">
-            Don't search for "coffee". Search for "quiet cafe with good wifi for a 2-hour call".
+            {t.landing.subtitle}
           </motion.p>
 
           <motion.div variants={fadeInUp} className="w-full max-w-2xl relative group">
@@ -71,7 +71,7 @@ export default function Home() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Describe your perfect spot..."
+                  placeholder={t.landing.searchPlaceholder}
                   className="flex-1 bg-transparent border-none text-base md:text-lg focus:outline-none placeholder:text-zinc-400 text-foreground h-full"
                 />
                 <Button type="submit" size="sm" className="rounded-full w-10 h-10 shrink-0 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
@@ -88,7 +88,7 @@ export default function Home() {
       </section>
 
       {/* --- SLIDE 2: THE OUTPUT (Vibe Analysis) --- */}
-      <section className="h-screen w-full snap-start relative flex items-center justify-center px-6 bg-white dark:bg-zinc-950">
+      <section className="h-full w-full snap-start relative flex items-center justify-center px-6 bg-white dark:bg-zinc-950">
         <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
 
           {/* Left: Text */}
@@ -103,9 +103,9 @@ export default function Home() {
               {t.landing.starRatingsAre} <br /><span className="text-red-500 dark:text-red-400 decoration-red-500/50 line-through decoration-4">{t.landing.obsolete}</span>
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-lg text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-md mx-auto md:mx-0">
-              You don't care that 500 people gave it 4 stars. You care about the 3 reviews that mentioned the wifi is spotty and the music is too loud.
+              {t.landing.reviewsDontLie}
               <br /><br />
-              <strong className="text-zinc-900 dark:text-zinc-200 font-semibold">Vibe-Checker reads the reviews so you don't have to.</strong>
+              <strong className="text-zinc-900 dark:text-zinc-200 font-semibold">{t.landing.readingReviews}</strong>
             </motion.p>
           </motion.div>
 
@@ -125,24 +125,24 @@ export default function Home() {
                 </div>
                 <div className="absolute top-4 right-4 bg-white dark:bg-zinc-950 px-3 py-1 rounded-full text-xs font-bold border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-indigo-500" />
-                  <span>8.9/10 Match</span>
+                  <span>8.9/10 {t.landing.demo.mockCard.match}</span>
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Brew & Byte</h3>
-                <p className="text-sm text-zinc-500 mb-4">Downtown • Coffee Shop</p>
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{t.landing.demo.mockCard.name}</h3>
+                <p className="text-sm text-zinc-500 mb-4">{t.landing.demo.mockCard.type}</p>
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Verdict</p>
+                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">{t.landing.demo.mockCard.verdictLabel}</p>
                     <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-snug">
-                      Excellent for deep work. The wifi is enterprise-grade, but seating can be limited after 2pm.
+                      {t.landing.demo.mockCard.verdictText}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Quiet</span>
-                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Fast Wifi</span>
-                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">Outlet Heavy</span>
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">{t.landing.demo.mockCard.tag1}</span>
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">{t.landing.demo.mockCard.tag2}</span>
+                    <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">{t.landing.demo.mockCard.tag3}</span>
                   </div>
                 </div>
               </div>
@@ -152,7 +152,7 @@ export default function Home() {
       </section>
 
       {/* --- SLIDE 3: THE DECISION (Comparison) --- */}
-      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 bg-zinc-50 dark:bg-zinc-950">
+      <section className="h-full w-full snap-start relative flex flex-col justify-center items-center px-6 bg-zinc-50 dark:bg-zinc-950">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -160,10 +160,10 @@ export default function Home() {
           className="text-center mb-12"
         >
           <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-4">
-            Settling the debate.
+            {t.landing.settlingDebate}
           </motion.h2>
           <motion.p variants={fadeInUp} className="text-lg text-zinc-500 dark:text-zinc-400">
-            Stop guessing. Start knowing.
+            {t.landing.stopGuessing}
           </motion.p>
         </motion.div>
 
@@ -181,13 +181,13 @@ export default function Home() {
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
                 <AlertCircle className="w-5 h-5 text-red-500" />
               </div>
-              <span className="text-xs font-mono text-zinc-400">PLACE A</span>
+              <span className="text-xs font-mono text-zinc-400">{t.landing.demo.placeA.label}</span>
             </div>
-            <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-200 mb-2">The Loud Spot</h4>
+            <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-200 mb-2">{t.landing.demo.placeA.name}</h4>
             <ul className="space-y-2 text-sm text-zinc-500">
-              <li className="flex items-center gap-2"><span className="text-red-400">×</span> 85dB Noise Level</li>
-              <li className="flex items-center gap-2"><span className="text-red-400">×</span> Expensive ($8 latte)</li>
-              <li className="flex items-center gap-2"><span className="text-red-400">×</span> Uncomfortable chairs</li>
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> {t.landing.demo.placeA.tag1}</li>
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> {t.landing.demo.placeA.tag2}</li>
+              <li className="flex items-center gap-2"><span className="text-red-400">×</span> {t.landing.demo.placeA.tag3}</li>
             </ul>
           </motion.div>
 
@@ -205,26 +205,26 @@ export default function Home() {
             className="w-80 bg-white dark:bg-zinc-900 border border-green-200 dark:border-green-800 rounded-xl p-8 shadow-2xl shadow-green-900/5 dark:shadow-green-500/5 scale-105 z-10 relative"
           >
             <div className="absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-              WINNER 🏆
+              {t.landing.demo.placeB.winner}
             </div>
             <div className="flex justify-between items-start mb-4">
               <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500" />
               </div>
-              <span className="text-xs font-mono text-zinc-400">PLACE B</span>
+              <span className="text-xs font-mono text-zinc-400">{t.landing.demo.placeB.label}</span>
             </div>
-            <h4 className="font-bold text-xl text-zinc-900 dark:text-zinc-50 mb-2">Cozy Corner</h4>
+            <h4 className="font-bold text-xl text-zinc-900 dark:text-zinc-50 mb-2">{t.landing.demo.placeB.name}</h4>
             <ul className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
-              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Perfect for calls</li>
-              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Great Value</li>
-              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Ergonomic Seating</li>
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> {t.landing.demo.placeB.tag1}</li>
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> {t.landing.demo.placeB.tag2}</li>
+              <li className="flex items-center gap-2"><span className="text-green-500">✓</span> {t.landing.demo.placeB.tag3}</li>
             </ul>
           </motion.div>
         </div>
       </section>
 
       {/* --- SLIDE 4: THE ACTION (Map & CTA) --- */}
-      <section className="h-screen w-full snap-start relative flex flex-col justify-center items-center px-6 overflow-hidden bg-white dark:bg-zinc-950 text-center">
+      <section className="h-full w-full snap-start relative flex flex-col justify-center items-center px-6 overflow-hidden bg-white dark:bg-zinc-950 text-center">
 
         {/* Background Map Grid Pattern (Faint) */}
         <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
@@ -240,9 +240,9 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-8"
+            className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50 mb-8 whitespace-pre-line"
           >
-            See the whole <br /> picture.
+            {t.landing.seeWholePicture}
           </motion.h2>
 
           <motion.div
@@ -254,7 +254,7 @@ export default function Home() {
               onClick={() => router.push('/pro_mode')}
               className="h-14 px-10 rounded-full text-lg font-medium bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 hover:scale-105 transition-all duration-300 shadow-xl"
             >
-              Find your place
+              {t.landing.exploreMap}
             </Button>
           </motion.div>
         </div>

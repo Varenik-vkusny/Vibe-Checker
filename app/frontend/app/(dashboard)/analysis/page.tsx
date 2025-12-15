@@ -21,7 +21,7 @@ import { Loader2, Sparkles, Wifi, Sun, Volume2, Globe, ArrowUpRight, Search, Boo
 import { cn } from '@/lib/utils';
 import { SkeletonAnalysis } from "@/components/SkeletonAnalysis";
 import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
-import { toast } from 'sonner'; // Assuming sonner is installed or will use simple alert/state if not.
+// import { toast } from 'sonner'; // Assuming sonner is installed or will use simple alert/state if not.
 
 // Relaxed Schema to allow Text Search
 const analysisSchema = z.object({
@@ -111,10 +111,10 @@ export default function AnalysisPage() {
   const isIdle = !loading && !result && !searchCandidates;
 
   const scores = result ? [
-    { name: t.analysis.food, score: result.ai_analysis.scores.food, fill: '#e4e4e7' },
-    { name: t.analysis.service, score: result.ai_analysis.scores.service, fill: '#a1a1aa' },
-    { name: t.analysis.atmosphere, score: result.ai_analysis.scores.atmosphere, fill: '#71717a' },
-    { name: t.analysis.value, score: result.ai_analysis.scores.value, fill: '#52525b' },
+    { name: t.analysis.scores.food, score: result.ai_analysis.scores.food, fill: '#e4e4e7' },
+    { name: t.analysis.scores.service, score: result.ai_analysis.scores.service, fill: '#a1a1aa' },
+    { name: t.analysis.scores.atmosphere, score: result.ai_analysis.scores.atmosphere, fill: '#71717a' },
+    { name: t.analysis.scores.value, score: result.ai_analysis.scores.value, fill: '#52525b' },
   ] : [];
 
   return (
@@ -130,10 +130,10 @@ export default function AnalysisPage() {
           {isIdle && (
             <>
               <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-white mb-6">
-                Check the Vibe.
+                {t.analysis.heroTitle}
               </h1>
               <p className="text-zinc-500 dark:text-zinc-400 text-lg md:text-xl mb-10 max-w-2xl leading-relaxed">
-                Paste a Google Maps link (or just search "Coffee") to unlock AI insights, hidden gems, and crowd sentiment.
+                {t.analysis.heroSubtitle}
               </p>
             </>
           )}
@@ -141,7 +141,7 @@ export default function AnalysisPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="w-full relative group">
             <UnifiedSearchInput
               {...register('query')}
-              placeholder="Paste URL or type 'Sushi'..."
+              placeholder={t.analysis.placeholder}
               loading={loading}
               // We use a custom submit button behavior via form, but we can pass null if we want the form `onSubmit` to handle it.
               // However, the component renders a button if `onSearch` is present.
@@ -166,14 +166,14 @@ export default function AnalysisPage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="w-12 h-12 border-4 border-zinc-800 border-t-white rounded-full animate-spin" />
-            <div className="text-zinc-500 font-mono text-xs tracking-widest uppercase animate-pulse">Analyzing Vibe Data...</div>
+            <div className="text-zinc-500 font-mono text-xs tracking-widest uppercase animate-pulse">{t.analysis.analyzingButton}</div>
           </div>
         )}
 
         {/* 2. SEARCH CANDIDATES (Discovery Mode) */}
         {!loading && searchCandidates && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4 text-center md:text-left">Did you mean...</h3>
+            <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4 text-center md:text-left">{t.analysis.didYouMean}</h3>
             {searchCandidates.map((candidate) => (
               <div
                 key={candidate.id}
@@ -248,7 +248,7 @@ export default function AnalysisPage() {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                   </div>
                   <span className="text-sm font-medium text-green-700 dark:text-green-400 tracking-wide">
-                    VIBE SCORE: <span className="font-bold">9.2</span>
+                    {t.compare.categories.vibe.toUpperCase()}: <span className="font-bold">9.2</span>
                   </span>
                 </div>
               </div>
@@ -289,7 +289,7 @@ export default function AnalysisPage() {
                   <div className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
                   </div>
-                  <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">AI Verdict</h3>
+                  <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{t.compare.verdict}</h3>
                 </div>
 
                 <div className="prose prose-invert max-w-none text-lg leading-relaxed text-zinc-600 dark:text-zinc-300 flex-1">
@@ -309,14 +309,14 @@ export default function AnalysisPage() {
             {/* AREA B: Attributes (Sidebar) */}
             <div className="lg:col-span-1 h-full">
               <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-6">Environment</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-6">{t.compare.featureAnalysis || 'Environment'}</h3>
                 <div className="space-y-4 flex-1">
-                  <AttributeRow icon={Volume2} label="Noise Level" value={result.ai_analysis.detailed_attributes.noise_level} />
-                  <AttributeRow icon={Sun} label="Lighting" value="Dim & Cozy" />
-                  <AttributeRow icon={Wifi} label="Wifi Speed" value={result.ai_analysis.detailed_attributes.service_speed === 'Fast' ? 'High Speed' : 'Moderate'} />
+                  <AttributeRow icon={Volume2} label={t.map.noise} value={result.ai_analysis.detailed_attributes.noise_level} />
+                  <AttributeRow icon={Sun} label={t.map.light} value="Dim & Cozy" />
+                  <AttributeRow icon={Wifi} label={t.map.wifi} value={result.ai_analysis.detailed_attributes.service_speed === 'Fast' ? 'High Speed' : 'Moderate'} />
                   <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4" />
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-500">Price Range</span>
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-500">{t.compare.categories.price}</span>
                     <span className="text-zinc-900 dark:text-white font-bold">{result.ai_analysis.price_level}</span>
                   </div>
                 </div>
@@ -328,11 +328,11 @@ export default function AnalysisPage() {
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8">
                 <div className="flex justify-between items-end mb-8">
                   <div>
-                    <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Vibe Metrics</h3>
-                    <p className="text-zinc-500 text-sm">Quantitative analysis of 120+ data points.</p>
+                    <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{t.map.ratingBreakdown}</h3>
+                    <p className="text-zinc-500 text-sm">{t.compare.basedOn}</p>
                   </div>
                   <Button variant="outline" size="sm" className="hidden md:flex gap-2 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                    <ArrowUpRight className="w-4 h-4" /> Export Report
+                    <ArrowUpRight className="w-4 h-4" /> {t.map.fullReport}
                   </Button>
                 </div>
 

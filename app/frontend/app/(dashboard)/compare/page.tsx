@@ -85,33 +85,33 @@ export default function ComparePage() {
         >
           <div className="flex flex-col items-center text-center md:items-start md:text-left">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-white mb-6">
-              {t.compare.title}
+              {t.compare.heroTitle}
             </h1>
             <p className="text-zinc-500 dark:text-zinc-400 text-lg md:text-xl mb-4 max-w-2xl leading-relaxed">
-              {t.compare.subtitle}
+              {t.compare.heroSubtitle}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col md:flex-row gap-6 items-center w-full justify-center">
             <div className="space-y-2 w-full relative group">
-              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">Candidate A</Label>
+              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">{t.compare.inputPlaceholderA}</Label>
               <UnifiedSearchInput
                 {...register('url_a')}
-                placeholder="Paste URL..."
+                placeholder={t.analysis.placeholder}
                 className="pr-6"
               />
               {errors.url_a && <span className="absolute -bottom-6 left-2 text-red-500 text-xs font-medium">{errors.url_a.message}</span>}
             </div>
 
             <div className="flex shrink-0 justify-center pt-6 md:pt-6 relative z-10">
-              <div className="w-12 h-12 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-600 shadow-md flex items-center justify-center font-black text-zinc-800 dark:text-zinc-100 text-sm italic">VS</div>
+              <div className="w-12 h-12 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-600 shadow-md flex items-center justify-center font-black text-zinc-800 dark:text-zinc-100 text-sm italic">{t.compare.vs}</div>
             </div>
 
             <div className="space-y-2 w-full relative group">
-              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">Candidate B</Label>
+              <Label className="text-xs font-bold uppercase text-zinc-500 ml-2">{t.compare.inputPlaceholderB}</Label>
               <UnifiedSearchInput
                 {...register('url_b')}
-                placeholder="Paste URL..."
+                placeholder={t.analysis.placeholder}
                 rightElement={
                   <Button
                     type="submit"
@@ -152,13 +152,13 @@ export default function ComparePage() {
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4 text-green-600 dark:text-green-500 font-mono text-sm tracking-wider uppercase">
                 <Trophy className="w-4 h-4" />
-                Review Analysis Complete
+                {t.compare.verdict}
               </div>
               <h2 className="text-3xl md:text-5xl font-bold mb-6 text-balance leading-tight text-zinc-900 dark:text-white">
                 {result.comparison.verdict_text || `Better for ${result.comparison.verdict === result.place_a.name ? 'Overall Vibe' : 'Specific Needs'}`}
               </h2>
               <div className="inline-block px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-sm font-medium">
-                Winner: <span className="font-bold text-green-600 dark:text-green-500 ml-1">{result.comparison.verdict}</span>
+                {t.compare.winner}: <span className="font-bold text-green-600 dark:text-green-500 ml-1">{result.comparison.verdict}</span>
               </div>
             </div>
             {/* Background noise/texture */}
@@ -197,7 +197,7 @@ export default function ComparePage() {
                     </div>
 
                     {/* Label */}
-                    <div className="w-20 md:w-24 text-center text-[10px] md:text-xs font-bold uppercase text-zinc-500 truncate">{t.analysis[cat as keyof typeof t.analysis]}</div>
+                    <div className="w-20 md:w-24 text-center text-[10px] md:text-xs font-bold uppercase text-zinc-500 truncate">{t.analysis.scores[cat as keyof typeof t.analysis.scores]}</div>
 
                     {/* Place B Side */}
                     <div className="flex items-center justify-start gap-2 md:gap-3">
@@ -218,7 +218,7 @@ export default function ComparePage() {
                 <div className="text-right">
                   {renderPrice(result.place_a.price_level, result.place_a.price_level.length < result.place_b.price_level.length)}
                 </div>
-                <div className="w-24 text-center text-xs font-bold uppercase text-zinc-500">{t.analysis.price}</div>
+                <div className="w-24 text-center text-xs font-bold uppercase text-zinc-500">{t.compare.categories.price}</div>
                 <div className="text-left">
                   {renderPrice(result.place_b.price_level, result.place_b.price_level.length < result.place_a.price_level.length)}
                 </div>
@@ -229,7 +229,7 @@ export default function ComparePage() {
           {/* --- 4. UNIQUE SELLING POINTS --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-12">
             <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-              <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">Only at {result.place_a.name}</div>
+              <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{t.map.match} {result.place_a.name}</div>
               <ul className="space-y-3">
                 {result.comparison.place_a_unique_pros.map((pro: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-zinc-700 dark:text-zinc-300">
@@ -243,7 +243,7 @@ export default function ComparePage() {
             </div>
 
             <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-              <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">Only at {result.place_b.name}</div>
+              <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{t.map.match} {result.place_b.name}</div>
               <ul className="space-y-3">
                 {result.comparison.place_b_unique_pros.map((pro: string, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-zinc-700 dark:text-zinc-300">
