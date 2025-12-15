@@ -53,9 +53,11 @@ export const ResultsSidebar = ({
     "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
   ];
 
-  const displayPhotos = selectedLocation?.imageUrl
-    ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
-    : MOCK_PHOTOS;
+  const displayPhotos = (selectedLocation?.photos && selectedLocation.photos.length > 0)
+    ? selectedLocation.photos
+    : (selectedLocation?.imageUrl
+      ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
+      : MOCK_PHOTOS);
 
   if (!isVisible) return null;
 
@@ -348,7 +350,7 @@ export const ResultsSidebar = ({
           </div>
           <ScrollArea className="h-full max-h-[calc(90vh-65px)] w-full p-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pb-4">
-              {displayPhotos.map((url, i) => (
+              {displayPhotos.map((url: string, i: number) => (
                 <div key={i} className="aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                   <img src={url} alt={`Location photo ${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 </div>

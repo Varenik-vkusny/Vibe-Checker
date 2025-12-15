@@ -59,9 +59,11 @@ export const MobileBottomSheet = ({
     "https://images.unsplash.com/photo-1514362545857-3bc16549766b?q=80&w=400"
   ];
 
-  const displayPhotos = selectedLocation?.imageUrl
-    ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
-    : MOCK_PHOTOS;
+  const displayPhotos = (selectedLocation?.photos && selectedLocation.photos.length > 0)
+    ? selectedLocation.photos
+    : (selectedLocation?.imageUrl
+      ? [selectedLocation.imageUrl, ...MOCK_PHOTOS.slice(0, 3)]
+      : MOCK_PHOTOS);
 
   const router = useRouter();
   const [isCompareOpen, setIsCompareOpen] = useState(false);
@@ -163,7 +165,7 @@ export const MobileBottomSheet = ({
 
             {/* Horizontal Photos */}
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
-              {displayPhotos.map((url, i) => (
+              {displayPhotos.map((url: string, i: number) => (
                 <div key={i} className="shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-zinc-100 snap-center">
                   <img src={url} alt="Location" className="w-full h-full object-cover" />
                 </div>
@@ -235,9 +237,6 @@ export const MobileBottomSheet = ({
             {/* Extra Actions */}
             <div className="grid grid-cols-2 gap-3 pt-4">
               <Link href={`/analysis?url=${encodeURIComponent(constructUrl(selectedLocation))}`} className="w-full">
-                <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
-                  {t.map.fullReport} <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
-                </Button>
               </Link>
               <Button
                 variant="outline"

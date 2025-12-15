@@ -1,9 +1,9 @@
 export interface LocationData {
-  id: string; 
+  id: string;
   place_id?: number;
   name: string;
   address: string;
-  coordinates: [number, number]; 
+  coordinates: [number, number];
   rating: number;
   reviewCount: number;
   vibeScore?: number;
@@ -12,7 +12,7 @@ export interface LocationData {
   // New fields for detailed UI
   priceLevel?: string; // e.g. "$$"
   openStatus?: 'Open Now' | 'Closed';
-  reason?: string; 
+  reason?: string;
   distance?: string; // e.g. "1.2km away"
   tags?: string[]; // e.g. ["Fast", "Cheap", "Student Friendly"]
   subRatings?: {
@@ -37,4 +37,5 @@ export interface LocationData {
     isDisliked: boolean;
     isVisited: boolean;
   };
+  photos?: string[]; // Array of photo URLs
 }
