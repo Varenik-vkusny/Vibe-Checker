@@ -77,7 +77,7 @@ export default function ComparePage() {
   );
 
   return (
-    <div className={`container mx-auto p-6 max-w-5xl h-[calc(100vh-4rem)] overflow-hidden flex flex-col pb-32 ${!result ? 'justify-center' : ''}`}>
+    <div className={`container mx-auto p-6 max-w-5xl h-[calc(100vh-4rem)] overflow-y-auto flex flex-col pb-32 ${!result ? 'justify-center' : ''}`}>
 
       {/* --- 1. COMPACT HEADER / INPUTS --- */}
       {showInputs ? (
