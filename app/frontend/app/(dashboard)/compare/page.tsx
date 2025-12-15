@@ -201,8 +201,8 @@ export default function ComparePage() {
 
             <div className="space-y-8">
               {['food', 'service', 'atmosphere', 'value'].map((cat) => {
-                const scoreA = result.comparison.scores.place_a[cat];
-                const scoreB = result.comparison.scores.place_b[cat];
+                const scoreA = result.comparison?.scores?.place_a?.[cat] || 0;
+                const scoreB = result.comparison?.scores?.place_b?.[cat] || 0;
                 const total = scoreA + scoreB;
                 const percentA = (scoreA / total) * 100;
                 const percentB = (scoreB / total) * 100;
