@@ -29,5 +29,9 @@ async def get_inspiration(
         )
         return results
     except Exception as e:
-        # In a real app, we might want to log this and return a generic error
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in inspire_me: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

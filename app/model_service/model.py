@@ -12,6 +12,7 @@ from app.modules.analysis_result.schemas import (
     DetailedAttributes,
     ComparisonData,
     WinnerCategory,
+    ComparisonScores,
 )
 from app.modules.place.schemas import PlaceInfoDTO
 
@@ -221,6 +222,7 @@ async def compare_places_with_gemini(
             place_a_unique_pros=res["place_a_unique_pros"],
             place_b_unique_pros=res["place_b_unique_pros"],
             verdict=res["verdict"],
+            scores=ComparisonScores(place_a=analysis_a.scores, place_b=analysis_b.scores),
         )
     except Exception as e:
         logger.error(f"Ошибка сравнения: {e}")
@@ -232,4 +234,8 @@ async def compare_places_with_gemini(
             place_a_unique_pros=[],
             place_b_unique_pros=[],
             verdict="Ошибка",
+            scores=ComparisonScores(
+                place_a=Scores(food=0, service=0, atmosphere=0, value=0),
+                place_b=Scores(food=0, service=0, atmosphere=0, value=0),
+            ),
         )

@@ -62,12 +62,18 @@ class WinnerCategory(BaseModel):
     value: str
 
 
+class ComparisonScores(BaseModel):
+    place_a: Scores
+    place_b: Scores
+
+
 class ComparisonData(BaseModel):
     winner_category: WinnerCategory
     key_differences: List[str]
     place_a_unique_pros: List[str]
     place_b_unique_pros: List[str]
     verdict: str
+    scores: ComparisonScores
 
 
 class CompareResponse(BaseModel):
