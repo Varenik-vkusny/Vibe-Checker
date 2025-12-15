@@ -241,11 +241,11 @@ export default function ComparePage() {
               {/* Price Comparison */}
               <div className="grid grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="text-right">
-                  {renderPrice(result.place_a.price_level, result.place_a.price_level.length < result.place_b.price_level.length)}
+                  {renderPrice(result.place_a.price_level || '$$', (result.place_a.price_level || '$$').length < (result.place_b.price_level || '$$').length)}
                 </div>
                 <div className="w-24 text-center text-xs font-bold uppercase text-zinc-500">{t.compare.categories.price}</div>
                 <div className="text-left">
-                  {renderPrice(result.place_b.price_level, result.place_b.price_level.length < result.place_a.price_level.length)}
+                  {renderPrice(result.place_b.price_level || '$$', (result.place_b.price_level || '$$').length < (result.place_a.price_level || '$$').length)}
                 </div>
               </div>
             </div>
