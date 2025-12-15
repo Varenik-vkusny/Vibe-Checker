@@ -282,8 +282,6 @@ export const ResultsSidebar = ({
                         <span>{distanceStr}</span>
                         <span>•</span>
                         <span>{loc.priceLevel || '$$'}</span>
-                        <span>•</span>
-                        <span className="truncate max-w-[100px]">{loc.category}</span>
                       </div>
                       <div className="mt-2 w-full max-w-[200px]" onClick={(e) => e.stopPropagation()}>
                         <InteractionToolbar
