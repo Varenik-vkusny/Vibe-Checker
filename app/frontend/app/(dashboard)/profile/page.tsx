@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -15,14 +15,18 @@ import {
   CreditCard,
   Sun,
   Moon,
-  Laptop
+  Laptop,
+  Loader2,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { VibeSlider } from './_components/VibeSlider';
 import { NavigatorCard } from './_components/NavigatorCard';
-import { cn } from '@/lib/utils'; // Assuming cn exists
+import { cn } from '@/lib/utils';
+import { preferencesService } from '@/services/preferences';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const getTimeGreeting = (t: any) => {
   const hour = new Date().getHours();
@@ -41,6 +45,9 @@ export default function ProfilePage() {
 
   // --- STATE ---
   const [greeting, setGreeting] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Vibe DNA
   const [vibeDNA, setVibeDNA] = useState({
@@ -57,23 +64,70 @@ export default function ProfilePage() {
   // System
   const [navigator, setNavigator] = useState('google');
 
-  // --- EFFECT: Hydration & LocalStorage ---
+  // Debounced values for auto-save
+  const debouncedVibeDNA = useDebounce(vibeDNA, 1000);
+  const debouncedPrompts = useDebounce(negativePrompts, 1000);
+
+  // --- EFFECT: Load preferences from API ---
   useEffect(() => {
     setGreeting(getTimeGreeting(t));
 
-    // Load from local storage (Mock)
+    const loadPreferences = async () => {
+      try {
+        const prefs = await preferencesService.getPreferences();
+        setVibeDNA({
+          noise: prefs.acoustics,
+          light: prefs.lighting,
+          social: prefs.crowdedness,
+          budget: prefs.budget
+        });
+        setNegativePrompts(prefs.restrictions);
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPreferences();
+
+    // Load navigator from localStorage (not in backend)
     const savedNav = localStorage.getItem('navigator_preference');
     if (savedNav) setNavigator(savedNav);
-
-    // Mock Vibe DNA loading
-    // In a real app, this would fetch from DB
   }, [t]);
 
+  // Save navigator to localStorage
   useEffect(() => {
     if (navigator) {
       localStorage.setItem('navigator_preference', navigator);
     }
   }, [navigator]);
+
+  // Auto-save preferences to API (debounced)
+  useEffect(() => {
+    if (!isLoading) {
+      const savePreferences = async () => {
+        setIsSaving(true);
+        setSaveSuccess(false);
+        try {
+          await preferencesService.updatePreferences({
+            acoustics: vibeDNA.noise,
+            lighting: vibeDNA.light,
+            crowdedness: vibeDNA.social,
+            budget: vibeDNA.budget,
+            restrictions: negativePrompts
+          });
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (error) {
+          console.error('Failed to save preferences:', error);
+        } finally {
+          setIsSaving(false);
+        }
+      };
+      savePreferences();
+    }
+  }, [debouncedVibeDNA, debouncedPrompts, isLoading, vibeDNA.noise, vibeDNA.light, vibeDNA.social, vibeDNA.budget, negativePrompts]);
 
   // --- HANDLERS ---
   const handleVibeChange = (key: keyof typeof vibeDNA, value: number) => {
@@ -105,9 +159,31 @@ export default function ProfilePage() {
 
         {/* --- 1. HEADER (Greeting Console) --- */}
         <header className="border-b border-zinc-200 dark:border-zinc-800 pb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">
-            {greeting}, {user?.first_name || 'User'}
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">
+              {greeting}, {user?.first_name || 'User'}
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-zinc-500">
+              {isLoading && (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading...</span>
+                </>
+              )}
+              {!isLoading && isSaving && (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              )}
+              {!isLoading && !isSaving && saveSuccess && (
+                <>
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span className="text-green-500">Saved</span>
+                </>
+              )}
+            </div>
+          </div>
         </header>
 
         {/* --- MAIN GRID --- */}

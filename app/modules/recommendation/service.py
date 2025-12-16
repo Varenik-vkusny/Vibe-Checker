@@ -151,11 +151,21 @@ async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
     generated_query = await generate_discovery_query(context, current_time, lat, lon)
     logger.info(f"Generated Inspire Query: {generated_query}")
 
+    # Load user preferences
+    from ..user.repo import UserRepo
+    user_repo = UserRepo(db)
+    user = await user_repo.find_one(id=user_id)
+
     request_dto = UserRequest(
         query=generated_query,
         lat=lat,
         lon=lon,
         radius=2000,
+        acoustics=user.preferences_acoustics if user else 50,
+        lighting=user.preferences_lighting if user else 50,
+        crowdedness=user.preferences_crowdedness if user else 50,
+        budget=user.preferences_budget if user else 50,
+        restrictions=user.preferences_restrictions if user else []
     )
 
     try:

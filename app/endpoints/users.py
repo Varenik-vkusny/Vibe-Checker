@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..modules.user.models import User
 from ..dependencies import get_db, get_current_user
-from ..modules.user.schemas import UserIn, UserOut, Token
+from ..modules.user.schemas import UserIn, UserOut, Token, UserPreferences, UserPreferencesUpdate
 from ..modules.user.service import UserService
 from ..modules.user.repo import UserRepo
 
@@ -27,7 +27,7 @@ async def register_user(user: UserIn, service: UserService = Depends(get_user_se
 @router.get("/me", response_model=UserOut, status_code=status.HTTP_200_OK)
 async def get_user(me: User = Depends(get_current_user)):
 
-    return me
+    return UserOut.from_user(me)
 
 
 @router.post("/token", response_model=Token, status_code=status.HTTP_200_OK)
@@ -51,3 +51,22 @@ async def delete_user(
     await service.delete_user(email=user.email)
 
     return
+
+
+@router.get("/preferences", response_model=UserPreferences, status_code=status.HTTP_200_OK)
+async def get_preferences(
+    me: User = Depends(get_current_user),
+    service: UserService = Depends(get_user_service)
+):
+    """Get current user's search preferences"""
+    return await service.get_user_preferences(me.id)
+
+
+@router.put("/preferences", response_model=UserPreferences, status_code=status.HTTP_200_OK)
+async def update_preferences(
+    prefs: UserPreferencesUpdate,
+    me: User = Depends(get_current_user),
+    service: UserService = Depends(get_user_service)
+):
+    """Update current user's search preferences"""
+    return await service.update_user_preferences(me.id, prefs)

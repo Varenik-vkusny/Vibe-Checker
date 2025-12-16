@@ -59,11 +59,6 @@ async def lifespan(app: FastAPI):
 
     logging.info("Запускаю приложение...")
 
-    from app.database import async_engine, Base
-
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     yield
 
     logging.info("Останавливаю приложение...")
@@ -104,5 +99,6 @@ app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])
 @app.get("/", status_code=status.HTTP_200_OK)
 async def hello():
     return {"message": "Hello Timurka!"}
+
 
 # Force reload

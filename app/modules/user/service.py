@@ -68,3 +68,46 @@ class UserService:
         await self.user_repo.delete(email=email)
 
         await self.user_repo.db.commit()
+
+    async def get_user_preferences(self, user_id: int):
+        """Get user preferences"""
+        user_db = await self.user_repo.find_one(id=user_id)
+
+        if not user_db:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден!"
+            )
+
+        return schemas.UserPreferences(
+            acoustics=user_db.preferences_acoustics,
+            lighting=user_db.preferences_lighting,
+            crowdedness=user_db.preferences_crowdedness,
+            budget=user_db.preferences_budget,
+            restrictions=user_db.preferences_restrictions or []
+        )
+
+    async def update_user_preferences(self, user_id: int, prefs: schemas.UserPreferencesUpdate):
+        """Update user preferences"""
+        user_db = await self.user_repo.find_one(id=user_id)
+
+        if not user_db:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден!"
+            )
+
+        # Update only provided fields
+        if prefs.acoustics is not None:
+            user_db.preferences_acoustics = prefs.acoustics
+        if prefs.lighting is not None:
+            user_db.preferences_lighting = prefs.lighting
+        if prefs.crowdedness is not None:
+            user_db.preferences_crowdedness = prefs.crowdedness
+        if prefs.budget is not None:
+            user_db.preferences_budget = prefs.budget
+        if prefs.restrictions is not None:
+            user_db.preferences_restrictions = prefs.restrictions
+
+        await self.user_repo.db.commit()
+        await self.user_repo.db.refresh(user_db)
+
+        return await self.get_user_preferences(user_id)

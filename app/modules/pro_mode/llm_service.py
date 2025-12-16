@@ -77,11 +77,43 @@ async def generate_search_params(user_text: str) -> SearchParams:
         )
 
 
+def fuzzy_match(restriction: str, text: str, threshold=0.75) -> bool:
+    """Check if restriction approximately matches any word in text
+    
+    Args:
+        restriction: The keyword to search for (e.g. 'club')
+        text: The text to search in (e.g. place name + summary)
+        threshold: Similarity threshold (0.0-1.0), default 0.75 for typo tolerance
+        
+    Returns:
+        True if restriction matches any word in text
+    """
+    from difflib import SequenceMatcher
+    
+    restriction_lower = restriction.lower()
+    words = text.lower().split()
+    
+    for word in words:
+        # Check exact substring match first (fast path)
+        if restriction_lower in word or word in restriction_lower:
+            logger.info(f"Fuzzy match: '{restriction}' found in '{word}' (exact substring)")
+            return True
+        
+        # Check similarity ratio for typo handling
+        ratio = SequenceMatcher(None, restriction_lower, word).ratio()
+        if ratio >= threshold:
+            logger.info(f"Fuzzy match: '{restriction}' ~= '{word}' (similarity: {ratio:.2f})")
+            return True
+    
+    return False
+
+
 def smart_rerank(user_query: str, candidates: list[dict], top_k=5, acoustics=50, lighting=50, crowdedness=50, budget=50, restrictions=None):
     if restrictions is None:
         restrictions = []
     
-    print(f"DEBUG: smart_rerank called with restrictions: {restrictions}")
+    logger.info(f"smart_rerank: acoustics={acoustics}, lighting={lighting}, crowdedness={crowdedness}, budget={budget}")
+    logger.info(f"smart_rerank: restrictions={restrictions}")
 
     if not candidates:
         return []
@@ -105,20 +137,21 @@ def smart_rerank(user_query: str, candidates: list[dict], top_k=5, acoustics=50,
         user_query = f"{user_query}. Preferences: {pref_str}"
         
     if restrictions:
-        user_query = f"{user_query}. EXCLUDE: {', '.join(restrictions)}"
+        user_query =f"{user_query}. EXCLUDE: {', '.join(restrictions)}"
 
     pairs = []
     doc_indices = []
 
     for i, c in enumerate(candidates):
-        # Restriction Check (Pre-filter)
+        # Restriction Check (Pre-filter with fuzzy matching)
         name = c.get("name", "")
         summary = c.get("reviews_summary") or ""
-        text_to_check = f"{name} {summary}".lower()
+        text_to_check = f"{name} {summary}"
         
         blocked = False
         for r in restrictions:
-            if r.lower() in text_to_check:
+            if fuzzy_match(r, text_to_check, threshold=0.75):
+                logger.info(f"Blocked '{name}' due to fuzzy match with restriction '{r}'")
                 blocked = True
                 break
         

@@ -11,6 +11,7 @@ import { Search } from 'lucide-react';
 import api from '@/lib/api';
 import { geocodeAddress } from '@/lib/geocoding';
 import { SearchSettingsPanel, SearchSettings } from '../search/SearchSettingsPanel';
+import { preferencesService } from '@/services/preferences';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -39,6 +40,25 @@ export default function MapClient() {
     budget: 50,
     restrictions: []
   });
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const prefs = await preferencesService.getPreferences();
+        setSettings({
+          acoustics: prefs.acoustics,
+          lighting: prefs.lighting,
+          crowdedness: prefs.crowdedness,
+          budget: prefs.budget,
+          restrictions: prefs.restrictions
+        });
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      }
+    };
+    loadPreferences();
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

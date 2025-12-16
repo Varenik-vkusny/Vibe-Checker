@@ -76,7 +76,7 @@ async def pro_place_analyze(
     db: AsyncSession = Depends(get_db),
 ):
 
-    result = await get_places_by_vibe(user_query=user, db=db)
+    result = await get_places_by_vibe(user_query=user, db=db, user_id=user_auth.id)
 
     await log_user_action(db, user_auth.id, ActionType.SEARCH, {"query": user.query})
 
