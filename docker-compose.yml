@@ -83,7 +83,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./app/frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
