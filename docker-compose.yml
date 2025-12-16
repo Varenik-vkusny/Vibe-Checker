@@ -81,6 +81,19 @@ services:
       - redis
       - db
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
   qdrant_data:
