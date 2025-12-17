@@ -47,6 +47,16 @@ class User(Base):
     preferences_budget = Column(Integer, default=50, nullable=False)
     preferences_restrictions = Column(JSON, default=list, nullable=False)
 
+    @property
+    def preferences(self):
+        return {
+            "acoustics": self.preferences_acoustics,
+            "lighting": self.preferences_lighting,
+            "crowdedness": self.preferences_crowdedness,
+            "budget": self.preferences_budget,
+            "restrictions": self.preferences_restrictions or []
+        }
+
     favorites = relationship("Favorite", back_populates="user")
     logs = relationship("UserLog", back_populates="user")
     interactions = relationship("UserInteraction", back_populates="user")
