@@ -91,7 +91,6 @@ export default function UsersPage() {
                                 <TableCell className="font-medium">
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-8 w-8">
-                                            {/* Placeholder Avatar logic */}
                                             <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} />
                                             <AvatarFallback>{user.first_name[0]}</AvatarFallback>
                                         </Avatar>

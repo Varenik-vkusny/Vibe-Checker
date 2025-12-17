@@ -94,32 +94,29 @@ async def search_candidates(
     Prioritizes bookmarks (Library), then falls back to lightweight Google Search.
     """
     candidates = []
-    
-    # 1. Search Favorites
+
     fav_service = FavoritesService(db)
     library_matches = await fav_service.search_favorites(user_auth.id, user.query)
     candidates.extend(library_matches)
-    
-    # 2. External Search
+
     needed = 5 - len(candidates)
     if needed > 0:
         google_matches = await find_places_nearby(
-            query=user.query,
-            lat=user.lat,
-            lon=user.lon,
-            limit=needed
+            query=user.query, lat=user.lat, lon=user.lon, limit=needed
         )
-        
+
         for gm in google_matches:
-            candidates.append({
-                "id": None, 
-                "google_place_id": gm.place_id,
-                "name": gm.name,
-                "address": gm.address,
-                "image": gm.photos[0] if gm.photos else None,
-                "rating": gm.rating,
-                "source": "google",
-                "status": "new"
-            })
-            
+            candidates.append(
+                {
+                    "id": None,
+                    "google_place_id": gm.place_id,
+                    "name": gm.name,
+                    "address": gm.address,
+                    "image": gm.photos[0] if gm.photos else None,
+                    "rating": gm.rating,
+                    "source": "google",
+                    "status": "new",
+                }
+            )
+
     return {"candidates": candidates}

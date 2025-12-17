@@ -25,7 +25,6 @@ export default async function MapPage({ searchParams }: PageProps) {
   const userLon = typeof resolvedParams.lon === 'string' ? parseFloat(resolvedParams.lon) : undefined;
 
   return (
-    // fixed inset-0 и overflow-hidden убивают любой скролл
     <main className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-background overscroll-none touch-none pt-16">
       <MapClient
         mode={mode}

@@ -39,10 +39,9 @@ class UserOut(BaseModel):
     preferences: UserPreferences
 
     model_config = ConfigDict(from_attributes=True)
-    
+
     @classmethod
     def from_user(cls, user):
-        """Create UserOut from User model instance"""
         return cls(
             id=user.id,
             first_name=user.first_name,
@@ -55,8 +54,8 @@ class UserOut(BaseModel):
                 lighting=user.preferences_lighting,
                 crowdedness=user.preferences_crowdedness,
                 budget=user.preferences_budget,
-                restrictions=user.preferences_restrictions or []
-            )
+                restrictions=user.preferences_restrictions or [],
+            ),
         )
 
 

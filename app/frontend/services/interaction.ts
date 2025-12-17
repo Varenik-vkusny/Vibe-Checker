@@ -31,6 +31,5 @@ export const searchProMode = async (query: string, lat: number, lon: number, rad
     radius
   });
 
-  // Бэкенд возвращает { recommendations: [...] }
   return response.data.recommendations || [];
 };

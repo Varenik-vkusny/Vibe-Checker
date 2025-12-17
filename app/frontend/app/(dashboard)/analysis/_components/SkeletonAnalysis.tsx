@@ -6,7 +6,6 @@ export const SkeletonAnalysis = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse opacity-50 pointer-events-none relative">
 
-            {/* Overlay Hint - Positioned Absolute Over Skeleton */}
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-20">
                 <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 shadow-xl flex items-center gap-3 animate-bounce">
                     <ArrowUp className="w-5 h-5 text-indigo-500" />
@@ -14,7 +13,6 @@ export const SkeletonAnalysis = () => {
                 </div>
             </div>
 
-            {/* HEADER SKELETON */}
             <div className="lg:col-span-3 flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-8">
                 <div className="space-y-4">
                     <div className="h-10 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-lg"></div>
@@ -23,7 +21,6 @@ export const SkeletonAnalysis = () => {
                 <div className="h-16 w-16 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
             </div>
 
-            {/* VERDICT SKELETON */}
             <div className="lg:col-span-2 space-y-6">
                 <div className="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 h-[300px]">
                     <div className="flex items-center gap-3 mb-6">
@@ -39,7 +36,6 @@ export const SkeletonAnalysis = () => {
                 </div>
             </div>
 
-            {/* ATTRIBUTES SKELETON */}
             <div className="lg:col-span-1 space-y-6">
                 <div className="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 h-[300px]">
                     <div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded mb-6"></div>
@@ -57,7 +53,6 @@ export const SkeletonAnalysis = () => {
                 </div>
             </div>
 
-            {/* METRICS SKELETON */}
             <div className="lg:col-span-3">
                 <div className="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 h-[300px]">
                     <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded mb-8"></div>

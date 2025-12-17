@@ -16,7 +16,6 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
   const markerRef = useRef<any>(null);
 
   useEffect(() => {
-    // 1. Проверки на существование карты и координат
     if (!map || !mapglAPI) return;
 
     if (!coordinates || coordinates.length !== 2 ||
@@ -25,14 +24,11 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
       return;
     }
 
-    // 2. Logic for minimized industrial marker
     const active = !!isSelected;
-    const color = active ? '#7c3aed' : '#52525b'; // Violet (Primary) vs Zinc-600
+    const color = active ? '#7c3aed' : '#52525b'; 
     const scale = active ? 1.5 : 1;
     const zIndex = active ? 9999 : 10;
 
-    // Simple Circular Dot with White Stroke (Industrial Look)
-    // Viewbox 24x24, Circle centered at 12,12
     const svgIcon = `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
          <circle cx="12" cy="12" r="8" fill="${color}" stroke="white" stroke-width="2"/>
@@ -42,7 +38,6 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
 
     const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgIcon)));
 
-    // 3. Destroy old marker
     if (markerRef.current) markerRef.current.destroy();
 
     try {
@@ -77,4 +72,3 @@ export const MapMarker = ({ coordinates, label, onClick, category, isSelected }:
 
   return null;
 };
-// Removed getIconForCategory as it is no longer used

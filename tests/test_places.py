@@ -4,13 +4,11 @@ from sqlalchemy import select
 from httpx import AsyncClient
 from unittest.mock import AsyncMock
 
-# Импортируем модели БД
 from app.modules.place.models import Place
 from app.modules.analysis_result.models import AnalysisResult
 from app.modules.tag.models import Tag
 from app.modules.place_tag.models import PlaceTag
 
-# Импортируем Pydantic схемы
 from app.modules.place.schemas import PlaceInfoDTO, Location, PlaceInfo, ReviewDTO
 from app.modules.analysis_result.schemas import (
     AIAnalysis,
@@ -20,11 +18,9 @@ from app.modules.analysis_result.schemas import (
     ComparisonData,
     WinnerCategory,
     AIResponseOut,
+    ComparisonScores,
 )
 
-# --- MOCK DATA ---
-
-# ИСПРАВЛЕНИЕ 1: reviews должны быть объектами ReviewDTO, а не строками
 MOCK_PLACE_DTO = PlaceInfoDTO(
     place_id="google_place_id_123",
     name="Mock Coffee Shop",
@@ -67,6 +63,10 @@ MOCK_COMPARISON = ComparisonData(
     place_a_unique_pros=["Pro A"],
     place_b_unique_pros=["Pro B"],
     verdict="A is better",
+    scores=ComparisonScores(
+        place_a=Scores(food=32, service=54, atmosphere=65, value=98),
+        place_b=Scores(food=52, service=52, atmosphere=67, value=69),
+    ),
 )
 
 
@@ -78,7 +78,7 @@ async def test_analyze_place_new_entry(
 ):
     """Тест создания нового анализа (вызов парсера)."""
 
-        mocker.patch(
+    mocker.patch(
         "app.services.service_analyzator.get_ai_analysis",
         return_value=(MOCK_PLACE_DTO, MOCK_AI_ANALYSIS),
         new_callable=AsyncMock,
@@ -92,13 +92,11 @@ async def test_analyze_place_new_entry(
     assert data["place_info"]["name"] == "Mock Coffee Shop"
     assert data["ai_analysis"]["vibe_score"] == 92
 
-    # Проверка БД: Place
     place = (
         await db_session.execute(select(Place).where(Place.name == "Mock Coffee Shop"))
     ).scalar_one_or_none()
     assert place is not None
 
-    # Проверка БД: Tags
     stmt = (
         select(Tag)
         .join(PlaceTag, PlaceTag.tag_id == Tag.id)
@@ -115,9 +113,7 @@ async def test_analyze_place_new_entry(
 async def test_analyze_place_existing_fresh(
     authenticated_client: AsyncClient, db_session: AsyncSession, mocker
 ):
-    """Тест: данные берутся из БД, парсер НЕ вызывается."""
 
-    # 1. Создаем Place
     existing_place = Place(
         source_url="https://maps.google.com/?q=existing",
         name="Old Coffee",
@@ -127,28 +123,23 @@ async def test_analyze_place_existing_fresh(
     await db_session.commit()
     await db_session.refresh(existing_place)
 
-    # 2. Создаем AnalysisResult
-    # ИСПРАВЛЕНИЕ 2: Добавлены price_level и best_for,
-    # так как схема AIAnalysis требует их (они не Optional)
     existing_analysis = AnalysisResult(
         place_id=existing_place.id,
         summary={"verdict": "Old", "pros": [], "cons": []},
         scores={"food": 5, "service": 5, "atmosphere": 5, "value": 5},
         vibe_score=50,
         detailed_attributes={},
-        price_level="$$",  # Важно!
-        best_for=["chill"],  # Важно!
+        price_level="$$",
+        best_for=["chill"],
     )
     db_session.add(existing_analysis)
     await db_session.commit()
 
-    # 3. Мок парсера (чтобы убедиться, что он НЕ вызывается)
     mock_parser = mocker.patch(
         "app.services.service_analyzator.get_ai_analysis",
         side_effect=Exception("Parser called unexpectedly!"),
     )
 
-    # 4. Запрос
     payload = {"url": "https://maps.google.com/?q=existing", "limit": 5}
     response = await authenticated_client.post("/place/analyze", json=payload)
 
@@ -160,13 +151,12 @@ async def test_analyze_place_existing_fresh(
 
 @pytest.mark.anyio
 async def test_compare_places(authenticated_client: AsyncClient, mocker):
-    """Тест сравнения. Мокаем сервис анализа и сервис Gemini сравнения."""
 
     mock_analysis_response = AIResponseOut(
         place_info=MOCK_PLACE_INFO_SCHEMA, ai_analysis=MOCK_AI_ANALYSIS
     )
 
-        mocker.patch(
+    mocker.patch(
         "app.services.service_comparator.get_or_create_place_analysis",
         return_value=mock_analysis_response,
         new_callable=AsyncMock,
@@ -194,7 +184,6 @@ async def test_compare_places(authenticated_client: AsyncClient, mocker):
 
 @pytest.mark.anyio
 async def test_pro_analyze_vector_search(authenticated_client: AsyncClient, mocker):
-    """Тест Pro Mode (endpoint вызывает векторный сервис)."""
 
     mock_response = {
         "recommendations": [
@@ -208,7 +197,11 @@ async def test_pro_analyze_vector_search(authenticated_client: AsyncClient, mock
         ]
     }
 
-    mocker.patch("app.endpoints.place.get_places_by_vibe", return_value=mock_response, new_callable=AsyncMock)
+    mocker.patch(
+        "app.endpoints.place.get_places_by_vibe",
+        return_value=mock_response,
+        new_callable=AsyncMock,
+    )
 
     payload = {
         "query": "quiet bar",

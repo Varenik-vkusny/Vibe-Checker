@@ -61,9 +61,7 @@ export default function AdminDashboard() {
                 <p className="text-zinc-500 dark:text-zinc-400">{t.admin.subtitle}</p>
             </div>
 
-            {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* Total Users */}
                 <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.totalUsers}</CardTitle>
@@ -75,7 +73,6 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Active Tasks */}
                 <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.activeTasks}</CardTitle>
@@ -87,7 +84,6 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Database Health */}
                 <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.dbStatus}</CardTitle>
@@ -109,7 +105,6 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* System Activity (Mocked KPI) */}
                 <Card className="border-border shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">{t.admin.systemLoad.title}</CardTitle>
@@ -122,7 +117,6 @@ export default function AdminDashboard() {
                 </Card>
             </div>
 
-            {/* Main Chart */}
             <Card className="col-span-4 border-border shadow-sm">
                 <CardHeader>
                     <CardTitle>{t.admin.weeklyActivity}</CardTitle>

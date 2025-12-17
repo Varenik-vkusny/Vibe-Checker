@@ -31,7 +31,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
 export default function MapClient() {
   const [query, setQuery] = useState('');
   const [places, setPlaces] = useState<any[]>([]);
-  const [center, setCenter] = useState<[number, number]>([51.505, -0.09]); // Default London
+  const [center, setCenter] = useState<[number, number]>([51.505, -0.09]);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<SearchSettings>({
     acoustics: 50,
@@ -41,7 +41,6 @@ export default function MapClient() {
     restrictions: []
   });
 
-  // Load user preferences on mount
   useEffect(() => {
     const loadPreferences = async () => {
       try {
@@ -112,7 +111,6 @@ export default function MapClient() {
           </form>
         </Card>
 
-        {/* Search Settings */}
         <SearchSettingsPanel
           settings={settings}
           onSettingsChange={setSettings}

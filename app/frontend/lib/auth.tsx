@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for token on mount
     const token = getCookie('access_token');
     if (token) {
       try {

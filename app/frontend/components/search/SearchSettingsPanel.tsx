@@ -58,12 +58,10 @@ export function SearchSettingsPanel({ settings, onSettingsChange, className }: S
             <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-sm tracking-tight">SEARCH SETTINGS</h4>
                 <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setIsOpen(!isOpen)}>
-                    {/* Using a visual toggle logic could go here if we wanted to collapse it */}
                 </Button>
             </div>
 
             <div className="space-y-6">
-                {/* Acoustics */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
                         <span>Quiet</span>
@@ -79,7 +77,6 @@ export function SearchSettingsPanel({ settings, onSettingsChange, className }: S
                     />
                 </div>
 
-                {/* Lighting */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
                         <span>Dim</span>
@@ -94,7 +91,6 @@ export function SearchSettingsPanel({ settings, onSettingsChange, className }: S
                     />
                 </div>
 
-                {/* Crowdedness */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
                         <span>Empty</span>
@@ -109,7 +105,6 @@ export function SearchSettingsPanel({ settings, onSettingsChange, className }: S
                     />
                 </div>
 
-                {/* Budget */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
                         <span>Economy</span>
@@ -124,7 +119,6 @@ export function SearchSettingsPanel({ settings, onSettingsChange, className }: S
                     />
                 </div>
 
-                {/* Restrictions */}
                 <div className="space-y-2 pt-2 border-t">
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground">Restrictions (Exclude)</Label>
                     <Input

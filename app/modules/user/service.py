@@ -70,7 +70,7 @@ class UserService:
         await self.user_repo.db.commit()
 
     async def get_user_preferences(self, user_id: int):
-        """Get user preferences"""
+
         user_db = await self.user_repo.find_one(id=user_id)
 
         if not user_db:
@@ -83,11 +83,13 @@ class UserService:
             lighting=user_db.preferences_lighting,
             crowdedness=user_db.preferences_crowdedness,
             budget=user_db.preferences_budget,
-            restrictions=user_db.preferences_restrictions or []
+            restrictions=user_db.preferences_restrictions or [],
         )
 
-    async def update_user_preferences(self, user_id: int, prefs: schemas.UserPreferencesUpdate):
-        """Update user preferences"""
+    async def update_user_preferences(
+        self, user_id: int, prefs: schemas.UserPreferencesUpdate
+    ):
+
         user_db = await self.user_repo.find_one(id=user_id)
 
         if not user_db:
@@ -95,7 +97,6 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден!"
             )
 
-        # Update only provided fields
         if prefs.acoustics is not None:
             user_db.preferences_acoustics = prefs.acoustics
         if prefs.lighting is not None:

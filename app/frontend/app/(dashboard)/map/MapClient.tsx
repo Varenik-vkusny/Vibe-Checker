@@ -8,7 +8,6 @@ import { ResultsSidebar } from './_components/ResultsSidebar';
 import { MobileBottomSheet } from './_components/MobileBottomSheet';
 import { useNav } from '@/context/NavContext';
 import { LocationData } from '@/types/location';
-// ВАЖНО: Импортируем хук нормально
 import { useMap } from './_components/MapContext';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { favoritesService } from '@/services/favorites';
@@ -20,19 +19,16 @@ interface MapClientProps {
   userLon?: number;
 }
 
-// --- КОМПОНЕНТ МАРКЕРА ПОЛЬЗОВАТЕЛЯ (Внутри файла, но снаружи MapClient) ---
 const UserLocationMarker = ({ coordinates }: { coordinates: [number, number] }) => {
-  const { map, mapglAPI } = useMap(); // Используем хук легально
+  const { map, mapglAPI } = useMap(); 
   const markerRef = useRef<any>(null);
 
   useEffect(() => {
     if (!map || !mapglAPI || !coordinates) return;
 
-    // Удаляем старый, если есть
     if (markerRef.current) markerRef.current.destroy();
 
     try {
-      // Рисуем красивую точку
       markerRef.current = new mapglAPI.CircleMarker(map, {
         coordinates: coordinates,
         radius: 14,
@@ -54,16 +50,13 @@ const UserLocationMarker = ({ coordinates }: { coordinates: [number, number] }) 
   return null;
 };
 
-// --- ОСНОВНОЙ КОМПОНЕНТ ---
 const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
   const { setNavHidden } = useNav();
   const { location: realUserLocation } = useUserLocation();
 
-  // Дефолт (Астана/Алматы), если координат нет
-  // 2GIS порядок: [LON (Долгота), LAT (Широта)]
   const defaultCenter: [number, number] = (userLon && userLat)
     ? [userLon, userLat]
-    : [71.4304, 51.1282]; // Астана по дефолту
+    : [71.4304, 51.1282]; 
 
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
@@ -71,9 +64,7 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
 
   const mapRef = useRef<any>(null);
 
-  // 1. Загрузка данных
   useEffect(() => {
-    // Лог для отладки
     console.log("MapClient Init -> Mode:", mode);
 
     if (mode === 'analysis') {
@@ -83,17 +74,13 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
           const parsedLocations: LocationData[] = JSON.parse(stored);
           console.log("📍 Loaded locations from Storage:", parsedLocations.length);
 
-          // Initial set
           setLocations(parsedLocations);
 
-          // Fetch favorites and update
           favoritesService.getFavorites().then(favs => {
             const favIds = new Set(favs.map(f => f.id));
             const favGoogleIds = new Set(favs.map(f => f.google_place_id).filter(Boolean));
 
             const updatedLocations = parsedLocations.map(loc => {
-              // loc.id is likely the Google Place ID string in Pro Mode results
-              // loc.place_id is the internal DB ID number (if available)
               const isSaved = favGoogleIds.has(loc.id) || (loc.place_id && favIds.has(loc.place_id));
               return {
                 ...loc,
@@ -117,16 +104,12 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
     }
   }, [mode]);
 
-  // 2. Инициализация карты
   const handleMapInit = useCallback((mapInstance: any) => {
     mapRef.current = mapInstance;
     console.log("🗺️ Map Initialized");
 
-    // Центрируем карту
     if (locations.length > 0) {
-      // Берем первую точку
       const first = locations[0];
-      // Проверка на валидность координат перед полетом
       if (first.coordinates && first.coordinates.length === 2) {
         mapInstance.setCenter(first.coordinates);
         mapInstance.setZoom(13);
@@ -141,7 +124,6 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
     setSelectedLocation(loc);
     setIsSheetExpanded(true);
     if (mapRef.current) {
-      // Dynamic Padding: 45% of window height to center pin in top area
       const bottomPadding = typeof window !== 'undefined' ? window.innerHeight * 0.45 : 300;
 
       mapRef.current.setCenter(loc.coordinates, {
@@ -182,7 +164,6 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
       })
     );
 
-    // Also update selectedLocation if it matches
     if (selectedLocation && String(selectedLocation.place_id) === placeId) {
       setSelectedLocation(prev => prev ? ({
         ...prev,
@@ -202,14 +183,13 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
             query={query}
             onSelect={handleSelect}
             onBack={handleBack}
-            isVisible={true} // Always visible if rendered
+            isVisible={true} 
             userLocation={realUserLocation}
             onInteractionUpdate={handleInteractionUpdate}
           />
         </aside>
       )}
 
-      {/* --- MOBILE BOTTOM SHEET --- */}
       {mode === 'analysis' && locations.length > 0 && (
         <MobileBottomSheet
           locations={locations}
@@ -223,24 +203,20 @@ const MapClient = ({ mode, query, userLat, userLon }: MapClientProps) => {
         />
       )}
 
-      {/* --- MAP AREA --- */}
       <main className="flex-1 h-full relative min-w-0 z-0 bg-zinc-100 dark:bg-zinc-900">
         <MapWrapper
           initialCenter={defaultCenter}
           onMapInit={handleMapInit}
           className="w-full h-full"
         >
-          {/* Controls - Moved to Bottom Right */}
           <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
             <GeolocationControl />
           </div>
 
-          {/* 1. User Marker */}
           {userLat && userLon && (
             <UserLocationMarker coordinates={[userLon, userLat]} />
           )}
 
-          {/* 2. Place Markers */}
           {locations.map((loc) => (
             <MapMarker
               key={loc.id}

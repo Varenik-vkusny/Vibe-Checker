@@ -173,6 +173,8 @@ export const translations = {
       searchPlaceholder: 'Describe the vibe... (e.g., "Dark techno club")',
       surpriseMe: 'Surprise Me',
       or: 'OR',
+      analyzing: 'Analyzing',
+      compiling: 'Compiling results...',
       loading: {
         scanning: { title: 'AI DISCOVERY', sub: 'Scanning location...' },
         filtering: { title: 'SEARCHING', sub: 'Reading reviews & analyzing...' },
@@ -266,6 +268,8 @@ export const translations = {
       like: 'Like',
       visited: 'Visited',
       markVisited: 'Mark Visited',
+      compareWith: 'Compare with {name}',
+      selectToCompare: 'Select a place to compare',
     }
   },
   ru: {
@@ -440,6 +444,8 @@ export const translations = {
       searchPlaceholder: 'Опишите вайб... (например, "Темный техно клуб")',
       surpriseMe: 'Удиви меня',
       or: 'ИЛИ',
+      analyzing: 'Анализ',
+      compiling: 'Обработка результатов...',
       loading: {
         scanning: { title: 'AI ПОИСК', sub: 'Сканирование локации...' },
         filtering: { title: 'ПОИСК', sub: 'Чтение отзывов и анализ...' },
@@ -533,6 +539,8 @@ export const translations = {
       like: 'Нравится',
       visited: 'Посещено',
       markVisited: 'Отметить как посещенное',
+      compareWith: 'Сравнить с {name}',
+      selectToCompare: 'Выберите место для сравнения',
     }
   },
   kz: {
@@ -707,6 +715,8 @@ export const translations = {
       searchPlaceholder: 'Вайбты сипаттаңыз... (мысалы, "Күңгірт техно клуб")',
       surpriseMe: 'Мені таң қалдыр',
       or: 'НЕМЕСЕ',
+      analyzing: 'Талдау',
+      compiling: 'Нәтижелерді өңдеу...',
       loading: {
         scanning: { title: 'AI ІЗДЕУ', sub: 'Локацияны сканерлеу...' },
         filtering: { title: 'ІЗДЕУ', sub: 'Пікірлерді оқу және талдау...' },
@@ -800,6 +810,10 @@ export const translations = {
       like: 'Ұнату',
       visited: 'Бардым',
       markVisited: 'Барғанымды белгілеу',
+      compareWith: '{name} деген салыстыру',
+      selectToCompare: 'Салыстыру үшін орын таңдаңыз',
     }
   },
 };
+
+export type Translations = typeof translations.en;

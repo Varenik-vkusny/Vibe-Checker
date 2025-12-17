@@ -6,7 +6,6 @@ from .modules.admin.dependencies import get_current_admin_user
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-# Import all models here to prevent circular import errors with SQLAlchemy
 from app.modules.analysis_result import models as analysis_result_models
 from app.modules.favorites import models as favorites_models
 from app.modules.parsing import models as parsing_models
@@ -99,6 +98,3 @@ app.include_router(favorites_router, prefix="/favorites", tags=["Favorites"])
 @app.get("/", status_code=status.HTTP_200_OK)
 async def hello():
     return {"message": "Hello Timurka!"}
-
-
-# Force reload

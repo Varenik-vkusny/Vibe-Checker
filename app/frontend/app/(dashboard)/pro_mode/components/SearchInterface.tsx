@@ -19,7 +19,6 @@ export const SearchInterface = ({ inputValue, setInputValue, onSubmit, onSuggest
   return (
     <div className="pointer-events-auto w-full max-w-xl p-6 flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500">
 
-      {/* Header - Minimalist */}
       <div className="text-center space-y-3">
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-zinc-900 dark:text-white">
           {t.pro.title}
@@ -29,7 +28,6 @@ export const SearchInterface = ({ inputValue, setInputValue, onSubmit, onSuggest
         </p>
       </div>
 
-      {/* Input Form - Industrial Style */}
       <form onSubmit={onSubmit} className="w-full relative group">
         <UnifiedSearchInput
           value={inputValue}
@@ -52,14 +50,12 @@ export const SearchInterface = ({ inputValue, setInputValue, onSubmit, onSuggest
         />
       </form>
 
-      {/* Error Message */}
       {error && (
         <div className="text-destructive text-xs font-medium border border-destructive/20 bg-destructive/5 px-3 py-1 rounded-sm animate-in fade-in slide-in-from-top-2">
           {error}
         </div>
       )}
 
-      {/* Suggestions & Actions */}
       <div className="space-y-6 w-full flex flex-col items-center">
         <div className="flex flex-wrap justify-center gap-2">
           {SUGGESTIONS.map((s) => (

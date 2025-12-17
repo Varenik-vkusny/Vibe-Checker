@@ -24,15 +24,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className="flex min-h-screen bg-zinc-50 dark:bg-black font-sans">
-            {/* Sidebar */}
             <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 backdrop-blur-xl">
                 <div className="flex h-full flex-col">
-                    {/* Header */}
                     <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
                         <span className="text-lg font-semibold tracking-tight">Admin Panel</span>
                     </div>
 
-                    {/* Navigation */}
                     <nav className="flex-1 space-y-1 p-4">
                         {links.map((link) => {
                             const Icon = link.icon;
@@ -55,7 +52,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         })}
                     </nav>
 
-                    {/* Footer */}
                     <div className="border-t border-zinc-200 dark:border-zinc-800 p-4">
                         <Button
                             variant="outline"
@@ -69,7 +65,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
             </aside>
 
-            {/* Main Content */}
             <main className="ml-64 flex-1 p-8">
                 <div className="mx-auto max-w-6xl space-y-8">
                     {children}

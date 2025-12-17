@@ -13,7 +13,6 @@ export const LoadingHUD = ({ title, subtitle }: LoadingHUDProps) => {
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none bg-background/80 backdrop-blur-sm animate-in fade-in duration-500">
 
       <div className="flex flex-col items-center gap-6">
-        {/* Simple Modern Spinner */}
         <div className="relative">
           <div className="w-16 h-16 rounded-full border-4 border-zinc-200 dark:border-zinc-800" />
           <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin" />

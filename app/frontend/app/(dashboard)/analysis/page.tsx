@@ -25,7 +25,6 @@ import { InteractionToolbar } from '@/components/map/InteractionToolbar';
 import { toast } from 'sonner';
 import { favoritesService } from '@/services/favorites';
 
-// Relaxed Schema to allow Text Search
 const analysisSchema = z.object({
   query: z.string().min(1, 'Please enter a URL or Place Name'),
 });
@@ -53,7 +52,6 @@ export default function AnalysisPage() {
     resolver: zodResolver(analysisSchema),
   });
 
-  // Get user location on mount
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -65,17 +63,14 @@ export default function AnalysisPage() {
         },
         (error) => {
           console.log('Geolocation error:', error);
-          // Fallback to default location (Astana)
           setUserLocation({ lat: 51.1694, lon: 71.4491 });
         }
       );
     } else {
-      // Fallback if geolocation not supported
       setUserLocation({ lat: 51.1694, lon: 71.4491 });
     }
   }, []);
 
-  // --- API HANDLERS ---
 
   const performAnalysis = async (url: string) => {
     setLoading(true);
@@ -125,18 +120,10 @@ export default function AnalysisPage() {
   };
 
   const handleCandidateClick = (candidate: any) => {
-    // Construct a URL that the backend parser can understand or use as a key
-    // If it's a library item, it has an ID.
-    // If result from Google, it has google_place_id.
-    // The backend expects a URL to 'scrape' or analyze.
-    // Since we already have basic info, arguably we could skip scraping if library?
-    // But /analyze endpoint is designed to take a URL.
-    // Let's construct a standard Google Maps URL which the backend parser likely supports.
     if (candidate.google_place_id) {
       const validUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(candidate.name)}&query_place_id=${candidate.google_place_id}`;
       performAnalysis(validUrl);
     } else {
-      // Fallback
       performAnalysis(candidate.name);
     }
   };
@@ -169,7 +156,6 @@ export default function AnalysisPage() {
     }
   };
 
-  // --- EFFECT: Handle URL Params ---
   useEffect(() => {
     const urlParam = searchParams.get('url');
     if (urlParam && !initialized.current) {
@@ -179,7 +165,6 @@ export default function AnalysisPage() {
     }
   }, [searchParams, setValue]);
 
-  // derived state
   const isIdle = !loading && !result && !searchCandidates;
 
   const scores = result ? [
@@ -197,7 +182,6 @@ export default function AnalysisPage() {
     )}>
       <div className={cn("w-full max-w-4xl mx-auto transition-all duration-500 ease-in-out", isIdle ? "space-y-12" : "space-y-6")}>
 
-        {/* HERO SECTION */}
         <div className="flex flex-col items-center text-center md:items-start md:text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
           {isIdle && (
             <>
@@ -228,9 +212,7 @@ export default function AnalysisPage() {
           </form>
         </div>
 
-        {/* STATE HANDLING */}
 
-        {/* 1. LOADING */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="w-12 h-12 border-4 border-zinc-800 border-t-white rounded-full animate-spin" />
@@ -238,7 +220,6 @@ export default function AnalysisPage() {
           </div>
         )}
 
-        {/* 2. SEARCH CANDIDATES (Discovery Mode) */}
         {!loading && searchCandidates && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-500">
             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4 text-center md:text-left">{t.analysis.didYouMean}</h3>
@@ -275,14 +256,11 @@ export default function AnalysisPage() {
             ))}
           </div>
         )}
-        {/* 3. ANALYSIS RESULT (Result Mode) */}
         {!loading && result && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 items-stretch">
 
-            {/* HEADER: Technical Report Style */}
             <div className="lg:col-span-3 flex flex-col gap-4 mb-2 pb-6 border-b border-zinc-200 dark:border-zinc-800">
 
-              {/* Row 1: Title & Action */}
               <div className="flex justify-between items-start">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
                   {result.place_info.name}
@@ -290,7 +268,7 @@ export default function AnalysisPage() {
                 <div className="flex items-center gap-2">
                   <InteractionToolbar
                     placeId={result.place_info.google_place_id || String(result.place_info.id || '0')}
-                    initialLikeState={false} // Default to false as we might not have this data yet
+                    initialLikeState={false} 
                     initialDislikeState={false}
                     initialVisitedState={false}
                     initialSavedState={isBookmarked}
@@ -302,7 +280,6 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* Row 2: Metadata Strip */}
               <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
                 <Badge variant="outline" className="font-mono text-xs px-2 py-1 h-auto rounded border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50">
                   RESTAURANT
@@ -318,7 +295,6 @@ export default function AnalysisPage() {
                 </Badge>
               </div>
 
-              {/* Row 3: The Verdict Badge */}
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20">
                   <div className="relative flex h-2 w-2">
@@ -333,7 +309,6 @@ export default function AnalysisPage() {
 
             </div>
 
-            {/* PHOTO GALLERY (Accordion) */}
             {(result.place_info?.photos?.length > 0 || result.place_info?.imageUrl) && (
               <div className="lg:col-span-3 -mt-4 mb-2 pb-2">
                 <Accordion type="single" collapsible className="w-full" defaultValue="photos">
@@ -360,7 +335,6 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* AREA A: The Verdict (Main) */}
             <div className="lg:col-span-2 h-full">
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm h-full flex flex-col">
                 <div className="flex items-center gap-2 mb-6">
@@ -384,7 +358,6 @@ export default function AnalysisPage() {
               </div>
             </div>
 
-            {/* AREA B: Attributes (Sidebar) */}
             <div className="lg:col-span-1 h-full">
               <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-6">{t.compare.featureAnalysis || 'Environment'}</h3>
@@ -401,7 +374,6 @@ export default function AnalysisPage() {
               </div>
             </div>
 
-            {/* AREA C: Metrics (Bottom) */}
             <div className="lg:col-span-3">
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8">
                 <div className="flex justify-between items-end mb-8">
@@ -411,7 +383,6 @@ export default function AnalysisPage() {
                   </div>
                 </div>
 
-                {/* MOBILE: Label-on-Top Stack */}
                 <div className="md:hidden space-y-6">
                   {scores.map((item) => (
                     <div key={item.name}>
@@ -429,7 +400,6 @@ export default function AnalysisPage() {
                   ))}
                 </div>
 
-                {/* DESKTOP: Recharts */}
                 <div className="hidden md:block h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={scores} layout="vertical" margin={{ left: 0, right: 30 }}>
@@ -457,7 +427,6 @@ export default function AnalysisPage() {
           </div>
         )}
 
-        {/* 4. SKELETON (Idle Mode) */}
         {!loading && !result && !searchCandidates && (
           <SkeletonAnalysis />
         )}

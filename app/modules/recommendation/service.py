@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 async def get_user_context(user_id: int, db: AsyncSession) -> str:
 
     interactions = await get_user_interactions_summary(db, user_id)
-    
+
     try:
         stmt_logs = (
             select(UserLog)
@@ -151,8 +151,8 @@ async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
     generated_query = await generate_discovery_query(context, current_time, lat, lon)
     logger.info(f"Generated Inspire Query: {generated_query}")
 
-    # Load user preferences
     from ..user.repo import UserRepo
+
     user_repo = UserRepo(db)
     user = await user_repo.find_one(id=user_id)
 
@@ -165,7 +165,7 @@ async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
         lighting=user.preferences_lighting if user else 50,
         crowdedness=user.preferences_crowdedness if user else 50,
         budget=user.preferences_budget if user else 50,
-        restrictions=user.preferences_restrictions if user else []
+        restrictions=user.preferences_restrictions if user else [],
     )
 
     try:
@@ -174,17 +174,18 @@ async def inspire_me(user_id: int, lat: float, lon: float, db: AsyncSession):
         logger.error(f"Pro Mode failed inside Inspire Me: {e}")
         raise e
 
-    # --- FILTER DISLIKED PLACES ---
     from ..interactions.service import get_user_disliked_google_place_ids
+
     disliked_ids = await get_user_disliked_google_place_ids(db, user_id)
-    
+
     if disliked_ids and results.recommendations:
         original_count = len(results.recommendations)
         results.recommendations = [
-            r for r in results.recommendations 
-            if r.get("place_id") not in disliked_ids
+            r for r in results.recommendations if r.get("place_id") not in disliked_ids
         ]
-        logger.info(f"Filtered {original_count - len(results.recommendations)} disliked places.")
+        logger.info(
+            f"Filtered {original_count - len(results.recommendations)} disliked places."
+        )
 
     await log_user_action(
         db,

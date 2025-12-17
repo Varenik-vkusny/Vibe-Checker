@@ -13,17 +13,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession, user_id: Optional[int] = None):
+async def get_places_by_vibe(
+    user_query: UserRequest, db: AsyncSession, user_id: Optional[int] = None
+):
     start_total = time.time()
     logger.info(f"[START] Processing query: '{user_query.query}'")
-    
-    # Load user preferences if user_id provided and preferences not explicitly set
+
     if user_id:
         from ..user.repo import UserRepo
+
         user_repo = UserRepo(db)
         user = await user_repo.find_one(id=user_id)
         if user:
-            # Only use saved preferences if not explicitly set in request (defaults)
             if user_query.acoustics == 50:
                 user_query.acoustics = user.preferences_acoustics
             if user_query.lighting == 50:
@@ -34,9 +35,11 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession, user_id:
                 user_query.budget = user.preferences_budget
             if not user_query.restrictions:
                 user_query.restrictions = user.preferences_restrictions or []
-            
-            logger.info(f"Loaded user preferences: acoustics={user_query.acoustics}, lighting={user_query.lighting}, "
-                       f"crowdedness={user_query.crowdedness}, budget={user_query.budget}, restrictions={user_query.restrictions}")
+
+            logger.info(
+                f"Loaded user preferences: acoustics={user_query.acoustics}, lighting={user_query.lighting}, "
+                f"crowdedness={user_query.crowdedness}, budget={user_query.budget}, restrictions={user_query.restrictions}"
+            )
 
     place_repo = PlaceRepo(db)
     review_repo = ReviewRepo(db)
@@ -99,7 +102,7 @@ async def get_places_by_vibe(user_query: UserRequest, db: AsyncSession, user_id:
         lighting=user_query.lighting,
         crowdedness=user_query.crowdedness,
         budget=user_query.budget,
-        restrictions=user_query.restrictions
+        restrictions=user_query.restrictions,
     )
     final_result = await explain_selection(user_query.query, top_candidates)
     logger.info(f"[6/6] LLM (Final Rerank): {time.time() - t_start:.2f}s")

@@ -38,7 +38,6 @@ export const MobileBottomSheet = ({
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Auto-collapse on new selection to show "Peek" view
   useEffect(() => {
     if (selectedLocation) {
       setIsExpanded(true);
@@ -68,7 +67,6 @@ export const MobileBottomSheet = ({
   const router = useRouter();
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
-  // --- Url Construction Generator (Shared Logic) ---
   const constructUrl = (place: LocationData) => {
     if (place.place_id && String(place.place_id).includes('0x')) {
       return `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${place.place_id}`;
@@ -97,14 +95,12 @@ export const MobileBottomSheet = ({
         rounded-t-[32px] overflow-hidden flex flex-col max-h-[80vh]
       `}
     >
-      {/* ... (Previous Header Code) ... */}
       <div
         onClick={toggleSheet}
         className="w-full shrink-0 pt-3 pb-4 px-6 bg-white dark:bg-zinc-900 cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors"
       >
         <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-4" />
 
-        {/* Header Content */}
         {selectedLocation ? (
           <div className="flex justify-between items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
@@ -142,7 +138,6 @@ export const MobileBottomSheet = ({
               <Button size="sm" variant="secondary" className="rounded-full h-8">{isExpanded ? 'View Map' : 'View List'}</Button>
             </div>
 
-            {/* Quick Filters (Visible on Collapse Empty State) */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               <Badge variant="outline" className="px-3 py-1.5 gap-1.5 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 font-medium">
                 <Coffee className="w-3.5 h-3.5" /> Coffee
@@ -158,12 +153,10 @@ export const MobileBottomSheet = ({
         )}
       </div>
 
-      {/* --- SCROLLABLE CONTENT (Visible on Expand) --- */}
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         {selectedLocation ? (
           <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-            {/* Horizontal Photos */}
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
               {displayPhotos.map((url: string, i: number) => (
                 <div key={i} className="shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-zinc-100 snap-center">
@@ -172,14 +165,12 @@ export const MobileBottomSheet = ({
               ))}
             </div>
 
-            {/* Actions: Directions Button Component */}
             <DirectionsButton
               lat={selectedLocation.coordinates?.[1] || 0}
               lng={selectedLocation.coordinates?.[0] || 0}
-              address={selectedLocation.name} // Mock address for now
+              address={selectedLocation.name}
             />
 
-            {/* AI Insight */}
             <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-700 rounded-2xl">
               <h3 className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-2 flex items-center gap-2">
                 <Sparkles className="w-3 h-3" /> {t.map.aiInsight}
@@ -189,7 +180,6 @@ export const MobileBottomSheet = ({
               </p>
             </div>
 
-            {/* Vibe Grid */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white dark:bg-black border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl text-center">
                 <Volume2 className="w-5 h-5 mx-auto text-zinc-400 mb-1" />
@@ -208,7 +198,6 @@ export const MobileBottomSheet = ({
               </div>
             </div>
 
-            {/* Reviews Breakdown */}
             <div className="space-y-3">
               <h4 className="font-bold text-sm">{t.map.ratingBreakdown}</h4>
               <div className="flex items-center gap-4">
@@ -223,7 +212,6 @@ export const MobileBottomSheet = ({
                 </div>
               </div>
             </div>
-            {/* Interaction Toolbar */}
             {selectedLocation.place_id && (
               <InteractionToolbar
                 placeId={String(selectedLocation.place_id)}
@@ -234,9 +222,11 @@ export const MobileBottomSheet = ({
               />
             )}
 
-            {/* Extra Actions */}
             <div className="grid grid-cols-2 gap-3 pt-4">
               <Link href={`/analysis?url=${encodeURIComponent(constructUrl(selectedLocation))}`} className="w-full">
+                <Button variant="outline" className="w-full justify-between h-12 rounded-xl border-zinc-200 dark:border-zinc-800">
+                  {t.analysis.title || 'Analysis'} <ArrowRight className="w-4 h-4 ml-2 text-zinc-400" />
+                </Button>
               </Link>
               <Button
                 variant="outline"
@@ -248,7 +238,6 @@ export const MobileBottomSheet = ({
             </div>
           </div>
         ) : (
-          /* LIST VIEW */
           isExpanded && (
             <div className="space-y-2 pt-2">
               {locations.map(loc => {
@@ -294,7 +283,6 @@ export const MobileBottomSheet = ({
         )}
       </div>
 
-      {/* Compare Dialog */}
       <Dialog open={isCompareOpen} onOpenChange={setIsCompareOpen}>
         <DialogContent className="sm:max-w-[425px] w-[90%] rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
           <DialogHeader>

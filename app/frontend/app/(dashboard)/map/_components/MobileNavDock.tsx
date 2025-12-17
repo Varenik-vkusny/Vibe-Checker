@@ -30,7 +30,6 @@ export const MobileNavDock = ({ isHidden }: MobileNavDockProps) => {
     >
       <ul className="flex items-center gap-8">
         {navItems.map((item) => {
-          // Простая логика активного роута
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           
           return (
@@ -46,8 +45,6 @@ export const MobileNavDock = ({ isHidden }: MobileNavDockProps) => {
                   className={`w-6 h-6 ${isActive ? 'fill-primary/20' : ''}`} 
                   strokeWidth={isActive ? 2.5 : 2}
                 />
-                {/* Опционально: текст можно скрыть для минимализма или оставить */}
-                {/* <span className="text-[10px] font-medium">{item.name}</span> */}
               </Link>
             </li>
           );

@@ -40,14 +40,13 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # User Preferences (Vibe DNA)
+
     preferences_acoustics = Column(Integer, default=50, nullable=False)
     preferences_lighting = Column(Integer, default=50, nullable=False)
     preferences_crowdedness = Column(Integer, default=50, nullable=False)
     preferences_budget = Column(Integer, default=50, nullable=False)
     preferences_restrictions = Column(JSON, default=list, nullable=False)
-    
+
     favorites = relationship("Favorite", back_populates="user")
     logs = relationship("UserLog", back_populates="user")
     interactions = relationship("UserInteraction", back_populates="user")

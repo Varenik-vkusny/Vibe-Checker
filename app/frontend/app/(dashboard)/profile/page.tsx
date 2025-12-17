@@ -38,18 +38,16 @@ const getTimeGreeting = (t: any) => {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useLanguage(); // Assuming setLanguage works this way
+  const { language, setLanguage } = useLanguage();
   const router = useRouter();
 
   const { t } = useLanguage();
 
-  // --- STATE ---
   const [greeting, setGreeting] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Vibe DNA
   const [vibeDNA, setVibeDNA] = useState({
     noise: 50,
     light: 50,
@@ -57,18 +55,14 @@ export default function ProfilePage() {
     budget: 50
   });
 
-  // Negative Prompts
   const [negativePrompts, setNegativePrompts] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
 
-  // System
   const [navigator, setNavigator] = useState('google');
 
-  // Debounced values for auto-save
   const debouncedVibeDNA = useDebounce(vibeDNA, 1000);
   const debouncedPrompts = useDebounce(negativePrompts, 1000);
 
-  // --- EFFECT: Load preferences from API ---
   useEffect(() => {
     setGreeting(getTimeGreeting(t));
 
@@ -91,19 +85,16 @@ export default function ProfilePage() {
 
     loadPreferences();
 
-    // Load navigator from localStorage (not in backend)
     const savedNav = localStorage.getItem('navigator_preference');
     if (savedNav) setNavigator(savedNav);
   }, [t]);
 
-  // Save navigator to localStorage
   useEffect(() => {
     if (navigator) {
       localStorage.setItem('navigator_preference', navigator);
     }
   }, [navigator]);
 
-  // Auto-save preferences to API (debounced)
   useEffect(() => {
     if (!isLoading) {
       const savePreferences = async () => {
@@ -111,11 +102,11 @@ export default function ProfilePage() {
         setSaveSuccess(false);
         try {
           await preferencesService.updatePreferences({
-            acoustics: vibeDNA.noise,
-            lighting: vibeDNA.light,
-            crowdedness: vibeDNA.social,
-            budget: vibeDNA.budget,
-            restrictions: negativePrompts
+            acoustics: debouncedVibeDNA.noise,
+            lighting: debouncedVibeDNA.light,
+            crowdedness: debouncedVibeDNA.social,
+            budget: debouncedVibeDNA.budget,
+            restrictions: debouncedPrompts
           });
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 2000);
@@ -127,9 +118,8 @@ export default function ProfilePage() {
       };
       savePreferences();
     }
-  }, [debouncedVibeDNA, debouncedPrompts, isLoading, vibeDNA.noise, vibeDNA.light, vibeDNA.social, vibeDNA.budget, negativePrompts]);
+  }, [debouncedVibeDNA, debouncedPrompts, isLoading]);
 
-  // --- HANDLERS ---
   const handleVibeChange = (key: keyof typeof vibeDNA, value: number) => {
     setVibeDNA(prev => ({ ...prev, [key]: value }));
   };
@@ -157,7 +147,6 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white pt-6 pb-20 px-6 font-sans">
       <div className="max-w-5xl mx-auto space-y-12">
 
-        {/* --- 1. HEADER (Greeting Console) --- */}
         <header className="border-b border-zinc-200 dark:border-zinc-800 pb-8 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">
@@ -186,13 +175,10 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        {/* --- MAIN GRID --- */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
 
-          {/* --- LEFT COLUMN: "THE BRAIN" (7 Cols) --- */}
           <div className="md:col-span-12 lg:col-span-7 space-y-10 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
 
-            {/* MODULE A: VIBE DNA */}
             <section className="space-y-6">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.vibeDNA.title}</h2>
@@ -231,7 +217,6 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            {/* MODULE B: NEGATIVE PROMPTS */}
             <section className="space-y-6">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.vibeKillers.title}</h2>
@@ -265,10 +250,8 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* --- RIGHT COLUMN: "THE SYSTEM" (5 Cols) --- */}
           <div className="md:col-span-12 lg:col-span-5 space-y-10 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
 
-            {/* MODULE C: NAVIGATOR PROTOCOL */}
             <section className="space-y-6">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.navigator.title}</h2>
@@ -307,7 +290,6 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            {/* MODULE D: INTERFACE SETTINGS */}
             <section className="space-y-6">
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white uppercase tracking-tight">{t.profile.interface.title}</h2>
@@ -316,7 +298,6 @@ export default function ProfilePage() {
 
               <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-6">
 
-                {/* Theme Control */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t.profile.interface.theme}</span>
                   <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
@@ -332,7 +313,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Language Control */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t.profile.interface.language}</span>
                   <div className="flex items-center p-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
@@ -350,7 +330,6 @@ export default function ProfilePage() {
 
               </div>
 
-              {/* Sign Out */}
               <Button
                 variant="outline"
                 onClick={handleLogout}

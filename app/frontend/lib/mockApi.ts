@@ -1,6 +1,5 @@
 import { AxiosRequestConfig } from 'axios';
 
-// Mock Data
 const MOCK_USER = {
   id: 1,
   first_name: 'Test',
@@ -9,8 +8,6 @@ const MOCK_USER = {
   created_at: new Date().toISOString(),
 };
 
-// A valid-looking JWT token (header.payload.signature)
-// Payload: { "sub": "test@example.com", "name": "Test User", "iat": 1516239022 }
 const MOCK_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
 const MOCK_TOKEN = {
@@ -18,7 +15,6 @@ const MOCK_TOKEN = {
   token_type: 'bearer',
 };
 
-// Richer Place Data for UI
 const MOCK_PLACES_DETAILED = [
   {
     id: '1',
@@ -79,13 +75,10 @@ const MOCK_PLACES_DETAILED = [
   },
 ];
 
-// ... (Comparison and Analysis mocks remain similar) ...
 
 export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any> => {
   const { url, method } = config;
 
-  // Normalize URL: remove protocol, domain, and optional /api prefix
-  // Transforms "http://127.0.0.1:8000/place/pro_analyze" -> "/place/pro_analyze"
   const cleanUrl = url?.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/api/, '') || '';
 
   console.log(`[Mock API] ${method?.toUpperCase()} ${cleanUrl}`);
@@ -104,12 +97,10 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
     return [200, { ...MOCK_USER, role: 'ADMIN' }];
   }
 
-  // Updated to return the detailed structure
   if (cleanUrl === '/place/pro_analyze' && method === 'post') {
     return [200, { recommendations: MOCK_PLACES_DETAILED }];
   }
 
-  // Fallback for analysis
   if (cleanUrl === '/place/analyze' && method === 'post') {
     return [200, {
       place_info: { name: 'Mock Place' },
@@ -166,7 +157,6 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
     }];
   }
 
-  // 2. Список пользователей (Users)
   if (cleanUrl === '/admin/users' && method === 'get') {
     return [200, [
       { id: 1, first_name: "Admin", last_name: "User", email: "admin@vibe.com", role: "ADMIN", created_at: "2024-01-01" },
@@ -175,7 +165,6 @@ export const handleMockRequest = async (config: AxiosRequestConfig): Promise<any
     ]];
   }
 
-  // 3. Логи (System Logs)
   if (cleanUrl === '/admin/logs' && method === 'get') {
     return [200, [
       "[INFO] System started successfully.",

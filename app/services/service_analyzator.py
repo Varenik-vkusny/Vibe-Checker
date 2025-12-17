@@ -122,7 +122,7 @@ async def get_or_create_place_analysis(
 
         place_info_out = PlaceInfo(
             id=saved_place.id,
-            google_place_id=place_dto.place_id, # place_dto has place_id (Google ID)
+            google_place_id=place_dto.place_id,
             name=place_dto.name,
             google_rating=place_dto.rating,
             url=url,

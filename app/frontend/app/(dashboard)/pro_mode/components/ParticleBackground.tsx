@@ -19,18 +19,15 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
   const PARTICLE_COUNT = 400;
   const PARTICLE_SIZE = 2.5;
 
-  // --- Logic for Shapes ---
   const getTargetPositions = (shapeName: string) => {
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight / 2;
     const positions: {x: number, y: number}[] = [];
 
     if (shapeName === 'mapPin') {
-        // Map pin: circle head + triangle body
         const headRadius = 60;
         const headParticles = Math.floor(PARTICLE_COUNT * 0.6);
 
-        // Circle head
         for (let i = 0; i < headParticles; i++) {
             const angle = (i / headParticles) * Math.PI * 2;
             const r = headRadius * (0.3 + Math.random() * 0.7);
@@ -39,17 +36,12 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
                 y: cy - 40 + Math.sin(angle) * r
             });
         }
-        // Triangle pointer
         const bodyParticles = PARTICLE_COUNT - headParticles;
         for (let i = 0; i < bodyParticles; i++) {
             const t = i / bodyParticles;
-            // Spread x slightly as we go up
             const spreadX = (1 - t) * 60; 
             const x = cx + (Math.random() - 0.5) * spreadX;
-            const y = cy + 20 + t * 100; // Pointing down/up depending on coord system. 
-            // Canvas Y grows downward. Let's make it point to a specific spot.
-            // Actually let's flip it to look like a pin pointing down to center
-            // Head at y-40, tip at y+60
+            const y = cy + 20 + t * 100; 
             positions.push({ x, y });
         }
     } 
@@ -74,13 +66,11 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
                 });
             }
         }
-        // Fill remainder
         while(positions.length < PARTICLE_COUNT) {
              positions.push({ x: cx, y: cy });
         }
     }
     else if (shapeName === 'analysis') {
-        // 3 Cards scanning
         const cardCount = 3;
         const particlesPerCard = Math.floor(PARTICLE_COUNT / cardCount);
 
@@ -101,7 +91,6 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
         }
     }
     else {
-        // IDLE: Big ring / Galaxy
         const radius = 150;
         for(let i=0; i<PARTICLE_COUNT; i++) {
             const angle = (i / PARTICLE_COUNT) * Math.PI * 2;
@@ -116,14 +105,11 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
     return positions;
   };
 
-  // Morphing Logic
   useEffect(() => {
     if (particlesRef.current.length === 0) return;
     
-    // Получаем целевые позиции для текущей формы
     const targets = getTargetPositions(shape); 
 
-    // Запускаем GSAP анимацию для каждой частицы
     particlesRef.current.forEach((p, i) => {
       const t = targets[i] || targets[0];
       gsap.to(p, {
@@ -134,15 +120,11 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
         delay: Math.random() * 0.1
       });
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shape]); // Перезапускать при смене shape
+  }, [shape]); 
 
   useEffect(() => {
-    // 1. Setup 3D (Ambient Background)
     const scene = new THREE.Scene();
-    // scene.background = new THREE.Color(0x000000); // Оставляем прозрачным, управляется CSS
     
-    // Свет
     const rimLight = new THREE.SpotLight(0x4080ff, 10.0);
     rimLight.position.set(-10, 10, -5);
     scene.add(rimLight);
@@ -162,12 +144,10 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
     const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 20;
 
-    // 2. Setup 2D Particles
     const ctx = canvas2DRef.current!.getContext('2d');
     canvas2DRef.current!.width = window.innerWidth;
     canvas2DRef.current!.height = window.innerHeight;
 
-    // Initialize particles centered
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight / 2;
     particlesRef.current = Array.from({ length: PARTICLE_COUNT }).map(() => ({
@@ -175,7 +155,6 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
       y: cy + (Math.random() - 0.5) * 300,
     }));
 
-    // Trigger initial idle shape
     const initialTargets = getTargetPositions('idle');
     particlesRef.current.forEach((p, i) => {
         const t = initialTargets[i];
@@ -183,15 +162,12 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
         p.y = t.y;
     });
 
-    // Animation Loop
     const animate = () => {
       animationFrameIdRef.current = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
 
-      // 3D Render
       renderer.render(scene, camera);
 
-      // 2D Render
       if (ctx) {
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         
@@ -199,10 +175,9 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
         
         ctx.fillStyle = isDark ? '#ffffff' : '#000000';
         ctx.shadowBlur = 8;
-        ctx.shadowColor = isDark ? '#22d3ee' : '#2563EB'; // Cyan glow
+        ctx.shadowColor = isDark ? '#22d3ee' : '#2563EB'; 
 
         particlesRef.current.forEach((p, i) => {
-          // Add micro-movement (noise) so they aren't static
           let floatX = 0;
           let floatY = 0;
           
@@ -239,14 +214,11 @@ export const ParticleBackground = ({ shape }: ParticleBackgroundProps) => {
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  }, []); 
 
   return (
     <>
-      {/* 3D Background Lights */}
       <canvas ref={canvas3DRef} className="absolute inset-0 z-0 opacity-50 pointer-events-none" />
-      {/* 2D Particles Overlay */}
       <canvas ref={canvas2DRef} className="absolute inset-0 z-1 pointer-events-none" />
     </>
   );

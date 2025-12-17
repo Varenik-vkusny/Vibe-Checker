@@ -36,8 +36,6 @@ export default function ComparePage() {
   const performComparison = async (urlA: string, urlB: string) => {
     setLoading(true);
     try {
-      // In a real app, this would be a real API call.
-      // Our mock returns the rich data structure we defined.
       const response = await api.post('/place/compare', {
         url_a: urlA,
         url_b: urlB,
@@ -69,7 +67,6 @@ export default function ComparePage() {
     }
   }, [searchParams, setValue]);
 
-  // Helper to render dollar signs with color logic
   const renderPrice = (level: string, isCheaper: boolean) => (
     <span className={`font-mono font-bold text-lg ${isCheaper ? 'text-green-500' : 'text-zinc-400'}`}>
       {level}
@@ -79,7 +76,6 @@ export default function ComparePage() {
   return (
     <div className={`container mx-auto p-6 max-w-5xl h-[calc(100vh-4rem)] overflow-y-auto flex flex-col pb-32 ${!result ? 'justify-center' : ''}`}>
 
-      {/* --- 1. COMPACT HEADER / INPUTS --- */}
       {showInputs ? (
         <div
           className="space-y-8 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700"
@@ -144,11 +140,9 @@ export default function ComparePage() {
       )}
 
 
-      {/* --- RESULTS VIEW --- */}
       {result && !loading && (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
 
-          {/* --- 2. THE VERDICT CARD --- */}
           <div className="w-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 rounded-xl p-8 md:p-12 border border-zinc-200 dark:border-zinc-800 border-l-4 border-l-green-500 shadow-xl relative overflow-hidden group">
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4 text-green-600 dark:text-green-500 font-mono text-sm tracking-wider uppercase">
@@ -162,12 +156,10 @@ export default function ComparePage() {
                 {t.compare.winner}: <span className="font-bold text-green-600 dark:text-green-500 ml-1">{result.comparison.verdict}</span>
               </div>
             </div>
-            {/* Background noise/texture */}
             <div className="absolute inset-0 opacity-40 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none" />
             <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-green-500/10 rounded-full blur-[80px]" />
           </div>
 
-          {/* --- 3. TALE OF THE TAPE --- */}
           <div className="max-w-4xl mx-auto w-full px-2 md:px-0">
             <div className="grid grid-cols-[1fr_auto_1fr] gap-2 md:gap-8 mb-8 text-[10px] md:text-sm font-mono text-zinc-400 uppercase tracking-widest text-center border-b border-zinc-200 dark:border-zinc-800 pb-4">
               <div className="text-right truncate">
@@ -210,7 +202,6 @@ export default function ComparePage() {
 
                 return (
                   <div key={cat} className="grid grid-cols-[1fr_auto_1fr] gap-2 md:gap-8 items-center group">
-                    {/* Place A Side */}
                     <div className="flex items-center justify-end gap-2 md:gap-3">
                       <span className={`font-mono font-bold text-sm md:text-lg ${winner === 'A' ? 'text-green-500' : 'text-zinc-500'}`}>{scoreA}</span>
                       <div className="h-1.5 md:h-2 flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden flex justify-end max-w-[80px] md:max-w-[120px]">
@@ -221,10 +212,8 @@ export default function ComparePage() {
                       </div>
                     </div>
 
-                    {/* Label */}
                     <div className="w-20 md:w-24 text-center text-[10px] md:text-xs font-bold uppercase text-zinc-500 truncate">{t.analysis.scores[cat as keyof typeof t.analysis.scores]}</div>
 
-                    {/* Place B Side */}
                     <div className="flex items-center justify-start gap-2 md:gap-3">
                       <div className="h-1.5 md:h-2 flex-1 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden max-w-[80px] md:max-w-[120px]">
                         <div
@@ -238,7 +227,6 @@ export default function ComparePage() {
                 );
               })}
 
-              {/* Price Comparison */}
               <div className="grid grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="text-right">
                   {renderPrice(result.place_a.price_level || '$$', (result.place_a.price_level || '$$').length < (result.place_b.price_level || '$$').length)}
@@ -251,7 +239,6 @@ export default function ComparePage() {
             </div>
           </div>
 
-          {/* --- 4. UNIQUE SELLING POINTS --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-12">
             <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
               <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{t.map.match} {result.place_a.name}</div>

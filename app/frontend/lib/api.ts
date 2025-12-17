@@ -25,23 +25,16 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// Mock API Adapter
 if (USE_MOCK_API) {
   const mockAdapter: AxiosAdapter = async (config) => {
     console.log('[API] Mock Adapter processing:', config.url);
 
-    // Skip if it's an external URL (like OpenStreetMap or Analytics)
-    // Checks if url starts with http/https and is NOT localhost
     if (config.url?.match(/^https?:\/\//) && !config.url.includes('127.0.0.1')) {
       console.log('[API] Mock Adapter skipping external URL');
       const defaultAdapter = axios.defaults.adapter as AxiosAdapter;
-      // In some envs, defaults.adapter might be undefined or a list. 
-      // If specific adapter not found, fall back to "http" or "xhr" if available, or just throw.
       if (defaultAdapter) {
         return defaultAdapter(config);
       }
-      // If we are here, we are likely in a confused state. 
-      // Try resolving directly if possible or throw specific error.
       throw new Error('External URL request in Mock Mode failed: No default adapter');
     }
 
@@ -59,7 +52,6 @@ if (USE_MOCK_API) {
       };
     } catch (err) {
       console.error('[API] Mock Adapter Error:', err);
-      // If the mock handler specifically crashes
       return Promise.reject(err);
     }
   };
@@ -74,10 +66,8 @@ api.interceptors.response.use(
       console.error('Request timed out (Client side limit)');
     }
     if (error.response) {
-      // Сервер ответил ошибкой (4xx, 5xx)
       console.error('API Error:', error.response.status, error.response.data);
     } else {
-      // Сервер не ответил вообще
       console.error('Network Error:', error.message);
     }
     return Promise.reject(error);

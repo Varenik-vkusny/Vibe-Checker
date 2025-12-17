@@ -5,15 +5,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.pool import StaticPool
 from unittest.mock import AsyncMock, MagicMock
 
-import redis.asyncio as redis
-
-# Импорты приложения
 from app.database import Base
 from app.dependencies import get_db, get_redis_client
 from app.main import app
 from app.security import hash_password, create_access_token
 
-# Импорт моделей
 from app.modules.user.models import User
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -34,33 +30,23 @@ def anyio_backend():
 
 @pytest.fixture(autouse=True)
 def mock_redis_global(mocker):
-    """
-    Агрессивный мок Redis.
-    Патчим всё: и библиотеку, и пулы, и места использования.
-    """
-    # 1. Создаем фейковый клиент
+
     mock_redis_instance = AsyncMock()
     mock_redis_instance.get.return_value = None
     mock_redis_instance.set.return_value = True
     mock_redis_instance.delete.return_value = True
 
-    # 2. ЯДЕРНЫЙ УДАР: Патчим конструктор класса Redis.
-    # Теперь любой вызов redis.Redis() вернет наш мок.
     mocker.patch("redis.asyncio.Redis", return_value=mock_redis_instance)
 
-    # 3. Патчим пул соединений, чтобы он не пытался резолвить DNS при старте
     mocker.patch("redis.asyncio.ConnectionPool.from_url", return_value=MagicMock())
     mocker.patch("app.config_redis.redis_pool", MagicMock())
 
-    # 4. Патчим конкретные места, где функция уже могла быть импортирована
-    # Это самое важное для твоей ошибки!
     mocker.patch(
         "app.services.service_analyzator.get_redis_client",
         return_value=mock_redis_instance,
     )
     mocker.patch("app.dependencies.get_redis_client", return_value=mock_redis_instance)
 
-    # 5. Dependency Override для FastAPI
     app.dependency_overrides[get_redis_client] = lambda: mock_redis_instance
 
     return mock_redis_instance

@@ -78,6 +78,8 @@ async def insert_data_to_qdrant(places: list[PlaceInfoDTO]):
                 "lon_float": p.location.lon,
                 "location": {"lat": p.location.lat, "lon": p.location.lon},
                 "photos": p.photos,
+                "rating": p.rating,
+                "reviews_count": p.reviews_count,
             },
         )
         for p, vector, text_summary, point_id in zip(places, vectors, texts, ids)

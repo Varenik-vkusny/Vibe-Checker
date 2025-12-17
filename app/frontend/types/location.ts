@@ -9,12 +9,11 @@ export interface LocationData {
   vibeScore?: number;
   description?: string;
   category: string;
-  // New fields for detailed UI
-  priceLevel?: string; // e.g. "$$"
+  priceLevel?: string; 
   openStatus?: 'Open Now' | 'Closed';
   reason?: string;
-  distance?: string; // e.g. "1.2km away"
-  tags?: string[]; // e.g. ["Fast", "Cheap", "Student Friendly"]
+  distance?: string; 
+  tags?: string[]; 
   subRatings?: {
     food: number;
     service: number;

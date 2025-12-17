@@ -34,7 +34,6 @@ export const InteractionToolbar = ({
     const [saved, setSaved] = useState(initialSavedState);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Sync state if props change (e.g. valid data arrival)
     useEffect(() => {
         setLiked(initialLikeState);
         setDisliked(initialDislikeState);
@@ -45,7 +44,6 @@ export const InteractionToolbar = ({
     const handleRate = async (type: 'LIKE' | 'DISLIKE') => {
         if (isLoading) return;
 
-        // Optimistic Update
         const prevLiked = liked;
         const prevDisliked = disliked;
 
@@ -71,7 +69,6 @@ export const InteractionToolbar = ({
 
             await interactWithPlace(placeId, apiRating);
         } catch (error) {
-            // Revert on error
             setLiked(prevLiked);
             setDisliked(prevDisliked);
             onUpdate?.({ liked: prevLiked, disliked: prevDisliked });
