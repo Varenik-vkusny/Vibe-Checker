@@ -187,15 +187,32 @@ export const ResultsSidebar = ({
               </div>
 
               <div className="space-y-3 mb-6">
-                <h4 className="font-bold text-sm">Rating Breakdown</h4>
+                <h4 className="font-bold text-sm">{t.map.rating_breakdown}</h4>
                 <div className="flex items-center gap-4">
                   <div className="text-5xl font-bold tracking-tighter">{selectedLocation.rating}</div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-black dark:bg-white w-[85%]" />
-                    </div>
-                    <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-zinc-400 dark:bg-zinc-600 w-[65%]" />
+                    <div className="flex-1 space-y-3">
+                      {[
+                        { label: t.analysis.scores.food, value: selectedLocation.subRatings?.food || 85, color: 'bg-emerald-500' },
+                        { label: t.analysis.scores.service, value: selectedLocation.subRatings?.service || 80, color: 'bg-blue-500' },
+                        { label: t.analysis.scores.atmosphere, value: selectedLocation.subRatings?.atmosphere || 90, color: 'bg-violet-500' },
+                        { label: t.analysis.scores.value, value: selectedLocation.subRatings?.value || 75, color: 'bg-amber-500' },
+                      ].map((item, i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="flex justify-between text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400">
+                            <span>{item.label}</span>
+                            <span>{(item.value / 20).toFixed(1)}</span>
+                          </div>
+                          <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${item.value}%` }}
+                              transition={{ duration: 1, delay: i * 0.1 }}
+                              className={`h-full rounded-full ${item.color}`}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

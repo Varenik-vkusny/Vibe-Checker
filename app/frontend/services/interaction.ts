@@ -10,7 +10,7 @@ export const interactWithPlace = async (placeId: string | number, type: 'LIKE' |
 
 export const markVisited = async (placeId: string | number, isVisited: boolean) => {
   return await api.post('/interactions/update', {
-    place_id: String(placeId), 
+    place_id: String(placeId),
     is_visited: isVisited
   });
 };
@@ -18,12 +18,16 @@ export const markVisited = async (placeId: string | number, isVisited: boolean) 
 export const getInspiration = async (lat: number, lon: number) => {
   console.log(`[API] Inspire request: ${lat}, ${lon}`);
   const response = await api.post('/rec/inspire', { lat, lon });
-  
-  return response.data.recommendations || []; 
+
+  return response.data.recommendations || [];
 };
 
 export const searchProMode = async (query: string, lat: number, lon: number, radius: number = 5000) => {
   console.log(`[API] Pro Mode request: "${query}" near ${lat}, ${lon}`);
+
+  // Artificial delay to demonstrate loading animation
+  await new Promise(resolve => setTimeout(resolve, 6000));
+
   const response = await api.post('/place/pro_analyze', {
     query,
     lat,

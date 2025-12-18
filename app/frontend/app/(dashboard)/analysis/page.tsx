@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Loader2, Sparkles, Wifi, Sun, Volume2, Globe, ArrowUpRight, Search, Bookmark, ArrowRight, MapPin } from 'lucide-react';
@@ -168,10 +168,10 @@ export default function AnalysisPage() {
   const isIdle = !loading && !result && !searchCandidates;
 
   const scores = result ? [
-    { name: t.analysis.scores.food, score: result.ai_analysis.scores.food, fill: '#e4e4e7' },
-    { name: t.analysis.scores.service, score: result.ai_analysis.scores.service, fill: '#a1a1aa' },
-    { name: t.analysis.scores.atmosphere, score: result.ai_analysis.scores.atmosphere, fill: '#71717a' },
-    { name: t.analysis.scores.value, score: result.ai_analysis.scores.value, fill: '#52525b' },
+    { name: t.analysis.scores.food, score: result.ai_analysis.scores.food, fill: '#10B981' },
+    { name: t.analysis.scores.service, score: result.ai_analysis.scores.service, fill: '#3B82F6' },
+    { name: t.analysis.scores.atmosphere, score: result.ai_analysis.scores.atmosphere, fill: '#8B5CF6' },
+    { name: t.analysis.scores.value, score: result.ai_analysis.scores.value, fill: '#F59E0B' },
   ] : [];
 
   return (
@@ -268,7 +268,7 @@ export default function AnalysisPage() {
                 <div className="flex items-center gap-2">
                   <InteractionToolbar
                     placeId={result.place_info.google_place_id || String(result.place_info.id || '0')}
-                    initialLikeState={false} 
+                    initialLikeState={false}
                     initialDislikeState={false}
                     initialVisitedState={false}
                     initialSavedState={isBookmarked}
@@ -417,7 +417,11 @@ export default function AnalysisPage() {
                         cursor={{ fill: 'transparent' }}
                         content={<CustomTooltip />}
                       />
-                      <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={32} animationDuration={1000} />
+                      <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={32} animationDuration={1000}>
+                        {scores.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

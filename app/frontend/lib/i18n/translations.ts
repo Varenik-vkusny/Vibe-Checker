@@ -176,6 +176,8 @@ export const translations = {
       analyzing: 'Analyzing',
       compiling: 'Compiling results...',
       loading: {
+        processing: { title: 'PROCESSING', sub: 'Compiling final report...' },
+        gathering: { title: 'GATHERING', sub: 'Bringing it all together...' },
         scanning: { title: 'AI DISCOVERY', sub: 'Scanning location...' },
         filtering: { title: 'SEARCHING', sub: 'Reading reviews & analyzing...' },
         analysis: { title: 'ANALYSIS', sub: 'Processing data...' },
@@ -263,7 +265,7 @@ export const translations = {
       noise: 'Noise',
       light: 'Light',
       wifi: 'Wifi',
-      ratingBreakdown: 'Rating Breakdown',
+      rating_breakdown: 'Rating Breakdown',
       fullReport: 'Full Analysis',
       like: 'Like',
       visited: 'Visited',
@@ -447,6 +449,8 @@ export const translations = {
       analyzing: 'Анализ',
       compiling: 'Обработка результатов...',
       loading: {
+        processing: { title: 'ОБРАБОТКА', sub: 'Сбор финального отчета...' },
+        gathering: { title: 'СБОР', sub: 'Собираем все вместе...' },
         scanning: { title: 'AI ПОИСК', sub: 'Сканирование локации...' },
         filtering: { title: 'ПОИСК', sub: 'Чтение отзывов и анализ...' },
         analysis: { title: 'АНАЛИЗ', sub: 'Обработка данных...' },
@@ -718,6 +722,8 @@ export const translations = {
       analyzing: 'Талдау',
       compiling: 'Нәтижелерді өңдеу...',
       loading: {
+        processing: { title: 'ӨҢДЕУ', sub: 'Қорытынды есепті құрастыру...' },
+        gathering: { title: 'ЖИНАУ', sub: 'Барлығын біріктіру...' },
         scanning: { title: 'AI ІЗДЕУ', sub: 'Локацияны сканерлеу...' },
         filtering: { title: 'ІЗДЕУ', sub: 'Пікірлерді оқу және талдау...' },
         analysis: { title: 'ТАЛДАУ', sub: 'Деректерді өңдеу...' },

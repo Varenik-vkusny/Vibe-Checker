@@ -3,7 +3,7 @@ import { NavProvider } from '@/context/NavContext';
 import { GlobalNav } from '@/components/GlobalNav';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
-import { AuthProvider } from '@/lib/auth'; 
+import { AuthProvider } from '@/lib/auth';
 import { Metadata } from 'next';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="h-screen w-screen overflow-hidden flex flex-col bg-background">
 
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 <GlobalNav />
 
-                <div className="pt-16">
+                <div className="flex-1 overflow-hidden relative">
                   {children}
                 </div>
                 <Toaster />

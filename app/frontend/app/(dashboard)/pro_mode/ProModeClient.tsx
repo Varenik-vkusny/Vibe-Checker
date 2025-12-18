@@ -7,6 +7,9 @@ import { useGeolocation } from './components/useGeolocation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { SearchInterface } from './components/SearchInterface';
 import { LoadingHUD } from './components/LoadingHUD';
+import { MorphingBackground } from './components/MorphingBackground';
+
+
 import { getInspiration, searchProMode } from '@/services/interaction';
 import { LocationData } from '@/types/location';
 
@@ -41,6 +44,8 @@ const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
       subRatings: {
         food: Math.floor(Math.random() * 15 + 80),
         service: Math.floor(Math.random() * 15 + 75),
+        atmosphere: Math.floor(Math.random() * 20 + 70),
+        value: Math.floor(Math.random() * 10 + 85),
       },
       vibeSignature: {
         noise: 'Medium',
@@ -52,7 +57,7 @@ const mapBackendResultsToLocationData = (results: any[]): LocationData[] => {
   });
 };
 
-type ProcessState = 'idle' | 'scanning' | 'filtering' | 'analysis';
+type ProcessState = 'idle' | 'scanning' | 'filtering' | 'analysis' | 'found' | 'success';
 
 const ProModeClient = () => {
   const router = useRouter();
@@ -64,13 +69,14 @@ const ProModeClient = () => {
   const [processState, setProcessState] = useState<ProcessState>('idle');
   const [hudText, setHudText] = useState({ title: '', sub: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [isExploding, setIsExploding] = useState(false);
 
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
 
   const loadingStages = [
-    { state: 'scanning' as ProcessState, title: t.pro.loading.scanning.title, sub: t.pro.loading.scanning.sub },
-    { state: 'filtering' as ProcessState, title: t.pro.loading.filtering.title, sub: t.pro.loading.filtering.sub },
-    { state: 'analysis' as ProcessState, title: t.pro.loading.analysis.title, sub: t.pro.loading.analysis.sub },
+    { state: 'scanning' as ProcessState, title: t.pro.loading.scanning.title, sub: t.pro.loading.scanning.sub }, // Glass
+    { state: 'analysis' as ProcessState, title: t.pro.loading.analysis.title, sub: t.pro.loading.analysis.sub }, // Sparkles
+    { state: 'filtering' as ProcessState, title: t.pro.loading.gathering.title, sub: t.pro.loading.gathering.sub }, // Cloud
   ];
 
   useEffect(() => {
@@ -82,7 +88,7 @@ const ProModeClient = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && processState !== 'success') {
       let stepIndex = 0;
 
       const nextStep = () => {
@@ -93,9 +99,11 @@ const ProModeClient = () => {
         stepIndex = (stepIndex + 1) % loadingStages.length;
       };
 
+      // Initial step immediately
       nextStep();
 
-      animationInterval.current = setInterval(nextStep, 3000);
+      // Cycle every 2 seconds
+      animationInterval.current = setInterval(nextStep, 2000);
     } else {
       if (animationInterval.current) {
         clearInterval(animationInterval.current);
@@ -132,21 +140,39 @@ const ProModeClient = () => {
 
       const finalResults = mapBackendResultsToLocationData(rawResults);
 
-      setIsLoading(false);
-      setProcessState('idle');
-
       if (finalResults.length > 0) {
-        localStorage.setItem('proModeResults', JSON.stringify(finalResults));
+        // SUCCESS STATE
+        if (animationInterval.current) clearInterval(animationInterval.current);
 
-        const params = new URLSearchParams({
-          mode: 'analysis',
-          query: isInspire ? 'For You' : query,
-          lat: lat.toString(),
-          lon: lon.toString()
+        // Trigger Explosion
+        setProcessState('success');
+        setIsExploding(true);
+        setHudText({
+          title: "Result Found",
+          sub: "Redirecting you to the map..."
         });
 
-        router.push(`/map?${params.toString()}`);
+        // Wait for particle transition
+        // We can rely on onExplosionComplete, but a fallback timeout is safe
+        setTimeout(() => {
+          localStorage.setItem('proModeResults', JSON.stringify(finalResults));
+
+          const params = new URLSearchParams({
+            mode: 'analysis',
+            query: isInspire ? 'For You' : query,
+            lat: lat.toString(),
+            lon: lon.toString()
+          });
+
+          setIsLoading(false);
+          setIsExploding(false);
+          setProcessState('idle');
+          router.push(`/map?${params.toString()}`);
+        }, 2500); // 2.5s gives enough time for explosion + formation reading
+
       } else {
+        setIsLoading(false);
+        setProcessState('idle');
         alert(t.pro.noResults);
       }
 
@@ -159,6 +185,17 @@ const ProModeClient = () => {
     }
   };
 
+  const getParticleShape = (state: ProcessState): 'search' | 'sparkles' | 'mapPin' | 'cloud' | 'none' => {
+    switch (state) {
+      case 'scanning': return 'search';
+      case 'filtering': return 'cloud'; // Reusing scanning/filtering/analysis logic mapping
+      case 'analysis': return 'sparkles';
+      case 'found': return 'mapPin';
+      case 'success': return 'mapPin';
+      default: return 'none';
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) handleStartProcess(inputValue.trim());
@@ -167,12 +204,14 @@ const ProModeClient = () => {
   return (
     <div className="relative w-full h-[calc(100vh-4rem)] overflow-hidden bg-background text-foreground selection:bg-primary/30 flex flex-col items-center justify-center">
 
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] dark:opacity-[0.07]"
-        style={{
-          backgroundImage: 'linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px)',
-          backgroundSize: '4rem 4rem'
-        }}>
-      </div>
+      <MorphingBackground
+        icon={getParticleShape(processState)}
+        isExploding={isExploding}
+        onExplosionComplete={() => {
+          console.log("Explosion complete");
+          // Optional: Trigger something else if needed
+        }}
+      />
 
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
         <div className="pointer-events-auto w-full flex justify-center">

@@ -36,9 +36,9 @@ export const MapWrapper = ({ children, initialCenter, className, onMapInit }: Ma
       const map = new mapgl.Map(mapContainerRef.current, {
         center: initialCenter,
         zoom: 13,
-        key: '019cced9-f6a6-4f10-b7c3-b6d91a0d0e35', // Демо ключ, замени на свой если есть
+        key: '019cced9-f6a6-4f10-b7c3-b6d91a0d0e35',
         zoomControl: false,
-        // style: initialStyle, // Commented out to potentially fix loading issues
+        style: initialStyle,
       });
 
       mapInstanceRef.current = map;
@@ -68,8 +68,13 @@ export const MapWrapper = ({ children, initialCenter, className, onMapInit }: Ma
       const styleId = resolvedTheme === 'dark'
         ? 'e05ac437-fcc2-4845-ad74-b1de9ce07555'
         : 'c080bb6a-8134-4993-93a1-5b4d8c36a59b';
-      if (mapInstanceRef.current.setStyleById) {
-        // mapInstanceRef.current.setStyleById(styleId);
+
+      // Check if method exists before calling (runtime safety)
+      // @ts-ignore - setStyleById might not be in typed definition yet but exists in API
+      if (typeof mapInstanceRef.current.setStyleById === 'function') {
+        mapInstanceRef.current.setStyleById(styleId);
+      } else {
+        console.warn('setStyleById not found on map instance');
       }
     }
   }, [resolvedTheme, isReady]);

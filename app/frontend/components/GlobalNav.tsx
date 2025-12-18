@@ -54,7 +54,7 @@ export const GlobalNav = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full h-14 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-50 border-b border-zinc-200 dark:border-zinc-800">
+      <header className="w-full shrink-0 h-14 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-50 border-b border-zinc-200 dark:border-zinc-800">
         <div className="h-full px-4 md:px-6 grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-4">
 
           <div className="flex items-center justify-start gap-3">

@@ -23,8 +23,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ];
 
     return (
-        <div className="flex min-h-screen bg-zinc-50 dark:bg-black font-sans">
-            <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 backdrop-blur-xl">
+        <div className="h-full w-full flex overflow-hidden bg-zinc-50 dark:bg-black font-sans">
+            <aside className="w-64 shrink-0 flex flex-col h-full border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 backdrop-blur-xl">
                 <div className="flex h-full flex-col">
                     <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
                         <span className="text-lg font-semibold tracking-tight">Admin Panel</span>
@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
             </aside>
 
-            <main className="ml-64 flex-1 p-8">
+            <main className="flex-1 h-full overflow-y-auto p-8">
                 <div className="mx-auto max-w-6xl space-y-8">
                     {children}
                 </div>
