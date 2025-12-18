@@ -119,9 +119,7 @@ export const ResultsSidebar = ({
                     </span>
                   </div>
                 </div>
-                <Badge className="bg-zinc-900 text-white dark:bg-white dark:text-black font-mono text-xs h-7 px-2">
-                  {selectedLocation.vibeScore}%
-                </Badge>
+                {/* Removed Vibe Score Percentage */}
               </div>
             </div>
           ) : (
@@ -258,9 +256,7 @@ export const ResultsSidebar = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline mb-1">
                         <h3 className="font-semibold text-sm truncate text-zinc-900 dark:text-zinc-200">{loc.name}</h3>
-                        {loc.vibeScore && (
-                          <span className="font-mono text-[10px] font-bold text-green-600 bg-green-50 px-1.5 rounded">{loc.vibeScore}%</span>
-                        )}
+                        {/* Removed Vibe Score Percentage */}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
                         <span>{distanceStr}</span>

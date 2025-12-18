@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     collection_name: str
 
     redis_url: str
+    inference_api_url: str
 
     @computed_field
     @property

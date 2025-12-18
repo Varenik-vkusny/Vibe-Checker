@@ -36,7 +36,8 @@ async def get_place_analysis(
             "url": place.url,
             "tags": result.ai_analysis.tags[:5] if result.ai_analysis.tags else [],
         }
-        await log_user_action(db, user_auth.id, ActionType.ANALYZE, payload)
+        # Use VIEW_PLACE until DB Enum migration is done
+        await log_user_action(db, user_auth.id, ActionType.VIEW_PLACE, payload)
     except Exception as e:
         print(f"Log error: {e}")
 
@@ -60,7 +61,8 @@ async def compare_places(
             "place_b": compare_result.place_b.name,
             "winner": compare_result.comparison.verdict,
         }
-        await log_user_action(db, user_auth.id, ActionType.COMPARE, payload)
+        # Use VIEW_PLACE until DB Enum migration is done
+        await log_user_action(db, user_auth.id, ActionType.VIEW_PLACE, payload)
     except Exception as e:
         print(f"Log error: {e}")
 
