@@ -48,3 +48,5 @@ repomix.config.json
 backups/
 
 logs/
+
+celerybeat-schedule
