@@ -4,10 +4,6 @@ WORKDIR /app
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-COPY requirements-heavy.txt .
-
-RUN pip install --no-cache-dir -r requirements-heavy.txt
-
 RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
