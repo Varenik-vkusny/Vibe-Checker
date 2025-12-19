@@ -6,6 +6,7 @@ from sqlalchemy import select
 from ..celery_app import celery
 from ..database import AsyncLocalSession
 from ..modules.place.models import Place
+from ..modules.parsing.models import ParsingRequest
 from ..modules.analysis_result.models import AnalysisResult
 from .analysis_tasks import analyze_place_task
 from ..config import get_settings

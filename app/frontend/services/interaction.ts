@@ -25,7 +25,6 @@ export const getInspiration = async (lat: number, lon: number) => {
 export const searchProMode = async (query: string, lat: number, lon: number, radius: number = 5000) => {
   console.log(`[API] Pro Mode request: "${query}" near ${lat}, ${lon}`);
 
-  // Artificial delay to demonstrate loading animation
   await new Promise(resolve => setTimeout(resolve, 6000));
 
   const response = await api.post('/place/pro_analyze', {

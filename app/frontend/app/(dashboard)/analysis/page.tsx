@@ -24,6 +24,7 @@ import { UnifiedSearchInput } from '@/components/UnifiedSearchInput';
 import { InteractionToolbar } from '@/components/map/InteractionToolbar';
 import { toast } from 'sonner';
 import { favoritesService } from '@/services/favorites';
+import { RestaurantHeader } from '@/components/RestaurantHeader';
 
 const analysisSchema = z.object({
   query: z.string().min(1, 'Please enter a URL or Place Name'),
@@ -74,14 +75,14 @@ export default function AnalysisPage() {
 
   const performAnalysis = async (url: string) => {
     setLoading(true);
-    setSearchCandidates(null); // Clear candidates
+    setSearchCandidates(null); 
     try {
       const response = await api.post('/place/analyze', {
         url: url,
         limit: 10
       });
       setResult(response.data);
-      setIsBookmarked(false); // Reset bookmark state for new result
+      setIsBookmarked(false); 
     } catch (error) {
       console.error(error);
     } finally {
@@ -91,7 +92,7 @@ export default function AnalysisPage() {
 
   const performSearch = async (query: string) => {
     setLoading(true);
-    setResult(null); // Clear previous result
+    setResult(null); 
     setSearchCandidates(null);
 
     try {
@@ -259,54 +260,18 @@ export default function AnalysisPage() {
         {!loading && result && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 items-stretch">
 
-            <div className="lg:col-span-3 flex flex-col gap-4 mb-2 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-
-              <div className="flex justify-between items-start">
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
-                  {result.place_info.name}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <InteractionToolbar
-                    placeId={result.place_info.google_place_id || String(result.place_info.id || '0')}
-                    initialLikeState={false}
-                    initialDislikeState={false}
-                    initialVisitedState={false}
-                    initialSavedState={isBookmarked}
-                    onUpdate={(updates) => {
-                      if (updates.saved !== undefined) setIsBookmarked(updates.saved);
-                    }}
-                  />
-
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
-                <Badge variant="outline" className="font-mono text-xs px-2 py-1 h-auto rounded border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50">
-                  RESTAURANT
-                </Badge>
-                <Badge variant="outline" className="font-mono text-xs px-2 py-1 h-auto rounded border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50">
-                  {result.ai_analysis.price_level || '$$$'}
-                </Badge>
-                <Badge variant="outline" className="font-mono text-xs px-2 py-1 h-auto rounded border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50">
-                  ★ {result.place_info.rating || '4.8'} ({result.ai_analysis.review_count || '120'})
-                </Badge>
-                <Badge variant="outline" className="font-mono text-xs px-2 py-1 h-auto rounded border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/10">
-                  OPEN
-                </Badge>
-              </div>
-
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20">
-                  <div className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </div>
-                  <span className="text-sm font-medium text-green-700 dark:text-green-400 tracking-wide">
-                    {t.compare.categories.vibe.toUpperCase()}: <span className="font-bold">9.2</span>
-                  </span>
-                </div>
-              </div>
-
+            <div className="lg:col-span-3">
+              <RestaurantHeader
+                name={result.place_info.name}
+                priceLevel={result.ai_analysis.price_level || '$$$'}
+                rating={result.place_info.rating || 4.8}
+                reviewCount={result.place_info.reviews_count || 0}
+                openState={result.place_info.open_state || 'Open'}
+                vibeScore={result.ai_analysis.vibe_score || 9.2}
+                placeId={result.place_info.google_place_id || result.place_info.id}
+                isBookmarked={isBookmarked}
+                onBookmarkToggle={handleBookmark}
+              />
             </div>
 
             {(result.place_info?.photos?.length > 0 || result.place_info?.imageUrl) && (
@@ -362,9 +327,21 @@ export default function AnalysisPage() {
               <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-6">{t.compare.featureAnalysis || 'Environment'}</h3>
                 <div className="space-y-4 flex-1">
-                  <AttributeRow icon={Volume2} label={t.map.noise} value={result.ai_analysis.detailed_attributes.noise_level} />
-                  <AttributeRow icon={Sun} label={t.map.light} value="Dim & Cozy" />
-                  <AttributeRow icon={Wifi} label={t.map.wifi} value={result.ai_analysis.detailed_attributes.service_speed === 'Fast' ? 'High Speed' : 'Moderate'} />
+                  <AttributeRow
+                    icon={Volume2}
+                    label={t.map.noise}
+                    value={(t.analysis.attributes.noise as any)[result.ai_analysis.detailed_attributes.noise_level?.toLowerCase()] || result.ai_analysis.detailed_attributes.noise_level}
+                  />
+                  <AttributeRow
+                    icon={Sun}
+                    label={t.map.light}
+                    value={t.analysis.attributes.light.dimCozy}
+                  />
+                  <AttributeRow
+                    icon={Wifi}
+                    label={t.map.wifi}
+                    value={result.ai_analysis.detailed_attributes.service_speed === 'Fast' ? t.analysis.attributes.wifi.highSpeed : t.analysis.attributes.wifi.moderate}
+                  />
                   <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4" />
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-zinc-600 dark:text-zinc-500">{t.compare.categories.price}</span>
@@ -441,14 +418,14 @@ export default function AnalysisPage() {
 }
 
 const AttributeRow = ({ icon: Icon, label, value }: any) => (
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center">
+  <div className="flex items-center justify-between py-1">
+    <div className="flex items-center gap-3 min-w-0">
+      <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center flex-shrink-0">
         <Icon className="w-4 h-4 text-zinc-400" />
       </div>
-      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</span>
+      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate pr-2">{label}</span>
     </div>
-    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{value || 'N/A'}</span>
+    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 text-right max-w-[60%] leading-snug">{value || 'N/A'}</span>
   </div>
 );
 

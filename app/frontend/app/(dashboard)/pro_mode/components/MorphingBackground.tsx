@@ -9,7 +9,6 @@ interface MorphingBackgroundProps {
     onExplosionComplete?: () => void;
 }
 
-// SVG Paths
 const ICONS = {
     search: "M 85 30 A 55 55 0 1 0 130 95 A 55 55 0 0 0 85 30 M 125 125 L 170 170",
     sparkles: "M 100 50 L 115 90 L 155 105 L 115 120 L 100 160 L 85 120 L 45 105 L 85 90 Z  M 160 40 L 165 55 L 180 60 L 165 65 L 160 80 L 155 65 L 140 60 L 155 55 Z  M 40 140 L 50 160 L 70 170 L 50 180 L 40 200 L 30 180 L 10 170 L 30 160 Z",
@@ -18,12 +17,10 @@ const ICONS = {
     none: ""
 };
 
-const MORPH_PARTICLE_COUNT = 800; // Shape formation
-const BOOM_PARTICLE_COUNT = 800;  // Explosion effects
+const MORPH_PARTICLE_COUNT = 800; 
+const BOOM_PARTICLE_COUNT = 800;  
 const IDLE_VELOCITY_FACTOR = 0.5;
 
-// Vibrant colors for explosion
-// Vibrant neon colors for explosion (Brighter, more saturation)
 const EXPLOSION_COLORS = ['#3B82F6', '#8B5CF6', '#F97316', '#14B8A6', '#EC4899', '#EAB308']; // Tailwind 500s (Visible on Light & Dark)
 
 interface Particle {
@@ -37,20 +34,17 @@ interface Particle {
     alpha: number;
     color: string | null;
     exploding: boolean;
-    // For 2-layer logic
     layer: 'morph' | 'boom';
 }
 
 export const MorphingBackground = ({ icon, isExploding = false, onExplosionComplete }: MorphingBackgroundProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    // Two groups of particles in one array for easier rendering loop
     const particlesRef = useRef<Particle[]>([]);
     const animationFrameRef = useRef<number | null>(null);
     const timeRef = useRef<number>(0);
     const explosionTimeRef = useRef<number>(0);
     const explosionTriggeredRef = useRef<boolean>(false);
 
-    // Helper to sample points from SVG path
     const samplePath = (pathData: string, sampleCount: number) => {
         if (!pathData) return null;
 
@@ -83,13 +77,11 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
         return { points, centerX, centerY };
     };
 
-    // Initialize Particles (Runs once)
     useEffect(() => {
         if (particlesRef.current.length === 0) {
             const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
             const h = typeof window !== 'undefined' ? window.innerHeight : 1000;
 
-            // 1. Create Morph Particles (Monochrome, active in loop)
             for (let i = 0; i < MORPH_PARTICLE_COUNT; i++) {
                 particlesRef.current.push({
                     x: Math.random() * w,
@@ -106,7 +98,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                 });
             }
 
-            // 2. Create Boom Particles (Hidden until explosion)
             for (let i = 0; i < BOOM_PARTICLE_COUNT; i++) {
                 particlesRef.current.push({
                     x: w / 2,
@@ -115,54 +106,46 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                     vy: 0,
                     targetX: w / 2,
                     targetY: h / 2,
-                    size: Math.random() * 3 + 1, // Larger confetti
-                    alpha: 0, // Hidden initially
+                    size: Math.random() * 3 + 1, 
+                    alpha: 0, 
                     color: EXPLOSION_COLORS[Math.floor(Math.random() * EXPLOSION_COLORS.length)],
-                    exploding: true, // They are always "physics" based effectively
+                    exploding: true, 
                     layer: 'boom'
                 });
             }
         }
     }, []);
 
-    // Handle Explosion Sequence logic
     useEffect(() => {
         if (isExploding) {
             explosionTimeRef.current = 0;
             explosionTriggeredRef.current = false;
 
-            // Prepare Boom Particles: Reset to Center (or scattered for gathering)
-            // Strategy: Gather from edges to center? Or just spawn at center.
-            // User: "All particles go into center... then blow up"
-            // Let's scatter Boom particles so they can "gather" to center.
             const w = window.innerWidth;
             const h = window.innerHeight;
 
             particlesRef.current.forEach(p => {
                 if (p.layer === 'boom') {
-                    // Scatter them initially so they can implode
                     const angle = Math.random() * Math.PI * 2;
-                    const r = Math.min(w, h) / 1.5; // Large radius
+                    const r = Math.min(w, h) / 1.5; 
                     p.x = w / 2 + Math.cos(angle) * r;
                     p.y = h / 2 + Math.sin(angle) * r;
                     p.vx = 0;
                     p.vy = 0;
-                    p.alpha = 1; // Make visible
+                    p.alpha = 1; 
                     p.color = EXPLOSION_COLORS[Math.floor(Math.random() * EXPLOSION_COLORS.length)];
                 }
 
-                // Kill GSAP for everything briefly to handle the transition manually
                 if (p.layer === 'morph') {
-                    gsap.killTweensOf(p); // We'll manually control them during implosion
+                    gsap.killTweensOf(p);
                 }
             });
 
         } else {
-            // Reset
             explosionTriggeredRef.current = false;
             particlesRef.current.forEach(p => {
                 if (p.layer === 'boom') {
-                    p.alpha = 0; // Hide boom particles
+                    p.alpha = 0; 
                 }
                 p.exploding = false;
                 p.color = null;
@@ -170,7 +153,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
         }
     }, [isExploding]);
 
-    // Handle Morphing Targets (Only for Morph Layer)
     useEffect(() => {
         const w = window.innerWidth;
         const h = window.innerHeight;
@@ -190,7 +172,7 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
             const pathData = ICONS[icon];
             const morphParticles = particlesRef.current.filter(p => p.layer === 'morph');
             const totalMorph = morphParticles.length;
-            const shapeCount = Math.floor(totalMorph * 0.85); // 85% shape for better definition
+            const shapeCount = Math.floor(totalMorph * 0.85); 
             const noiseCount = totalMorph - shapeCount;
 
             const sampled = samplePath(pathData, shapeCount);
@@ -218,8 +200,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                 p.targetY = t.y;
                 targetIndex++;
 
-                // If NOT exploding, use GSAP.
-                // If exploding, we ignore GSAP because we manually lerp/move them in render loop.
                 if (!isExploding) {
                     gsap.killTweensOf(p);
                     const isShape = targetIndex < newTargets.length && targetIndex < (icon === 'none' ? 0 : Math.floor(MORPH_PARTICLE_COUNT * 0.85));
@@ -236,7 +216,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
 
     }, [icon, isExploding]);
 
-    // Render Loop
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -267,7 +246,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
             ctx.clearRect(0, 0, width, height);
             ctx.save();
 
-            // Background / Morph Layer micro-animations (when not exploding)
             if (!isExploding) {
                 if (icon === 'search') ctx.translate(Math.sin(timeRef.current * 2) * 10, 0);
                 else if (icon === 'sparkles') {
@@ -288,21 +266,17 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
             let allSettled = true;
 
             particlesRef.current.forEach((p, i) => {
-                // PHYSICS ENGINE
                 if (isExploding) {
                     const t = explosionTimeRef.current;
 
                     if (p.layer === 'boom') {
-                        // --- BOOM LAYER LOGIC ---
                         if (t < 0.5) {
-                            // Phase 1: Implode to Center
                             const dx = cx - p.x;
                             const dy = cy - p.y;
-                            p.x += dx * 0.15; // Strong implosion
+                            p.x += dx * 0.15; 
                             p.y += dy * 0.15;
                         } else if (t < 0.6) {
-                            // Phase 2: BOOM Trigger
-                            if (!p.vx && !p.vy) { // Give initial push only once roughly
+                            if (!p.vx && !p.vy) {
                                 const angle = Math.random() * Math.PI * 2;
                                 const force = Math.random() * 15 + 10;
                                 p.vx = Math.cos(angle) * force;
@@ -311,28 +285,20 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                             p.x += p.vx;
                             p.y += p.vy;
                         } else {
-                            // Phase 3: Gravity Fall
                             p.x += p.vx;
                             p.y += p.vy;
-                            p.vy += 0.4; // Gravity
-                            p.vx *= 0.96; // Air resistance
-                            if (p.y > height + 50) p.alpha = 0; // Hide when off screen
+                            p.vy += 0.4; 
+                            p.vx *= 0.96; 
+                            if (p.y > height + 50) p.alpha = 0; 
                         }
                     } else {
-                        // --- MORPH LAYER LOGIC (Icon) ---
-                        // 0-0.5s: Implode with the boom layer? Or just Morph to MapPin targets?
-                        // User wants "Map pin icon should APPEAR with explosion".
-                        // So at 0.5s, it should be visible.
 
                         if (t < 0.5) {
-                            // Phase 1: Also Implode (Suck in cloud)
                             const dx = cx - p.x;
                             const dy = cy - p.y;
                             p.x += dx * 0.1;
                             p.y += dy * 0.1;
                         } else {
-                            // Phase 2: Form Map Pin immediately
-                            // We lerp quickly to target
                             const dx = p.targetX - p.x;
                             const dy = p.targetY - p.y;
                             p.x += dx * 0.1;
@@ -343,7 +309,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                     }
 
                 } else {
-                    // IDLE
                     if (p.layer === 'morph') {
                         p.x += p.vx;
                         p.y += p.vy;
@@ -352,7 +317,6 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
                     }
                 }
 
-                // DRAW
                 if (p.alpha > 0.01) {
                     ctx.beginPath();
                     const floatX = isExploding ? 0 : Math.sin(timeRef.current + i) * 2;
@@ -362,19 +326,19 @@ export const MorphingBackground = ({ icon, isExploding = false, onExplosionCompl
 
                     if (p.layer === 'boom') {
                         ctx.fillStyle = p.color || '#fff';
-                        ctx.globalAlpha = 1; // Force bright
+                        ctx.globalAlpha = 1; 
                     } else {
                         ctx.fillStyle = `${defaultColor}, ${p.alpha})`;
                     }
                     ctx.fill();
-                    ctx.globalAlpha = 1; // Reset
+                    ctx.globalAlpha = 1;
                 }
             });
 
             ctx.restore();
 
             if (isExploding && explosionTimeRef.current > 2.5 && allSettled) {
-                if (onExplosionComplete) onExplosionComplete(); // Only triggers if Map Pin is settled
+                if (onExplosionComplete) onExplosionComplete(); 
             }
         };
 

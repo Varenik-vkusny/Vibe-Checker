@@ -83,7 +83,17 @@ async def parse_google_reviews(url: str, max_reviews: int = 10) -> PlaceInfoDTO:
         place_dto.name = place_info.get("title", "Unknown Place")
         place_dto.address = place_info.get("address", "")
         place_dto.rating = float(place_info.get("rating", 0.0))
+        place_dto.rating = float(place_info.get("rating", 0.0))
         place_dto.reviews_count = int(place_info.get("reviews", 0))
+
+        # Try to get open_state from place_info (Reviews API) or map from hours if available
+        # Note: SerpApi Reviews API 'place_info' object might contain 'extensions' with open info or similar.
+        # But commonly open_state is in Local Results API.
+        # We will try to grab what we can.
+        if "hours" in place_info:
+             place_dto.open_state = str(place_info["hours"])
+        elif "open_state" in place_info:
+             place_dto.open_state = place_info["open_state"]
 
         gps = place_info.get("gps_coordinates", {})
         if gps:

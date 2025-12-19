@@ -36,6 +36,7 @@ class UserOut(BaseModel):
     email: str
     role: UserRole
     created_at: datetime
+    is_active: bool
     preferences: UserPreferences
 
     model_config = ConfigDict(from_attributes=True)
@@ -49,6 +50,7 @@ class UserOut(BaseModel):
             email=user.email,
             role=user.role,
             created_at=user.created_at,
+            is_active=user.is_active,
             preferences=UserPreferences(
                 acoustics=user.preferences_acoustics,
                 lighting=user.preferences_lighting,

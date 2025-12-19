@@ -23,6 +23,7 @@ class Place(Base):
     name = Column(String, nullable=True, index=True)
     google_rating = Column(Float, nullable=True)
     reviews_count = Column(Integer, default=0)
+    open_state = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

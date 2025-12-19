@@ -33,7 +33,6 @@ htmlcov/
 .tox/
 
 # Файлы миграций
-migrations/
 alembic.ini
 
 # Qdrant storage
@@ -49,4 +48,6 @@ backups/
 
 logs/
 
-celerybeat-schedule
+celerybeat-schedule*
+
+migrations/

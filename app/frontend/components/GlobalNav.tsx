@@ -28,12 +28,8 @@ export const GlobalNav = () => {
 
   const isActive = (path: string) => pathname === path;
 
-  // Hybrid Navigation Logic
-  // Map & Pro Mode -> Floating Island (Exploration Mode)
-  // Analysis, Profile, Compare -> Fixed Bottom Bar (Data Mode)
   const isExplorationMode = pathname === '/map' || pathname === '/pro_mode' || pathname === '/';
 
-  // Helper to get Page Name for Breadcrumb
   const getPageTitle = (path: string) => {
     if (path === '/') return t.header.home;
     if (path === '/map') return t.header.places;

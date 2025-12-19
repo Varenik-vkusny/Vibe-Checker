@@ -187,7 +187,7 @@ export const ResultsSidebar = ({
               </div>
 
               <div className="space-y-3 mb-6">
-                <h4 className="font-bold text-sm">{t.map.rating_breakdown}</h4>
+                <h4 className="font-bold text-sm">{t.map.ratingBreakdown}</h4>
                 <div className="flex items-center gap-4">
                   <div className="text-5xl font-bold tracking-tighter">{selectedLocation.rating}</div>
                   <div className="flex-1 space-y-2">

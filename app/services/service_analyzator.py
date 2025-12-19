@@ -85,6 +85,8 @@ async def get_or_create_place_analysis(
                 latitude=existing_place.latitude,
                 longitude=existing_place.longitude,
                 description=existing_place.description,
+                reviews_count=existing_place.reviews_count or 0,
+                open_state=existing_place.open_state,
                 photos=existing_place.photos or [],
             )
             final_response = AIResponseOut(
@@ -100,6 +102,13 @@ async def get_or_create_place_analysis(
             raise HTTPException(status_code=400, detail=f"Analysis failed: {str(e)}")
 
         saved_place = await place_service.save_or_update_place(place_dto)
+        
+        # Ensure additional fields are saved if save_or_update_place didn't catch them
+        # (Assuming save_or_update_place uses DTO to update model)
+        if hasattr(saved_place, 'open_state') and place_dto.open_state:
+             saved_place.open_state = place_dto.open_state
+             await db.commit()
+             
         await analysis_repo.delete(place_id=saved_place.id)
 
         await analysis_service.create_new_analysis(
@@ -129,6 +138,8 @@ async def get_or_create_place_analysis(
             latitude=place_dto.location.lat,
             longitude=place_dto.location.lon,
             description=place_dto.description,
+            reviews_count=place_dto.reviews_count,
+            open_state=place_dto.open_state,
             photos=place_dto.photos,
         )
 

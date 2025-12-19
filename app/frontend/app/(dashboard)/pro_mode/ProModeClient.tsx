@@ -99,10 +99,8 @@ const ProModeClient = () => {
         stepIndex = (stepIndex + 1) % loadingStages.length;
       };
 
-      // Initial step immediately
       nextStep();
 
-      // Cycle every 2 seconds
       animationInterval.current = setInterval(nextStep, 2000);
     } else {
       if (animationInterval.current) {
@@ -141,10 +139,8 @@ const ProModeClient = () => {
       const finalResults = mapBackendResultsToLocationData(rawResults);
 
       if (finalResults.length > 0) {
-        // SUCCESS STATE
         if (animationInterval.current) clearInterval(animationInterval.current);
 
-        // Trigger Explosion
         setProcessState('success');
         setIsExploding(true);
         setHudText({
@@ -152,8 +148,6 @@ const ProModeClient = () => {
           sub: "Redirecting you to the map..."
         });
 
-        // Wait for particle transition
-        // We can rely on onExplosionComplete, but a fallback timeout is safe
         setTimeout(() => {
           localStorage.setItem('proModeResults', JSON.stringify(finalResults));
 
@@ -168,7 +162,7 @@ const ProModeClient = () => {
           setIsExploding(false);
           setProcessState('idle');
           router.push(`/map?${params.toString()}`);
-        }, 2500); // 2.5s gives enough time for explosion + formation reading
+        }, 2500);
 
       } else {
         setIsLoading(false);
@@ -209,7 +203,6 @@ const ProModeClient = () => {
         isExploding={isExploding}
         onExplosionComplete={() => {
           console.log("Explosion complete");
-          // Optional: Trigger something else if needed
         }}
       />
 

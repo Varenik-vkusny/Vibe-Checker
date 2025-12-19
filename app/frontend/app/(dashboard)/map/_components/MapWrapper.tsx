@@ -69,8 +69,6 @@ export const MapWrapper = ({ children, initialCenter, className, onMapInit }: Ma
         ? 'e05ac437-fcc2-4845-ad74-b1de9ce07555'
         : 'c080bb6a-8134-4993-93a1-5b4d8c36a59b';
 
-      // Check if method exists before calling (runtime safety)
-      // @ts-ignore - setStyleById might not be in typed definition yet but exists in API
       if (typeof mapInstanceRef.current.setStyleById === 'function') {
         mapInstanceRef.current.setStyleById(styleId);
       } else {

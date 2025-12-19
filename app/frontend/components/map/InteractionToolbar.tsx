@@ -117,7 +117,7 @@ export const InteractionToolbar = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "h-9 w-9 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
+                    "h-9 w-9 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
                     liked
                         ? "bg-green-500/10 text-green-600 border-green-500/50 hover:bg-green-500/20 hover:text-green-700 hover:border-green-600"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -132,7 +132,7 @@ export const InteractionToolbar = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "h-9 w-9 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
+                    "h-9 w-9 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
                     disliked
                         ? "bg-red-500/10 text-red-600 border-red-500/50 hover:bg-red-500/20 hover:text-red-700 hover:border-red-600"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -147,7 +147,7 @@ export const InteractionToolbar = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "h-9 w-9 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
+                    "h-9 w-9 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
                     visited
                         ? "bg-blue-500/10 text-blue-600 border-blue-500/50 hover:bg-blue-500/20 hover:text-blue-700 hover:border-blue-600"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -162,7 +162,7 @@ export const InteractionToolbar = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "h-9 w-9 shrink-0 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
+                    "h-9 w-9 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-800 transition-all duration-200 hover:scale-105 active:scale-95",
                     saved
                         ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/50 hover:bg-yellow-500/20 hover:text-yellow-700 hover:border-yellow-600"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"

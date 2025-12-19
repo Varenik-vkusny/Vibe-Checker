@@ -11,6 +11,8 @@ class PlaceInfo(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     description: Optional[str] = None
+    reviews_count: Optional[int] = 0
+    open_state: Optional[str] = None
     photos: List[str] = []
 
 
@@ -31,7 +33,9 @@ class PlaceInfoDTO(BaseModel):
     name: str
     address: str = ""
     rating: float = 0.0
+    rating: float = 0.0
     reviews_count: int = 0
+    open_state: Optional[str] = None
     location: Location
     url: Optional[str] = None
     description: Optional[str] = None

@@ -1,7 +1,7 @@
 import json
 import logging
 import math
-import google.generativeai as genai
+from google import genai
 import httpx
 from .schemas import SearchParams, FinalResponse
 from ...config import get_settings
@@ -13,12 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 GOOGLE_API_KEY = settings.gemini_api_key
-genai.configure(api_key=GOOGLE_API_KEY)
-
-model = genai.GenerativeModel(
-    "gemini-2.5-flash-lite",
-    generation_config={"response_mime_type": "application/json"},
-)
+client = genai.Client(api_key=GOOGLE_API_KEY)
 
 INFERENCE_API_URL = settings.inference_api_url
 
@@ -47,7 +42,11 @@ def safe_float(val) -> float:
 async def run_gemini_inference(prompt: str) -> str:
     with PerformanceTimer(f"Gemini Inference (prompt len={len(prompt)})"):
         try:
-            response = await model.generate_content_async(prompt)
+            response = await client.aio.models.generate_content(
+                model="gemini-2.5-flash-lite",
+                contents=prompt,
+                config={"response_mime_type": "application/json"}
+            )
             return response.text
         except Exception as e:
             logger.error(f"Gemini Error: {e}")

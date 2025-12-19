@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from ...database import Base
 
@@ -40,6 +40,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     preferences_acoustics = Column(Integer, default=50, nullable=False)
     preferences_lighting = Column(Integer, default=50, nullable=False)

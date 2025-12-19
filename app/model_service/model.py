@@ -1,6 +1,6 @@
 import json
 import logging
-import google.generativeai as genai
+from google import genai
 import httpx
 import io
 from PIL import Image
@@ -27,7 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
 ALLOWED_TAGS = [
     "quiet",
@@ -147,10 +147,8 @@ async def analyze_place_with_gemini(place: PlaceInfoDTO) -> AIAnalysis:
         model_name = "gemini-2.5-flash-lite"
 
         try:
-            model = genai.GenerativeModel(model_name)
-
-            response = await model.generate_content_async(
-                content_parts, generation_config={"response_mime_type": "application/json"}
+            response = await client.aio.models.generate_content(
+                model=model_name, contents=content_parts, config={"response_mime_type": "application/json"}
             )
 
             result_json = json.loads(response.text)
@@ -215,9 +213,9 @@ async def compare_places_with_gemini(
 
         try:
             # Optimization: Use Flash-Lite
-            model = genai.GenerativeModel("gemini-2.5-flash-lite")
-            response = await model.generate_content_async(
-                prompt, generation_config={"response_mime_type": "application/json"}
+            # Optimization: Use Flash-Lite
+            response = await client.aio.models.generate_content(
+                model="gemini-2.5-flash-lite", contents=prompt, config={"response_mime_type": "application/json"}
             )
             res = json.loads(response.text)
 

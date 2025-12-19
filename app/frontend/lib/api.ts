@@ -2,7 +2,7 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError, AxiosAdap
 import { getCookie } from 'cookies-next';
 import { handleMockRequest } from './mockApi';
 
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API !== 'true';
+const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000',

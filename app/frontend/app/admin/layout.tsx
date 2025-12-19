@@ -20,6 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: '/admin/users', label: t.admin.users, icon: Users },
         { href: '/admin/analyses', label: t.admin.analyses, icon: BarChart3 },
         { href: '/admin/system-logs', label: t.admin.logs, icon: FileText },
+        { href: '/admin/sql', label: t.admin.sql.title, icon: Terminal },
     ];
 
     return (

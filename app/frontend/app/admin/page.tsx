@@ -61,7 +61,7 @@ export default function AdminDashboard() {
                 <p className="text-zinc-500 dark:text-zinc-400">{t.admin.subtitle}</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.totalUsers}</CardTitle>
@@ -81,27 +81,6 @@ export default function AdminDashboard() {
                     <CardContent>
                         <div className="text-2xl font-bold text-zinc-900 dark:text-white">{data.stats.active_tasks}</div>
                         <p className="text-xs text-zinc-500">+19% from last hour</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t.admin.stats.dbStatus}</CardTitle>
-                        <Database className="h-4 w-4 text-zinc-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2">
-                            {data.stats.db_status ? (
-                                <Badge variant="default" className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-0">
-                                    {t.admin.stats.online}
-                                </Badge>
-                            ) : (
-                                <Badge variant="destructive">
-                                    {t.admin.stats.offline}
-                                </Badge>
-                            )}
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-2">{t.admin.stats.lastBackup}: {data.stats.last_backup}</p>
                     </CardContent>
                 </Card>
 

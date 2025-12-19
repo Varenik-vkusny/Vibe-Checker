@@ -131,7 +131,7 @@ const VibeCard = ({ place, onDelete }: { place: VibeCardProps, onDelete: () => v
                     onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                            await favoritesService.toggleFavorite(place.id); 
+                            await favoritesService.toggleFavorite(place.id);
                             onDelete();
                         } catch (err) {
                             console.error(err);
@@ -149,13 +149,7 @@ const VibeCard = ({ place, onDelete }: { place: VibeCardProps, onDelete: () => v
                     <h3 className="font-bold text-zinc-900 dark:text-white text-lg truncate pr-2 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">{place.name}</h3>
                 </div>
 
-                <div className="flex items-center text-sm text-zinc-500 font-medium list-none">
-                    <span>{place.price || "$$"}</span>
-                    <span className="mx-1.5">•</span>
-                    <span>{place.distance || "N/A"}</span>
-                    <span className="mx-1.5">•</span>
-                    <span className="truncate">{place.category || "Place"}</span>
-                </div>
+
 
                 <div className="flex flex-wrap gap-2 mt-2">
                     {place.tags && place.tags.map((tag: string, i: number) => (
