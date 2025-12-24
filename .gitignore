@@ -42,8 +42,6 @@ qdrant_storage/
 local_models_cache/
 model_cache/
 
-repomix.config.json
-
 backups/
 
 logs/
