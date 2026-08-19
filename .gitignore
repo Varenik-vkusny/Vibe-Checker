@@ -49,3 +49,5 @@ logs/
 celerybeat-schedule*
 
 migrations/
+# Repomix dumps (могут захватить .env)
+repomix-output.*
